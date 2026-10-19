@@ -1,42 +1,75 @@
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { DocsMode } from '../src/index.js';
+import { Docs } from '../src/index.js';
+import type { DocsMode, DocsValue } from '../src/index.js';
+import '../src/style.css';
 import './style.css';
 
-function Playground() {
+const sample: DocsValue = [
+  {
+    _key: 'title',
+    _type: 'block',
+    style: 'h2',
+    markDefs: [],
+    children: [{ _key: 'title-text', _type: 'span', text: 'Your first document', marks: [] }],
+  },
+  {
+    _key: 'paragraph',
+    _type: 'block',
+    style: 'normal',
+    markDefs: [],
+    children: [
+      {
+        _key: 'paragraph-text',
+        _type: 'span',
+        text: 'Start typing here. Select some text to make it bold or italic, then switch to View.',
+        marks: [],
+      },
+    ],
+  },
+];
+
+function Playground(): React.JSX.Element {
   const [mode, setMode] = useState<DocsMode>('edit');
+  const [value, setValue] = useState<DocsValue>(() => structuredClone(sample));
 
   return (
-    <main>
-      <header>
-        <p className="eyebrow">TERRA DOCS / LOCAL DEVELOPMENT</p>
-        <h1>Docs playground</h1>
-        <p>A place to develop and inspect the editor in your browser.</p>
+    <>
+      <header className="demo-header">
+        <span>Terra Docs</span>
+        <div role="group" aria-label="Preview mode">
+          <button type="button" onClick={() => setValue([])}>
+            New document
+          </button>
+          <button type="button" onClick={() => setValue(structuredClone(sample))}>
+            Reset document
+          </button>
+          {(['edit', 'view'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={mode === value}
+              onClick={() => setMode(value)}
+            >
+              {value === 'edit' ? 'Edit' : 'View'}
+            </button>
+          ))}
+        </div>
       </header>
-      <section aria-label="Component playground">
-        <div className="toolbar">
-          <span>Component preview</span>
-          <div role="group" aria-label="Preview mode">
-            {(['edit', 'view'] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={mode === value}
-                onClick={() => setMode(value)}
-              >
-                {value === 'edit' ? 'Edit' : 'View'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="placeholder">
-          <code>{`<Docs mode="${mode}" … />`}</code>
-          <h2>Your editor goes here.</h2>
-          <p>The playground is running. The Docs component is not implemented yet.</p>
-        </div>
-      </section>
-      <footer>Edit files in demo/ to explore the UI. Changes refresh automatically.</footer>
-    </main>
+      <main>
+        <section aria-label="Component playground">
+          {mode === 'edit' ? (
+            <Docs mode="edit" value={value} onChange={setValue} />
+          ) : (
+            <Docs mode="view" value={value} />
+          )}
+        </section>
+        <details>
+          <summary>Document value (Portable Text JSON)</summary>
+          <pre aria-label="Document value">{JSON.stringify(value, null, 2)}</pre>
+        </details>
+      </main>
+    </>
   );
 }
 

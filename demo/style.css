@@ -1,7 +1,7 @@
 :root {
   font-family: system-ui, sans-serif;
   color: #22352e;
-  background: #f4f6f3;
+  background: #fff;
   font-synthesis: none;
   line-height: 1.6;
 }
@@ -9,93 +9,79 @@
 * {
   box-sizing: border-box;
 }
-
 body {
   margin: 0;
 }
 
-main {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 64px 24px;
-}
-
-.eyebrow,
-footer {
-  color: #5d6b64;
-  font-size: 12px;
-}
-
-.eyebrow {
-  letter-spacing: 0.12em;
-}
-
-h1 {
-  font-size: clamp(28px, 5vw, 42px);
-  letter-spacing: -0.04em;
-  line-height: 1.2;
-  margin: 16px 0;
-}
-
-header > p:last-child,
-.placeholder p {
-  color: #5d6b64;
-}
-
-section {
-  margin: 32px 0 20px;
-  border: 1px solid #d5ddd6;
-  border-radius: 12px;
-  overflow: hidden;
-  background: white;
-}
-
-.toolbar {
+.demo-header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 16px;
   border-bottom: 1px solid #e4e9e4;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
 }
 
-button {
+.demo-header > span {
+  font-weight: 650;
+}
+.demo-header [role='group'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.demo-header button {
   font: inherit;
-  padding: 8px 16px;
+  padding: 5px 10px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
-
-button[aria-pressed='true'] {
+.demo-header button:hover {
+  background: #f4f6f3;
+}
+.demo-header button[aria-pressed='true'] {
   background: #234c3c;
   color: white;
 }
-
-button:focus-visible {
+.demo-header button:focus-visible {
   outline: 2px solid #234c3c;
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
-.placeholder {
-  padding: 80px 24px;
-  text-align: center;
+main {
+  max-width: 816px;
+  margin: 0 auto;
+  padding: 16px 24px;
 }
-
-code {
-  display: inline-block;
-  padding: 6px 12px;
+section {
+  min-height: calc(100dvh - 128px);
+}
+details {
+  margin-top: 16px;
+  border-top: 1px solid #e4e9e4;
+  padding-top: 12px;
+  font-size: 12px;
+  color: #5d6b64;
+}
+summary {
+  cursor: pointer;
+}
+pre {
+  max-height: 320px;
+  overflow: auto;
+  padding: 12px;
+  background: #f4f6f3;
   border-radius: 6px;
-  background: #edf2ec;
-  overflow-wrap: anywhere;
+  font-size: 12px;
 }
 
-h2 {
-  font-size: 22px;
-  margin: 20px 0 8px;
+@media (max-width: 480px) {
+  main {
+    padding: 12px;
+  }
 }
