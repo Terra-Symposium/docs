@@ -1,0 +1,211 @@
+.terra-docs {
+  color: inherit;
+  font-family: inherit;
+  line-height: 2;
+  overflow-wrap: anywhere;
+}
+
+.terra-docs-toolbar {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 16px;
+  padding: 8px 12px;
+  border: 1px solid #c9d2cb;
+  border-radius: 12px;
+  background: #edf1ed;
+  box-shadow: 0 8px 20px #22352e20;
+}
+
+.terra-docs-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.terra-docs-toolbar button[aria-pressed='true'] {
+  background: #d6e2d8;
+  color: #234c3c;
+}
+.terra-docs-toolbar button:hover {
+  background: #dfe7df;
+}
+.terra-docs-toolbar button:focus-visible,
+.terra-docs-content:focus-visible {
+  outline: 2px solid #234c3c;
+  outline-offset: 2px;
+}
+.terra-docs-toolbar-divider {
+  height: 24px;
+  width: 1px;
+  margin: 0 4px;
+  background: #c9d2cb;
+}
+.terra-docs-toolbar button.terra-docs-select {
+  width: 144px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 10px;
+  border-color: #c9d2cb;
+  background: white;
+  font-size: 14px;
+}
+
+.terra-docs-select-menu {
+  z-index: 30;
+  min-width: var(--radix-select-trigger-width);
+  max-height: var(--radix-select-content-available-height);
+  overflow: auto;
+  padding: 4px;
+  border: 1px solid #c9d2cb;
+  border-radius: 8px;
+  background: white;
+  color: #22352e;
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+  box-shadow: 0 8px 20px #22352e20;
+}
+.terra-docs-select-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+}
+.terra-docs-select-item[data-highlighted] {
+  background: #edf1ed;
+}
+
+.terra-docs-content {
+  min-height: 320px;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0;
+}
+.terra-docs-content p {
+  margin: 16px 0;
+}
+.terra-docs-content h2,
+.terra-docs-content h3,
+.terra-docs-content h4,
+.terra-docs-content h5,
+.terra-docs-content h6 {
+  line-height: 1.3;
+  font-weight: 600;
+}
+.terra-docs-content h2 {
+  font-size: 30px;
+  margin: 40px 0 12px;
+  letter-spacing: -0.025em;
+}
+.terra-docs-content h3 {
+  font-size: 24px;
+  margin: 32px 0 12px;
+}
+.terra-docs-content h4 {
+  font-size: 20px;
+  margin: 24px 0 8px;
+}
+.terra-docs-content h5 {
+  font-size: 16px;
+  margin: 24px 0 8px;
+}
+.terra-docs-content h6 {
+  font-size: 16px;
+  margin: 20px 0 8px;
+}
+.terra-docs-content > :first-child :is(p, h2, h3, h4, h5, h6, blockquote) {
+  margin-top: 0;
+}
+.terra-docs-content blockquote {
+  margin: 24px 0;
+  border-left: 2px solid #9bad9e;
+  padding-left: 20px;
+  color: #5d6b64;
+}
+.terra-docs-content a {
+  color: #216750;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .terra-docs-toolbar {
+    gap: 2px;
+    padding: 6px;
+  }
+  .terra-docs-toolbar button.terra-docs-select {
+    width: 112px;
+  }
+  .terra-docs-toolbar-divider {
+    margin: 0 2px;
+  }
+}
+
+.terra-docs-link-dialog {
+  width: min(360px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid #c9d2cb;
+  border-radius: 12px;
+  color: #22352e;
+  background: white;
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+.terra-docs-link-dialog::backdrop {
+  background: #16251f55;
+}
+.terra-docs-link-dialog h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+.terra-docs-link-dialog label {
+  display: block;
+  margin-bottom: 6px;
+}
+.terra-docs-link-dialog input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #c9d2cb;
+  border-radius: 6px;
+  font: inherit;
+}
+.terra-docs-link-dialog form > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.terra-docs-link-dialog button {
+  width: auto;
+  padding: 6px 12px;
+  border-color: #c9d2cb;
+}
+.terra-docs-link-dialog button[type='submit'] {
+  background: #234c3c;
+  color: white;
+}
+.terra-docs-link-dialog [role='alert'] {
+  color: #a12b2b;
+}

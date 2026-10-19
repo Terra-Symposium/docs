@@ -2,7 +2,23 @@
 
 A standalone React document editor and viewer, planned for Terra Symposium and other host applications.
 
-This repository contains a TypeScript library scaffold and a [proposed component interface](docs/interface.md). The `Docs` component is not implemented yet. No website code has been migrated.
+The `Docs` component provides basic Portable Text editing and read-only rendering. It follows the editor foundation used by Terra Symposium's `TerraContentEditor`, without website, Sanity, or authentication dependencies. See the [component interface](docs/interface.md).
+
+## Usage
+
+```tsx
+import { Docs } from '@terra-symposium/docs';
+import type { DocsValue } from '@terra-symposium/docs';
+import '@terra-symposium/docs/style.css';
+import { useState } from 'react';
+
+function Example() {
+  const [value, setValue] = useState<DocsValue>([]);
+  return <Docs mode="edit" value={value} onChange={setValue} />;
+}
+```
+
+Use `<Docs mode="view" value={value} />` to render the same document without editing controls. The host owns persistence. This first version supports paragraphs, headings 2–6, quotes, bold, italic, underline, strikethrough, and links. Images, uploads, lists, and custom blocks are not implemented yet.
 
 ## Development
 
@@ -16,7 +32,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The React playground opens in your browser. Vite prints the local URL in the terminal, usually `http://127.0.0.1:5173`. It currently provides a placeholder for the future Docs component.
+The React playground opens in your browser. Vite prints the local URL in the terminal, usually `http://127.0.0.1:5173`. Edit the sample document, switch between Edit and View, inspect its JSON, or reset it. Demo changes stay in memory.
 
 ```sh
 pnpm run check

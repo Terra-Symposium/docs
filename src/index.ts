@@ -1,2 +1,2 @@
-/** Selects editing or read-only rendering in the proposed Docs interface. */
-export type DocsMode = 'edit' | 'view';
+export { Docs } from './Docs.js';
+export type { DocsMode, DocsProps, DocsValue } from './Docs.js';
