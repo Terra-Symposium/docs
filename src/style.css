@@ -235,3 +235,23 @@
   color: var(--docs-accent, #25634e);
   text-decoration: underline;
 }
+
+.terra-docs-accordion,
+.terra-docs-tab {
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.5rem;
+  margin-block: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.terra-docs-accordion > summary,
+.terra-docs-tab > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.terra-docs-accordion > summary:focus-visible,
+.terra-docs-tab > summary:focus-visible {
+  outline: 2px solid var(--docs-accent, #25634e);
+  outline-offset: 3px;
+}

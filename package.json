@@ -2,7 +2,7 @@
   "name": "@terra-symposium/docs",
   "version": "0.1.0",
   "description": "Reusable React document editor and viewer.",
-  "repository": "https://github.com/Terra-Symposium/terra-docs",
+  "repository": "https://github.com/Terra-Symposium/docs",
   "type": "module",
   "packageManager": "pnpm@10.30.3",
   "engines": {
@@ -32,7 +32,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck"
+    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck",
+    "test": "pnpm build && node --test test/*.test.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",
