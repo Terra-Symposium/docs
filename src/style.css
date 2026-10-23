@@ -209,3 +209,29 @@
 .terra-docs-link-dialog [role='alert'] {
   color: #a12b2b;
 }
+
+.terra-docs-nav {
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+.terra-docs-nav-list {
+  list-style: none;
+  margin: 0;
+  padding-left: 1rem;
+}
+.terra-docs-nav > .terra-docs-nav-list {
+  padding-left: 0;
+}
+.terra-docs-nav li {
+  margin: 0.25rem 0;
+}
+.terra-docs-nav a {
+  color: inherit;
+  text-decoration: none;
+}
+.terra-docs-nav a:hover,
+.terra-docs-nav a[aria-current='page'] {
+  color: var(--docs-accent, #25634e);
+  text-decoration: underline;
+}

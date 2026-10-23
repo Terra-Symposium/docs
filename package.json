@@ -1,6 +1,6 @@
 {
   "name": "@terra-symposium/docs",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Reusable React document editor and viewer.",
   "repository": "https://github.com/Terra-Symposium/terra-docs",
   "type": "module",
@@ -9,13 +9,14 @@
     "node": ">=24.12.0"
   },
   "files": [
-    "dist",
-    "src/style.css"
+    "lib-dist",
+    "src/style.css",
+    "vendor/terra-symposium-styling-0.1.0.tgz"
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./lib-dist/index.d.ts",
+      "import": "./lib-dist/index.js"
     },
     "./style.css": "./src/style.css"
   },
@@ -43,19 +44,24 @@
     "@types/node": "^24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/sanitize-html": "^2.16.2",
     "@vitejs/plugin-react": "6.1.2",
+    "astro": "^7.4.2",
     "eslint": "10.13.0",
     "prettier": "3.9.10",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "typescript": "5.9.3",
     "typescript-eslint": "8.71.2",
-    "vite": "8.3.4",
-    "astro": "^7.4.2"
+    "vite": "8.3.4"
   },
   "dependencies": {
     "@carbon/icons-react": "11.90.0",
     "@portabletext/editor": "7.9.0",
-    "@radix-ui/react-select": "2.4.1"
-  }
+    "@radix-ui/react-select": "2.4.1",
+    "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.0.tgz",
+    "marked": "^18.1.1",
+    "sanitize-html": "^2.18.1"
+  },
+  "license": "Apache-2.0"
 }
