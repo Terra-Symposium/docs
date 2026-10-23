@@ -1,8 +1,8 @@
 {
   "name": "@terra-symposium/docs",
   "version": "0.0.0",
-  "private": true,
-  "description": "Standalone React document editor and viewer scaffold.",
+  "description": "Reusable React document editor and viewer.",
+  "repository": "https://github.com/Terra-Symposium/terra-docs",
   "type": "module",
   "packageManager": "pnpm@10.30.3",
   "engines": {
@@ -21,6 +21,9 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --open",
+    "docs:dev": "astro dev --host 127.0.0.1 --open",
+    "docs:build": "astro build",
+    "docs:preview": "astro preview --host 127.0.0.1",
     "dev:library": "tsc --watch",
     "build": "tsc",
     "build:demo": "vite build",
@@ -35,6 +38,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@astrojs/starlight": "^0.42.6",
     "@eslint/js": "10.0.1",
     "@types/node": "^24.19.2",
     "@types/react": "19.3.0",
@@ -46,7 +50,8 @@
     "react-dom": "19.3.1",
     "typescript": "5.9.3",
     "typescript-eslint": "8.71.2",
-    "vite": "8.3.4"
+    "vite": "8.3.4",
+    "astro": "^7.4.2"
   },
   "dependencies": {
     "@carbon/icons-react": "11.90.0",

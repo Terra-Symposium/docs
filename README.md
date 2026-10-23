@@ -1,49 +1,32 @@
 # Terra Docs
 
-A standalone React document editor and viewer, planned for Terra Symposium and other host applications.
+Terra Docs is a reusable React editor and viewer package. Each installation lives in its own host application and controls its own document data, storage, identity, and permissions. This repository contains the component package, an in-memory playground, and the installation and configuration guide.
 
-The `Docs` component provides basic Portable Text editing and read-only rendering. It follows the editor foundation used by Terra Symposium's `TerraContentEditor`, without website, Sanity, or authentication dependencies. See the [component interface](docs/interface.md).
+## Create an instance
 
-## Usage
+Start with the [instance installation guide](src/content/docs/getting-started.md). The React component can be installed into any React 19 app:
+
+```sh
+pnpm add @terra-symposium/docs
+```
 
 ```tsx
 import { Docs } from '@terra-symposium/docs';
 import type { DocsValue } from '@terra-symposium/docs';
 import '@terra-symposium/docs/style.css';
-import { useState } from 'react';
-
-function Example() {
-  const [value, setValue] = useState<DocsValue>([]);
-  return <Docs mode="edit" value={value} onChange={setValue} />;
-}
 ```
 
-Use `<Docs mode="view" value={value} />` to render the same document without editing controls. The host owns persistence. This first version supports paragraphs, headings 2–6, quotes, bold, italic, underline, strikethrough, and links. Images, uploads, lists, and custom blocks are not implemented yet.
+The current package release is still under development and is not yet published. To work on a separate local instance against this checkout, install it by local path (`pnpm add /path/to/terra-docs`). Every instance must supply and save a Portable Text value. See the [storage guide](src/content/docs/storage.md) for the current host contract and limitations.
 
-## Development
+## Run the playground and docs site
 
-Use Node.js from `.nvmrc` and pnpm 10.30.3:
+Requirements: Node.js 24.12+, pnpm 10.30.3. Run `pnpm install --frozen-lockfile`, then use:
 
 ```sh
-nvm install
-nvm use
-corepack enable
-pnpm install --frozen-lockfile
-pnpm dev
+pnpm dev        # Vite component playground
+pnpm docs:dev   # Starlight installation and configuration site
 ```
 
-The React playground opens in your browser. Vite prints the local URL in the terminal, usually `http://127.0.0.1:5173`. Edit the sample document, switch between Edit and View, inspect its JSON, or reset it. Demo changes stay in memory.
+Build commands: `pnpm run check`, `pnpm run build`, `pnpm run build:demo`, and `pnpm run docs:build`.
 
-```sh
-pnpm run check
-pnpm run build
-pnpm run build:demo
-```
-
-`pnpm run check` runs formatting, lint, and strict type checks for the library and playground. `pnpm run format` applies Prettier formatting. `pnpm run dev:library` watches the library build for development in another repo.
-
-React and React DOM are peer dependencies so hosts supply their React runtime. They are also installed for local development. Builds emit ESM and TypeScript declarations into `dist/`.
-
-The playground lives in `demo/` and builds into `demo-dist/`. It is excluded from the library output.
-
-Publication is disabled while the API, package name, and license remain undecided.
+The playground stores edits in memory. It is for trying the component and does not represent a configured installation. A complete product roadmap for Markdown files, adjacent assets, additional content blocks, and storage providers is tracked in the Terra Docs extraction plan.
