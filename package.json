@@ -1,6 +1,6 @@
 {
   "name": "@terra-symposium/docs",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "Reusable React document editor and viewer.",
   "repository": "https://github.com/Terra-Symposium/docs",
   "type": "module",
@@ -11,6 +11,8 @@
   "files": [
     "lib-dist",
     "src/style.css",
+    "src/navigation.tsx",
+    "src/SiteLayout.astro",
     "vendor/terra-symposium-styling-0.1.0.tgz"
   ],
   "exports": {
@@ -18,7 +20,8 @@
       "types": "./lib-dist/index.d.ts",
       "import": "./lib-dist/index.js"
     },
-    "./style.css": "./src/style.css"
+    "./style.css": "./src/style.css",
+    "./site-layout.astro": "./src/SiteLayout.astro"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --open",
@@ -40,8 +43,9 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@astrojs/starlight": "^0.42.6",
+    "@astrojs/react": "^7.1.0",
     "@eslint/js": "10.0.1",
+    "@types/katex": "^0.16.8",
     "@types/node": "^24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -61,6 +65,7 @@
     "@portabletext/editor": "7.9.0",
     "@radix-ui/react-select": "2.4.1",
     "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.0.tgz",
+    "katex": "^0.19.1",
     "marked": "^18.1.1",
     "sanitize-html": "^2.18.1"
   },

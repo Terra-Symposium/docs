@@ -1,0 +1,40 @@
+---
+import { DocsWorkspaceNavigation, DocsWorkspaceToolbar, DocsAttachmentsView } from '../lib-dist/workspace.js';
+import './style.css';
+
+interface Props {
+  title: string;
+  homeHref?: string;
+  description?: string;
+  pageTitle?: string;
+  nodes: import('./navigation').DocsNavNode[];
+  currentPath: string;
+  hue?: number | null;
+  sections?: import('./workspace').DocsSection[];
+  attachments?: import('./workspace').DocsAttachment[];
+}
+
+const { title, homeHref = '/', description, pageTitle, nodes, currentPath, hue = 145, sections, attachments = [] } = Astro.props;
+const workspaceSections = sections ?? nodes.map(node => ({ title: node.title, groups: [{ title: node.title, leaves: (node.children?.length ? node.children : [node]).filter(entry => entry.href).map(entry => ({ title: entry.title, href: entry.href! })) }] }));
+const activeLeaf = workspaceSections.flatMap(section => section.groups.flatMap(group => group.leaves)).find(leaf => leaf.href === currentPath);
+---
+
+<div class="terra-docs-site">
+  <div class="terra-docs-site-layout">
+    <aside class="terra-docs-site-sidebar">
+      <header class="terra-docs-site-header"><a class="terra-docs-site-brand" href={homeHref}>{title}</a>{description && <span class="terra-docs-site-description">{description}</span>}</header>
+      <DocsWorkspaceNavigation sections={workspaceSections} currentPath={currentPath} client:load />
+      <slot name="sidebar" />
+    </aside>
+    <main class="terra-docs-site-main">
+      <div class="terra-docs-toolbar-shell"><DocsWorkspaceToolbar attachments={attachments} client:load /><div class="terra-docs-formatting-slot"></div></div>
+      <DocsAttachmentsView attachments={attachments} />
+      <article class="terra-docs-site-article">
+        {pageTitle && <h1 class="terra-docs-site-page-title">{pageTitle}</h1>}
+        {activeLeaf?.description && <p class="terra-docs-site-metadata">{activeLeaf.description}</p>}
+        {activeLeaf?.updatedAt && <p class="terra-docs-site-metadata">Updated {activeLeaf.updatedAt}</p>}
+        <slot />
+      </article>
+    </main>
+  </div>
+</div>

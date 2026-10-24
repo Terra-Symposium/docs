@@ -14,13 +14,16 @@ import {
   isActiveDecorator,
 } from '@portabletext/editor/selectors';
 import * as Select from '@radix-ui/react-select';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { safeLink, schema } from './schema.js';
+import { defaultDocsBlock, enabledDocsBlocks } from './blocks.js';
+import type { DocsBlockOptions } from './blocks.js';
 import type { EditorSelection } from '@portabletext/editor';
 import type { JSX } from 'react';
 
 /** Terra's style dropdown and Carbon formatting controls, without website UI dependencies. */
-export function Toolbar(): JSX.Element {
+export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): JSX.Element {
   const editor = useEditor();
   const snapshot = useEditorSelector(editor, (state) => state);
   const selection = useRef<EditorSelection>(null);
@@ -28,8 +31,10 @@ export function Toolbar(): JSX.Element {
   const linkId = useId();
   const [linkValue, setLinkValue] = useState('');
   const [linkError, setLinkError] = useState(false);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => setSlot(document.querySelector<HTMLElement>('.terra-docs-formatting-slot')), []);
 
-  return (
+  const controls = (
     <div className="terra-docs-toolbar" role="toolbar" aria-label="Editor controls">
       <Select.Root
         value={getActiveStyle(snapshot) ?? 'normal'}
@@ -111,6 +116,44 @@ export function Toolbar(): JSX.Element {
       >
         <Link size={16} aria-hidden="true" />
       </button>
+      <select
+        aria-label="Insert rich block"
+        defaultValue=""
+        onChange={(event) => {
+          const type = event.currentTarget.value as ReturnType<typeof enabledDocsBlocks>[number];
+          if (!type) return;
+          editor.send({
+            type: 'insert.block object',
+            blockObject: { name: type, value: defaultDocsBlock(type) },
+            placement: 'after',
+          });
+          event.currentTarget.value = '';
+          editor.send({ type: 'focus' });
+        }}
+      >
+        <option value="">Insert block</option>
+        {enabledDocsBlocks(blocks).map((type) => (
+          <option key={type} value={type}>
+            {type}
+          </option>
+        ))}
+      </select>
+      {blocks?.inlineMath !== false && (
+        <button
+          type="button"
+          aria-label="Insert inline math"
+          title="Insert inline math"
+          onClick={() => {
+            editor.send({
+              type: 'insert.inline object',
+              inlineObject: { name: 'math', value: { code: 'E = mc^2', inline: true } },
+            });
+            editor.send({ type: 'focus' });
+          }}
+        >
+          ∑
+        </button>
+      )}
       <dialog
         ref={linkDialog}
         className="terra-docs-link-dialog"
@@ -157,4 +200,5 @@ export function Toolbar(): JSX.Element {
       </dialog>
     </div>
   );
+  return slot ? createPortal(controls, slot) : controls;
 }
