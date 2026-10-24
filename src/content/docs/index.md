@@ -11,4 +11,4 @@ Create a separate application from the [getting started guide](/getting-started/
 
 ## Current release scope
 
-The current package supports Portable Text paragraphs, headings 2–6, quotes, bold, italic, underline, strikethrough, and links. The included playground is an in-memory demo. It does not yet open or save Markdown files, upload assets, or persist documents across reloads.
+The package supports Portable Text text and the reusable rich blocks listed in the [component reference](/component/). Repository-backed instances can render Markdown and adjacent assets. Remote instances can add draft saving, publishing, history, and uploads through a host-provided storage adapter. The host supplies authentication and permissions.

@@ -1,11 +1,11 @@
 import {
-  CaretDown,
-  Checkmark,
   Link,
+  Redo,
   TextBold,
   TextItalic,
   TextStrikethrough,
   TextUnderline,
+  Undo,
 } from '@carbon/icons-react';
 import { useEditor, useEditorSelector } from '@portabletext/editor';
 import {
@@ -13,14 +13,25 @@ import {
   isActiveAnnotation,
   isActiveDecorator,
 } from '@portabletext/editor/selectors';
-import * as Select from '@radix-ui/react-select';
-import { useId, useRef, useState } from 'react';
+import {
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@terra-symposium/styling/ui';
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { safeLink, schema } from './schema.js';
+import { defaultDocsBlock, enabledDocsBlocks } from './blocks.js';
+import type { DocsBlockOptions } from './blocks.js';
 import type { EditorSelection } from '@portabletext/editor';
 import type { JSX } from 'react';
 
 /** Terra's style dropdown and Carbon formatting controls, without website UI dependencies. */
-export function Toolbar(): JSX.Element {
+export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): JSX.Element {
   const editor = useEditor();
   const snapshot = useEditorSelector(editor, (state) => state);
   const selection = useRef<EditorSelection>(null);
@@ -28,10 +39,13 @@ export function Toolbar(): JSX.Element {
   const linkId = useId();
   const [linkValue, setLinkValue] = useState('');
   const [linkError, setLinkError] = useState(false);
+  const [blockSelection, setBlockSelection] = useState('');
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => setSlot(document.querySelector<HTMLElement>('.terra-docs-formatting-slot')), []);
 
-  return (
+  const controls = (
     <div className="terra-docs-toolbar" role="toolbar" aria-label="Editor controls">
-      <Select.Root
+      <Select
         value={getActiveStyle(snapshot) ?? 'normal'}
         onValueChange={(style) => {
           if (selection.current) editor.send({ type: 'select', at: selection.current });
@@ -39,7 +53,7 @@ export function Toolbar(): JSX.Element {
           editor.send({ type: 'focus' });
         }}
       >
-        <Select.Trigger
+        <SelectTrigger
           className="terra-docs-select"
           aria-label="Block type"
           onPointerDownCapture={() => {
@@ -49,31 +63,21 @@ export function Toolbar(): JSX.Element {
             selection.current = editor.getSnapshot().context.selection;
           }}
         >
-          <Select.Value placeholder="Text" />
-          <Select.Icon>
-            <CaretDown size={16} aria-hidden="true" />
-          </Select.Icon>
-        </Select.Trigger>
-        <Select.Portal>
-          <Select.Content
-            className="terra-docs-select-menu"
-            position="popper"
-            sideOffset={8}
-            onCloseAutoFocus={(event) => event.preventDefault()}
-          >
-            <Select.Viewport>
-              {schema.styles.map(({ name, title }) => (
-                <Select.Item key={name} value={name} className="terra-docs-select-item">
-                  <Select.ItemText>{title}</Select.ItemText>
-                  <Select.ItemIndicator>
-                    <Checkmark size={16} aria-hidden="true" />
-                  </Select.ItemIndicator>
-                </Select.Item>
-              ))}
-            </Select.Viewport>
-          </Select.Content>
-        </Select.Portal>
-      </Select.Root>
+          <SelectValue placeholder="Text" />
+        </SelectTrigger>
+        <SelectContent
+          className="terra-docs-select-menu"
+          position="popper"
+          sideOffset={8}
+          onCloseAutoFocus={(event) => event.preventDefault()}
+        >
+          {schema.styles.map(({ name, title }) => (
+            <SelectItem key={name} value={name} className="terra-docs-select-item">
+              {title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <span className="terra-docs-toolbar-divider" aria-hidden="true" />
       {[
         { Icon: TextBold, name: 'strong', label: 'Bold' },
@@ -81,9 +85,11 @@ export function Toolbar(): JSX.Element {
         { Icon: TextUnderline, name: 'underline', label: 'Underline' },
         { Icon: TextStrikethrough, name: 'strike-through', label: 'Strikethrough' },
       ].map(({ Icon, name, label }) => (
-        <button
+        <Button
           key={name}
           type="button"
+          variant="ghost"
+          size="xs"
           aria-label={label}
           title={label}
           aria-pressed={isActiveDecorator(name)(snapshot)}
@@ -94,10 +100,12 @@ export function Toolbar(): JSX.Element {
           }}
         >
           <Icon size={16} aria-hidden="true" />
-        </button>
+        </Button>
       ))}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="xs"
         aria-label="Link"
         title="Link"
         aria-pressed={isActiveAnnotation('link')(snapshot)}
@@ -110,7 +118,78 @@ export function Toolbar(): JSX.Element {
         }}
       >
         <Link size={16} aria-hidden="true" />
-      </button>
+      </Button>
+      <Select
+        value={blockSelection}
+        onValueChange={(value) => {
+          const type = value as ReturnType<typeof enabledDocsBlocks>[number];
+          if (!type) return;
+          editor.send({
+            type: 'insert.block object',
+            blockObject: { name: type, value: defaultDocsBlock(type) },
+            placement: 'after',
+          });
+          setBlockSelection('');
+          editor.send({ type: 'focus' });
+        }}
+      >
+        <SelectTrigger aria-label="Insert rich block">
+          <SelectValue placeholder="Insert block" />
+        </SelectTrigger>
+        <SelectContent>
+          {enabledDocsBlocks(blocks).map((type) => (
+            <SelectItem key={type} value={type}>
+              {type}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {blocks?.inlineMath !== false && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          aria-label="Insert inline math"
+          title="Insert inline math"
+          onClick={() => {
+            editor.send({
+              type: 'insert.inline object',
+              inlineObject: { name: 'math', value: { code: 'E = mc^2', inline: true } },
+            });
+            editor.send({ type: 'focus' });
+          }}
+        >
+          ∑
+        </Button>
+      )}
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        aria-label="Undo"
+        title="Undo"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => {
+          editor.send({ type: 'history.undo' });
+          editor.send({ type: 'focus' });
+        }}
+      >
+        <Undo size={16} aria-hidden="true" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        aria-label="Redo"
+        title="Redo"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => {
+          editor.send({ type: 'history.redo' });
+          editor.send({ type: 'focus' });
+        }}
+      >
+        <Redo size={16} aria-hidden="true" />
+      </Button>
       <dialog
         ref={linkDialog}
         className="terra-docs-link-dialog"
@@ -132,7 +211,7 @@ export function Toolbar(): JSX.Element {
         >
           <h2 id={`${linkId}-title`}>Add link</h2>
           <label htmlFor={`${linkId}-url`}>URL</label>
-          <input
+          <Input
             id={`${linkId}-url`}
             autoFocus
             required
@@ -142,19 +221,21 @@ export function Toolbar(): JSX.Element {
           />
           {linkError && <p role="alert">Enter a valid web, email, or relative URL.</p>}
           <div>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => {
                 linkDialog.current?.close();
                 editor.send({ type: 'focus' });
               }}
             >
               Cancel
-            </button>
-            <button type="submit">Add link</button>
+            </Button>
+            <Button type="submit">Add link</Button>
           </div>
         </form>
       </dialog>
     </div>
   );
+  return slot ? createPortal(controls, slot) : controls;
 }

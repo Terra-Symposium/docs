@@ -1,6 +1,6 @@
 {
   "name": "@terra-symposium/docs",
-  "version": "0.1.0",
+  "version": "0.1.7",
   "description": "Reusable React document editor and viewer.",
   "repository": "https://github.com/Terra-Symposium/docs",
   "type": "module",
@@ -11,14 +11,17 @@
   "files": [
     "lib-dist",
     "src/style.css",
-    "vendor/terra-symposium-styling-0.1.0.tgz"
+    "src/navigation.tsx",
+    "src/SiteLayout.astro",
+    "vendor/terra-symposium-styling-0.1.1.tgz"
   ],
   "exports": {
     ".": {
       "types": "./lib-dist/index.d.ts",
       "import": "./lib-dist/index.js"
     },
-    "./style.css": "./src/style.css"
+    "./style.css": "./src/style.css",
+    "./site-layout.astro": "./src/SiteLayout.astro"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --open",
@@ -33,15 +36,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck",
-    "test": "pnpm build && node --test test/*.test.mjs"
+    "test": "pnpm build && node --test test/*.test.mjs",
+    "test:browser": "pnpm docs:build && playwright test"
   },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@astrojs/starlight": "^0.42.6",
+    "@astrojs/react": "^7.1.0",
     "@eslint/js": "10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@types/katex": "^0.16.8",
     "@types/node": "^24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -60,7 +66,8 @@
     "@carbon/icons-react": "11.90.0",
     "@portabletext/editor": "7.9.0",
     "@radix-ui/react-select": "2.4.1",
-    "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.0.tgz",
+    "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.1.tgz",
+    "katex": "^0.19.1",
     "marked": "^18.1.1",
     "sanitize-html": "^2.18.1"
   },

@@ -1,8 +1,10 @@
 import { EditorProvider, PortableTextEditable, useEditor } from '@portabletext/editor';
-import { EventListenerPlugin } from '@portabletext/editor/plugins';
+import { EventListenerPlugin, NodePlugin } from '@portabletext/editor/plugins';
 import { useEffect } from 'react';
 import { Toolbar } from './_Toolbar.js';
-import { safeLink, schema } from './schema.js';
+import { safeLink, createDocsSchema } from './schema.js';
+import { docsBlockNodes } from './blocks.js';
+import type { DocsBlockOptions } from './blocks.js';
 import type { PortableTextBlock } from '@portabletext/editor';
 import type { JSX } from 'react';
 
@@ -16,6 +18,7 @@ export type DocsMode = 'edit' | 'view';
 export type DocsProps = {
   value: DocsValue;
   className?: string;
+  blocks?: DocsBlockOptions;
 } & ({ mode: 'edit'; onChange: (value: DocsValue) => void } | { mode: 'view'; onChange?: never });
 
 /** A minimal standalone version of TerraContentEditor's Portable Text surface. */
@@ -24,7 +27,7 @@ export function Docs(props: DocsProps): JSX.Element {
     <div className={['terra-docs', props.className].filter(Boolean).join(' ')}>
       <EditorProvider
         initialConfig={{
-          schemaDefinition: schema,
+          schemaDefinition: createDocsSchema(props.blocks),
           initialValue: props.value,
           readOnly: props.mode === 'view',
         }}
@@ -56,7 +59,8 @@ function DocsSurface(props: DocsProps): JSX.Element {
           }
         }}
       />
-      {props.mode === 'edit' && <Toolbar />}
+      <NodePlugin nodes={docsBlockNodes(props.blocks)} />
+      {props.mode === 'edit' && <Toolbar blocks={props.blocks} />}
       <PortableTextEditable
         aria-label={props.mode === 'edit' ? 'Document editor' : 'Document viewer'}
         aria-readonly={props.mode === 'view'}
@@ -76,6 +80,7 @@ function DocsSurface(props: DocsProps): JSX.Element {
           if (value === 'em') return <em>{children}</em>;
           if (value === 'underline') return <u>{children}</u>;
           if (value === 'strike-through') return <s>{children}</s>;
+          if (value === 'code') return <code>{children}</code>;
           return <>{children}</>;
         }}
         renderAnnotation={({ children, value }) => {
