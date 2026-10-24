@@ -19,21 +19,31 @@ function span(text: string, marks: string[] = []) {
 }
 function inline(
   tokens: Token[] | undefined,
+  markDefs: { _type: 'link'; _key: string; href: string }[],
 ): (ReturnType<typeof span> | { _type: 'math'; _key: string; code: string; inline: true })[] {
   if (!tokens) return [];
   return tokens.flatMap((token) => {
     if (token.type === 'strong')
-      return inline(token.tokens).map((item) =>
+      return inline(token.tokens, markDefs).map((item) =>
         item._type === 'span' ? { ...item, marks: [...item.marks, 'strong'] } : item,
       );
     if (token.type === 'em')
-      return inline(token.tokens).map((item) =>
+      return inline(token.tokens, markDefs).map((item) =>
         item._type === 'span' ? { ...item, marks: [...item.marks, 'em'] } : item,
       );
     if (token.type === 'del')
-      return inline(token.tokens).map((item) =>
+      return inline(token.tokens, markDefs).map((item) =>
         item._type === 'span' ? { ...item, marks: [...item.marks, 'strike-through'] } : item,
       );
+    if (token.type === 'link') {
+      const href = typeof token.href === 'string' ? token.href : '';
+      if (!href || !/^(?:https?:\/\/|mailto:|\/|\.\.?\/|#)/i.test(href)) return [span(token.raw)];
+      const mark = key();
+      markDefs.push({ _type: 'link', _key: mark, href });
+      return inline(token.tokens, markDefs).map((item) =>
+        item._type === 'span' ? { ...item, marks: [...item.marks, mark] } : item,
+      );
+    }
     if (token.type === 'text' || token.type === 'escape') {
       const pieces = (token.text ?? token.raw).split(/(\$[^$\n]+\$)/g).filter(Boolean);
       return pieces.map((piece) =>
@@ -47,12 +57,14 @@ function inline(
   });
 }
 function textBlock(style: string, tokens: Token[] | undefined, fallback: string) {
+  const markDefs: { _type: 'link'; _key: string; href: string }[] = [];
+  const children = inline(tokens, markDefs);
   return {
     _type: 'block',
     _key: key(),
     style,
-    markDefs: [],
-    children: inline(tokens).length ? inline(tokens) : [span(fallback)],
+    markDefs,
+    children: children.length ? children : [span(fallback)],
   };
 }
 
@@ -149,6 +161,14 @@ export function docsValueToMarkdown(value: DocsValue): string {
             ].includes(name),
         );
         if (item._type === 'block') {
+          const markDefs = new Map(
+            (Array.isArray(item.markDefs) ? item.markDefs : [])
+              .filter(
+                (mark): mark is { _key: string; _type: string; href: string } =>
+                  typeof mark === 'object' && mark !== null && '_key' in mark && 'href' in mark,
+              )
+              .map((mark) => [mark._key, mark.href]),
+          );
           const children = Array.isArray(item.children)
             ? (item.children as {
                 _type?: string;
@@ -166,6 +186,7 @@ export function docsValueToMarkdown(value: DocsValue): string {
                 if (mark === 'em') text = `*${text}*`;
                 if (mark === 'strike-through') text = `~~${text}~~`;
                 if (mark === 'code') text = `\`${text}\``;
+                if (markDefs.has(mark)) text = `[${text}](${markDefs.get(mark)})`;
               }
               return text;
             })

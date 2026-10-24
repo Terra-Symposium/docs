@@ -58,3 +58,15 @@ test('inline math survives visual conversion and renders as math', () => {
   assert.match(renderMarkdown(source), /katex/);
   assert.doesNotMatch(renderMarkdown(source, { inlineMath: false }), /katex/);
 });
+
+test('Markdown links become visual link annotations and keep their targets', () => {
+  const source = 'Read [the guide](/product/purpose/) and **[the map](/product/structure/)**.\n';
+  const value = markdownToDocsValue(source);
+  assert.equal(value[0].markDefs.length, 2);
+  assert.equal(
+    value[0].children.some((child) => child.text?.includes('](')),
+    false,
+  );
+  assert.match(docsValueToMarkdown(value), /\[the guide\]\(\/product\/purpose\/\)/);
+  assert.match(docsValueToMarkdown(value), /\*\*\[the map\]\(\/product\/structure\/\)\*\*/);
+});
