@@ -22,4 +22,7 @@ export type {
   DocsSection,
   DocsCapabilities,
   DocsRemoteProvider,
+  DocsTreeAction,
+  DocsTreeActionName,
+  DocsTreeActions,
 } from './workspace.js';

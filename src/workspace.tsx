@@ -1,5 +1,31 @@
 import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
+import {
+  Button,
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@terra-symposium/styling/ui';
+import {
+  DocumentAttachment,
+  Download,
+  Link,
+  OverflowMenuVertical,
+  TrashCan,
+} from '@carbon/icons-react';
 
 export type DocsAttachment = { title: string; href: string; type?: string; size?: number };
 export type DocsLeaf = {
@@ -9,8 +35,36 @@ export type DocsLeaf = {
   updatedAt?: string;
   attachments?: DocsAttachment[];
 };
-export type DocsGroup = { title: string; leaves: DocsLeaf[] };
-export type DocsSection = { title: string; groups: DocsGroup[] };
+export type DocsGroup = { title: string; id?: string; leaves: DocsLeaf[] };
+export type DocsSection = { title: string; id?: string; groups: DocsGroup[] };
+export type DocsTreeActionName =
+  | 'create-leaf'
+  | 'rename-leaf'
+  | 'duplicate-leaf'
+  | 'delete-leaf'
+  | 'move-leaf'
+  | 'move-leaf-up'
+  | 'move-leaf-down'
+  | 'manage-attachments'
+  | 'download-leaf'
+  | 'rename-group'
+  | 'delete-group'
+  | 'move-group-up'
+  | 'move-group-down'
+  | 'rename-section'
+  | 'delete-section'
+  | 'download-section';
+export type DocsTreeAction = {
+  name: DocsTreeActionName;
+  section: DocsSection;
+  group?: DocsGroup;
+  leaf?: DocsLeaf;
+};
+/** Host actions own mutations and authorization. The package renders controls only for allowed actions. */
+export type DocsTreeActions = {
+  available: (action: DocsTreeAction) => boolean;
+  perform: (action: DocsTreeAction) => void | Promise<void>;
+};
 /** Remote persistence is host-owned. Local repository pages omit this provider. */
 export type DocsRemoteProvider = {
   loadDraft: (slug: string) => Promise<{ markdown: string; revision: number }>;
@@ -42,76 +96,260 @@ function sectionForPath(sections: DocsSection[], path: string): number {
 export function DocsWorkspaceNavigation({
   sections,
   currentPath,
+  actions,
 }: {
   sections: DocsSection[];
   currentPath: string;
+  actions?: DocsTreeActions | undefined;
 }): JSX.Element {
   const [sectionIndex, setSectionIndex] = useState(() => sectionForPath(sections, currentPath));
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
   useEffect(() => setSectionIndex(sectionForPath(sections, currentPath)), [sections, currentPath]);
   const section = sections[sectionIndex];
   const groups = section?.groups ?? [];
+  const run = (action: DocsTreeAction) => {
+    if (!actions?.available(action)) return;
+    if (
+      action.name.startsWith('delete-') &&
+      !window.confirm(
+        `Delete ${action.leaf?.title ?? action.group?.title ?? action.section.title}? This action cannot be undone.`,
+      )
+    )
+      return;
+    setError('');
+    void Promise.resolve(actions.perform(action)).catch((reason: unknown) =>
+      setError(reason instanceof Error ? reason.message : 'Action failed.'),
+    );
+  };
+  const leafAction = (
+    name: DocsTreeActionName,
+    group: DocsGroup,
+    leaf: DocsLeaf,
+  ): DocsTreeAction => ({ name, section: section!, group, leaf });
+  const menuItems = (group: DocsGroup, leaf: DocsLeaf, kind: 'context' | 'dropdown') => {
+    const Item = kind === 'context' ? ContextMenuItem : DropdownMenuItem;
+    const Separator = kind === 'context' ? ContextMenuSeparator : DropdownMenuSeparator;
+    return (
+      <>
+        <Item onSelect={() => window.open(leaf.href, '_blank', 'noopener,noreferrer')}>
+          Open in new tab
+        </Item>
+        <Item
+          onSelect={() => {
+            void navigator.clipboard.writeText(new URL(leaf.href, window.location.href).href);
+          }}
+        >
+          <Link className="size-4" />
+          Copy link
+        </Item>
+        <Item
+          onSelect={() => {
+            sessionStorage.setItem('terra-docs:mode', 'attachments');
+            window.location.assign(leaf.href);
+          }}
+        >
+          <DocumentAttachment className="size-4" />
+          Attachments view
+        </Item>
+        {actions &&
+          (
+            [
+              'move-leaf-up',
+              'move-leaf-down',
+              'move-leaf',
+              'rename-leaf',
+              'duplicate-leaf',
+              'manage-attachments',
+              'download-leaf',
+              'delete-leaf',
+            ] as const
+          )
+            .filter((name) => actions.available(leafAction(name, group, leaf)))
+            .map((name, index) => (
+              <span key={name}>
+                {index === 0 && <Separator />}
+                <Item onSelect={() => run(leafAction(name, group, leaf))}>
+                  {name === 'move-leaf-up' ? (
+                    'Move up'
+                  ) : name === 'move-leaf-down' ? (
+                    'Move down'
+                  ) : name === 'move-leaf' ? (
+                    'Move to group'
+                  ) : name === 'rename-leaf' ? (
+                    'Rename page'
+                  ) : name === 'duplicate-leaf' ? (
+                    'Duplicate page'
+                  ) : name === 'manage-attachments' ? (
+                    'Manage attachments'
+                  ) : name === 'download-leaf' ? (
+                    <>
+                      <Download className="size-4" />
+                      Download page
+                    </>
+                  ) : (
+                    <>
+                      <TrashCan className="size-4" />
+                      Delete page
+                    </>
+                  )}
+                </Item>
+              </span>
+            ))}
+      </>
+    );
+  };
   return (
     <nav className="terra-docs-workspace-nav" aria-label="Documentation">
       <label className="terra-docs-control-label" htmlFor="terra-docs-section">
         Section
       </label>
-      <select
-        id="terra-docs-section"
-        aria-label="Section"
-        value={sectionIndex}
-        onChange={(event) => {
-          const index = Number(event.currentTarget.value);
-          setSectionIndex(index);
-          const href = sections[index] && firstLeaf(sections[index]);
-          if (href) window.location.assign(href);
-        }}
-      >
-        {sections.map((entry, index) => (
-          <option key={`${entry.title}-${index}`} value={index}>
-            {entry.title}
-          </option>
-        ))}
-      </select>
+      <div className="terra-docs-workspace-section-select">
+        <Select
+          value={String(sectionIndex)}
+          onValueChange={(value) => {
+            const index = Number(value);
+            setSectionIndex(index);
+            setQuery('');
+            const href = sections[index] && firstLeaf(sections[index]);
+            if (href) window.location.assign(href);
+          }}
+        >
+          <SelectTrigger id="terra-docs-section" aria-label="Section">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {sections.map((entry, index) => (
+              <SelectItem key={`${entry.title}-${index}`} value={String(index)}>
+                {entry.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {section && actions && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="xs" aria-label={`Actions for section ${section.title}`}>
+                <OverflowMenuVertical size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {(['rename-section', 'download-section', 'delete-section'] as const)
+                .filter((name) => actions.available({ name, section }))
+                .map((name) => (
+                  <DropdownMenuItem key={name} onSelect={() => run({ name, section })}>
+                    {name === 'rename-section'
+                      ? 'Rename section'
+                      : name === 'download-section'
+                        ? 'Download section'
+                        : 'Delete section'}
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+      <Input
+        aria-label="Search pages"
+        placeholder="Search pages"
+        value={query}
+        onChange={(event) => setQuery(event.currentTarget.value)}
+      />
+      {error && <p role="alert">{error}</p>}
       <div className="terra-docs-workspace-groups">
-        {groups.map((group, index) => (
-          <div className="terra-docs-workspace-group" key={`${group.title}-${index}`}>
-            <h2>{group.title}</h2>
-            <ul>
-              {group.leaves.map((leaf, leafIndex) => (
-                <li
-                  key={`${leaf.href}-${leafIndex}`}
-                  onContextMenu={(event) => {
-                    event.preventDefault();
-                    const menu = event.currentTarget.querySelector('details');
-                    if (menu) menu.open = true;
-                  }}
-                >
-                  <a href={leaf.href} aria-current={leaf.href === currentPath ? 'page' : undefined}>
-                    {leaf.title}
-                  </a>
-                  <details className="terra-docs-leaf-menu">
-                    <summary aria-label={`Actions for ${leaf.title}`}>⋯</summary>
-                    <div role="group" aria-label={`Actions for ${leaf.title}`}>
-                      <a href={leaf.href} target="_blank" rel="noopener noreferrer">
-                        Open in new tab
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void navigator.clipboard.writeText(
-                            new URL(leaf.href, window.location.href).href,
-                          );
-                        }}
+        {groups
+          .filter(
+            (group) =>
+              !query ||
+              group.title.toLowerCase().includes(query.toLowerCase()) ||
+              group.leaves.some((leaf) => leaf.title.toLowerCase().includes(query.toLowerCase())),
+          )
+          .map((group, index) => (
+            <div className="terra-docs-workspace-group" key={`${group.title}-${index}`}>
+              <div className="terra-docs-workspace-group-heading">
+                <h2>{group.title}</h2>
+                {actions && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        aria-label={`Actions for group ${group.title}`}
                       >
-                        Copy link
-                      </button>
-                    </div>
-                  </details>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+                        <OverflowMenuVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {(
+                        [
+                          'create-leaf',
+                          'move-group-up',
+                          'move-group-down',
+                          'rename-group',
+                          'delete-group',
+                        ] as const
+                      )
+                        .filter((name) => actions.available({ name, section: section!, group }))
+                        .map((name) => (
+                          <DropdownMenuItem
+                            key={name}
+                            onSelect={() => run({ name, section: section!, group })}
+                          >
+                            {name === 'create-leaf'
+                              ? 'New page'
+                              : name === 'move-group-up'
+                                ? 'Move group up'
+                                : name === 'move-group-down'
+                                  ? 'Move group down'
+                                  : name === 'rename-group'
+                                    ? 'Rename group'
+                                    : 'Delete group'}
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+              <ul>
+                {group.leaves
+                  .filter(
+                    (leaf) =>
+                      !query ||
+                      group.title.toLowerCase().includes(query.toLowerCase()) ||
+                      leaf.title.toLowerCase().includes(query.toLowerCase()),
+                  )
+                  .map((leaf, leafIndex) => (
+                    <li key={`${leaf.href}-${leafIndex}`}>
+                      <ContextMenu>
+                        <ContextMenuTrigger asChild>
+                          <a
+                            href={leaf.href}
+                            aria-current={leaf.href === currentPath ? 'page' : undefined}
+                          >
+                            {leaf.title}
+                          </a>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>{menuItems(group, leaf, 'context')}</ContextMenuContent>
+                      </ContextMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            aria-label={`Actions for ${leaf.title}`}
+                          >
+                            <OverflowMenuVertical size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {menuItems(group, leaf, 'dropdown')}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
       </div>
       {groups.length === 0 && <p className="terra-docs-empty">No pages in this section.</p>}
     </nav>
@@ -138,6 +376,14 @@ export function DocsWorkspaceToolbar({
 }): JSX.Element {
   const [mode, setMode] = useState<DocsMode>('view');
   useEffect(() => {
+    const requested = sessionStorage.getItem('terra-docs:mode');
+    if (requested === 'attachments') {
+      setMode('attachments');
+      onModeChange?.('attachments');
+      sessionStorage.removeItem('terra-docs:mode');
+    }
+  }, [onModeChange]);
+  useEffect(() => {
     const element = document.querySelector<HTMLElement>('.terra-docs-site');
     if (element) element.dataset.docsMode = mode;
     return () => {
@@ -145,35 +391,44 @@ export function DocsWorkspaceToolbar({
     };
   }, [mode]);
   return (
-    <div className="terra-docs-workspace-toolbar" role="toolbar" aria-label="Document controls">
-      <select
-        aria-label="Mode"
+    <div
+      className="terra-docs-workspace-toolbar"
+      role="toolbar"
+      aria-label="Document controls"
+      data-can-edit={Boolean(capabilities.edit && remoteProvider)}
+    >
+      <Select
         value={mode}
-        onChange={(event) => {
-          const next = event.currentTarget.value as DocsMode;
+        onValueChange={(value) => {
+          const next = value as DocsMode;
           setMode(next);
           onModeChange?.(next);
           if (next === 'edit') onEdit?.();
         }}
       >
-        <option value="view">View</option>
-        {capabilities.edit && remoteProvider && <option value="edit">Edit</option>}
-        <option value="attachments">Attachments</option>
-      </select>
+        <SelectTrigger aria-label="Mode">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="view">View</SelectItem>
+          {capabilities.edit && remoteProvider && <SelectItem value="edit">Edit</SelectItem>}
+          <SelectItem value="attachments">Attachments</SelectItem>
+        </SelectContent>
+      </Select>
       {mode === 'edit' && capabilities.save && (
-        <button type="button" onClick={onSave}>
+        <Button type="button" size="xs" onClick={onSave}>
           Save
-        </button>
+        </Button>
       )}
       {mode === 'edit' && capabilities.history && (
-        <button type="button" onClick={onHistory}>
+        <Button type="button" size="xs" variant="ghost" onClick={onHistory}>
           History
-        </button>
+        </Button>
       )}
       {mode === 'edit' && capabilities.publish && (
-        <button type="button" onClick={onPublish}>
+        <Button type="button" size="xs" variant="tonal" onClick={onPublish}>
           Publish
-        </button>
+        </Button>
       )}
     </div>
   );

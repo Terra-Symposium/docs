@@ -1,10 +1,12 @@
 import { colors } from '@terra-symposium/styling';
+import { DocsToolbarFrame } from '@terra-symposium/styling/ui';
 import { DocsWorkspaceNavigation, DocsWorkspaceToolbar, DocsAttachmentsView } from './workspace.js';
 import type {
   DocsSection,
   DocsAttachment,
   DocsCapabilities,
   DocsRemoteProvider,
+  DocsTreeActions,
   DocsMode as WorkspaceMode,
 } from './workspace.js';
 import type { DocsNavNode } from './navigation.js';
@@ -31,6 +33,7 @@ export function DocsSiteLayout({
   remoteProvider,
   onModeChange,
   onUpload,
+  treeActions,
 }: {
   title: string;
   homeHref?: string;
@@ -51,9 +54,14 @@ export function DocsSiteLayout({
   remoteProvider?: DocsRemoteProvider;
   onModeChange?: (mode: WorkspaceMode) => void;
   onUpload?: (file: File) => void | Promise<void>;
+  treeActions?: DocsTreeActions;
 }): JSX.Element {
-  const [accent] = colors(hue);
-  const style = { '--terra-docs-accent': `rgb(${accent.light[8]})` } as CSSProperties;
+  const [accent, neutral] = colors(hue);
+  const style = {
+    '--terra-docs-accent': `rgb(${accent.light[8]})`,
+    ...Object.fromEntries(accent.light.map((value, index) => [`--primary-${index + 1}`, value])),
+    ...Object.fromEntries(neutral.light.map((value, index) => [`--secondary-${index + 1}`, value])),
+  } as CSSProperties;
   const workspaceSections: DocsSection[] =
     sections ??
     nodes.map((node) => ({
@@ -80,7 +88,11 @@ export function DocsSiteLayout({
             </a>
             {description && <span className="terra-docs-site-description">{description}</span>}
           </header>
-          <DocsWorkspaceNavigation sections={workspaceSections} currentPath={currentPath} />
+          <DocsWorkspaceNavigation
+            sections={workspaceSections}
+            currentPath={currentPath}
+            actions={treeActions}
+          />
           {sidebarContent}
         </aside>
         <main className="terra-docs-site-main">
@@ -93,7 +105,7 @@ export function DocsSiteLayout({
               <p className="terra-docs-site-metadata">Updated {activeLeaf.updatedAt}</p>
             )}
           </header>
-          <div className="terra-docs-toolbar-shell">
+          <DocsToolbarFrame>
             <DocsWorkspaceToolbar
               attachments={attachments}
               capabilities={capabilities}
@@ -105,7 +117,7 @@ export function DocsSiteLayout({
               onModeChange={onModeChange}
             />
             <div className="terra-docs-formatting-slot" />
-          </div>
+          </DocsToolbarFrame>
           <DocsAttachmentsView attachments={attachments} onUpload={onUpload} />
           <article className="terra-docs-site-article">{children}</article>
         </main>

@@ -29,12 +29,11 @@ test('document header precedes the shared mode toolbar and body', () => {
       children: React.createElement('p', null, 'Body text'),
     }),
   );
-  assert.ok(html.indexOf('terra-docs-document-header') < html.indexOf('terra-docs-toolbar-shell'));
-  assert.ok(html.indexOf('terra-docs-toolbar-shell') < html.indexOf('Body text'));
-  assert.doesNotMatch(html, /Search pages|Search this section/);
+  assert.ok(html.indexOf('terra-docs-document-header') < html.indexOf('data-docs-toolbar-frame'));
+  assert.ok(html.indexOf('data-docs-toolbar-frame') < html.indexOf('Body text'));
+  assert.match(html, /Search pages/);
   assert.match(html, /Actions for Intro/);
-  assert.match(html, /Open in new tab/);
-  assert.doesNotMatch(html, /<option value="edit"/);
+  assert.match(html, /data-can-edit="false"/);
 });
 
 test('remote edit appears only when provider and capability are both supplied', () => {
@@ -55,5 +54,5 @@ test('remote edit appears only when provider and capability are both supplied', 
       children: React.createElement('p', null, 'Body'),
     }),
   );
-  assert.match(html, /<option value="edit">Edit<\/option>/);
+  assert.match(html, /data-can-edit="true"/);
 });
