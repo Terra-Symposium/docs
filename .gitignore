@@ -1,9 +1,13 @@
 node_modules/
 dist/
 demo-dist/
+site-dist/
 coverage/
+.astro/
 .env
 .env.*
 !.env.example
 .DS_Store
 *.tsbuildinfo
+
+lib-dist/

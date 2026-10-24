@@ -1,4 +1,7 @@
 node_modules/
 dist/
+lib-dist/
 demo-dist/
+site-dist/
+.astro/
 pnpm-lock.yaml
