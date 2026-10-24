@@ -1,6 +1,6 @@
 {
   "name": "@terra-symposium/docs",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Reusable React document editor and viewer.",
   "repository": "https://github.com/Terra-Symposium/docs",
   "type": "module",

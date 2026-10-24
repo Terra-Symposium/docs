@@ -18,6 +18,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  ToggleGroup,
+  ToggleGroupItem,
 } from '@terra-symposium/styling/ui';
 import {
   DocumentAttachment,
@@ -80,6 +82,19 @@ export type DocsCapabilities = {
   publish?: boolean;
 };
 export type DocsMode = 'view' | 'attachments' | 'edit';
+
+function attachmentKind(attachment: DocsAttachment): string {
+  const type = attachment.type?.toLowerCase() ?? '';
+  const path = attachment.href.toLowerCase().split('?')[0] ?? '';
+  if (type.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg)$/.test(path)) return 'Images';
+  if (type.startsWith('video/') || /\.(mp4|webm|mov)$/.test(path)) return 'Videos';
+  if (
+    type === 'text/html' ||
+    (/^(https?:)?\/\//.test(attachment.href) && !path.match(/\.[a-z0-9]+$/))
+  )
+    return 'Links';
+  return 'Files';
+}
 
 function firstLeaf(section: DocsSection): string {
   return section.groups.flatMap((group) => group.leaves)[0]?.href ?? '/';
@@ -357,6 +372,7 @@ export function DocsWorkspaceNavigation({
 }
 
 export function DocsWorkspaceToolbar({
+  attachments = [],
   capabilities = {},
   onEdit,
   onSave,
@@ -375,6 +391,8 @@ export function DocsWorkspaceToolbar({
   onModeChange?: ((mode: DocsMode) => void) | undefined;
 }): JSX.Element {
   const [mode, setMode] = useState<DocsMode>('view');
+  const [attachmentFilter, setAttachmentFilter] = useState('All');
+  const attachmentTypes = [...new Set(attachments.map(attachmentKind))];
   useEffect(() => {
     const requested = sessionStorage.getItem('terra-docs:mode');
     if (requested === 'attachments') {
@@ -415,6 +433,24 @@ export function DocsWorkspaceToolbar({
           <SelectItem value="attachments">Attachments</SelectItem>
         </SelectContent>
       </Select>
+      {mode === 'attachments' && attachmentTypes.length > 1 && (
+        <ToggleGroup
+          type="single"
+          value={attachmentFilter}
+          onValueChange={(value) => {
+            const next = value || 'All';
+            setAttachmentFilter(next);
+            window.dispatchEvent(new CustomEvent('terra-docs:attachment-filter', { detail: next }));
+          }}
+          aria-label="Filter attachments"
+        >
+          {['All', ...attachmentTypes].map((kind) => (
+            <ToggleGroupItem key={kind} value={kind} size="sm">
+              {kind}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
       {mode === 'edit' && capabilities.save && (
         <Button type="button" size="xs" onClick={onSave}>
           Save
@@ -441,6 +477,16 @@ export function DocsAttachmentsView({
   attachments?: DocsAttachment[];
   onUpload?: ((file: File) => void | Promise<void>) | undefined;
 }): JSX.Element {
+  const [filter, setFilter] = useState('All');
+  useEffect(() => {
+    const update = (event: Event) => setFilter((event as CustomEvent<string>).detail);
+    window.addEventListener('terra-docs:attachment-filter', update);
+    return () => window.removeEventListener('terra-docs:attachment-filter', update);
+  }, []);
+  const visible =
+    filter === 'All'
+      ? attachments
+      : attachments.filter((attachment) => attachmentKind(attachment) === filter);
   return (
     <section className="terra-docs-attachments-view" aria-label="Attachments">
       <h2>Attachments</h2>
@@ -457,9 +503,9 @@ export function DocsAttachmentsView({
           />
         </label>
       )}
-      {attachments.length ? (
+      {visible.length ? (
         <ul>
-          {attachments.map((attachment, index) => (
+          {visible.map((attachment, index) => (
             <li key={`${attachment.href}-${index}`}>
               <a href={attachment.href} target="_blank" rel="noopener noreferrer">
                 {attachment.title}

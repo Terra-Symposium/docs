@@ -41,7 +41,7 @@ const palette = Object.fromEntries([...primary.light.map((rgb, index) => [`--pri
           <div class="mdxeditor-toolbar not-prose relative z-10 box-border flex w-full min-w-0 flex-wrap items-center justify-between gap-1.5 gap-x-3 px-2 py-1 text-primary-12 print:hidden" data-docs-main-toolbar><DocsWorkspaceToolbar attachments={attachments} client:load /><div class="terra-docs-formatting-slot"></div></div>
         </div>
       </div>
-      <DocsAttachmentsView attachments={attachments} />
+      <DocsAttachmentsView attachments={attachments} client:load />
       <article class="terra-docs-site-article">
         <slot />
       </article>
