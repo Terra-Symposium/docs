@@ -1,6 +1,6 @@
 # Docs test ownership during extraction
 
-The public package owns tests for its portable contract: Markdown and rich-block conversion, rendering, the workspace header and toolbar order, navigation controls, and capability-gated Edit. Run them with `pnpm test` and `pnpm check`.
+The public package owns tests for its portable contract: Markdown and rich-block conversion, rendering, the workspace header and toolbar order, navigation controls, and capability-gated Edit. Run them with `pnpm test`, `pnpm test:browser`, and `pnpm check`.
 
 The Terra website still owns the following tests because their subjects remain website implementations. They must keep running there until those subjects are extracted and the tests can use public package APIs without a sibling checkout:
 
