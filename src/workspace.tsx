@@ -119,7 +119,6 @@ export function DocsWorkspaceNavigation({
 }
 
 export function DocsWorkspaceToolbar({
-  attachments = [],
   capabilities = {},
   onEdit,
   onSave,
@@ -147,32 +146,20 @@ export function DocsWorkspaceToolbar({
   }, [mode]);
   return (
     <div className="terra-docs-workspace-toolbar" role="toolbar" aria-label="Document controls">
-      <div className="terra-docs-mode-group" aria-label="Document mode">
-        {(
-          [
-            'view',
-            'attachments',
-            ...(capabilities.edit && remoteProvider ? ['edit'] : []),
-          ] as DocsMode[]
-        ).map((next) => (
-          <button
-            key={next}
-            type="button"
-            aria-pressed={mode === next}
-            onClick={() => {
-              setMode(next);
-              onModeChange?.(next);
-              if (next === 'edit') onEdit?.();
-            }}
-          >
-            {next === 'view'
-              ? 'View'
-              : next === 'edit'
-                ? 'Edit'
-                : `Attachments${attachments.length ? ` (${attachments.length})` : ''}`}
-          </button>
-        ))}
-      </div>
+      <select
+        aria-label="Mode"
+        value={mode}
+        onChange={(event) => {
+          const next = event.currentTarget.value as DocsMode;
+          setMode(next);
+          onModeChange?.(next);
+          if (next === 'edit') onEdit?.();
+        }}
+      >
+        <option value="view">View</option>
+        {capabilities.edit && remoteProvider && <option value="edit">Edit</option>}
+        <option value="attachments">Attachments</option>
+      </select>
       {mode === 'edit' && capabilities.save && (
         <button type="button" onClick={onSave}>
           Save

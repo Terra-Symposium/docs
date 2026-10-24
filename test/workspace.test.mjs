@@ -55,5 +55,5 @@ test('remote edit appears only when provider and capability are both supplied', 
       children: React.createElement('p', null, 'Body'),
     }),
   );
-  assert.match(html, /<button[^>]*>Edit<\/button>/);
+  assert.match(html, /<option value="edit">Edit<\/option>/);
 });

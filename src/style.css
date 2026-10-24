@@ -609,23 +609,6 @@ body:has(.terra-docs-site) {
   background: #edf1ed;
   box-shadow: 0 4px 16px #22352e14;
 }
-.terra-docs-mode-group {
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--terra-docs-border);
-  border-radius: 7px;
-  background: #fff;
-}
-.terra-docs-mode-group button {
-  border: 0;
-  background: transparent;
-}
-.terra-docs-mode-group button[aria-pressed='true'] {
-  color: var(--terra-docs-accent, #216750);
-  background: #eaf1ec;
-  font-weight: 600;
-}
 .terra-docs-toolbar-shell .terra-docs-workspace-toolbar,
 .terra-docs-toolbar-shell .terra-docs-toolbar {
   position: static;
