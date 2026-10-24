@@ -1,6 +1,7 @@
 import { EditorProvider, PortableTextEditable, useEditor } from '@portabletext/editor';
 import { EventListenerPlugin, NodePlugin } from '@portabletext/editor/plugins';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Toolbar } from './_Toolbar.js';
 import { safeLink, createDocsSchema } from './schema.js';
 import { docsBlockNodes } from './blocks.js';
@@ -40,6 +41,11 @@ export function Docs(props: DocsProps): JSX.Element {
 
 function DocsSurface(props: DocsProps): JSX.Element {
   const editor = useEditor();
+  const [toolbarHost, setToolbarHost] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setToolbarHost(document.querySelector<HTMLElement>('.terra-docs-formatting-slot'));
+  }, []);
 
   // initialConfig is read once; subsequent host values and mode changes need explicit updates.
   useEffect(() => {
@@ -60,7 +66,12 @@ function DocsSurface(props: DocsProps): JSX.Element {
         }}
       />
       <NodePlugin nodes={docsBlockNodes(props.blocks)} />
-      {props.mode === 'edit' && <Toolbar blocks={props.blocks} />}
+      {props.mode === 'edit' &&
+        (toolbarHost ? (
+          createPortal(<Toolbar blocks={props.blocks} />, toolbarHost)
+        ) : (
+          <Toolbar blocks={props.blocks} />
+        ))}
       <PortableTextEditable
         aria-label={props.mode === 'edit' ? 'Document editor' : 'Document viewer'}
         aria-readonly={props.mode === 'view'}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 
 export type DocsAttachment = { title: string; href: string; type?: string; size?: number };
@@ -47,21 +47,9 @@ export function DocsWorkspaceNavigation({
   currentPath: string;
 }): JSX.Element {
   const [sectionIndex, setSectionIndex] = useState(() => sectionForPath(sections, currentPath));
-  const [query, setQuery] = useState('');
   useEffect(() => setSectionIndex(sectionForPath(sections, currentPath)), [sections, currentPath]);
   const section = sections[sectionIndex];
-  const groups = useMemo(
-    () =>
-      section?.groups
-        .map((group) => ({
-          ...group,
-          leaves: group.leaves.filter((leaf) =>
-            `${leaf.title} ${leaf.description ?? ''}`.toLowerCase().includes(query.toLowerCase()),
-          ),
-        }))
-        .filter((group) => group.leaves.length) ?? [],
-    [section, query],
-  );
+  const groups = section?.groups ?? [];
   return (
     <nav className="terra-docs-workspace-nav" aria-label="Documentation">
       <label className="terra-docs-control-label" htmlFor="terra-docs-section">
@@ -84,33 +72,48 @@ export function DocsWorkspaceNavigation({
           </option>
         ))}
       </select>
-      <label className="terra-docs-control-label" htmlFor="terra-docs-search">
-        Search pages
-      </label>
-      <input
-        id="terra-docs-search"
-        type="search"
-        value={query}
-        onChange={(event) => setQuery(event.currentTarget.value)}
-        placeholder="Search this section"
-      />
       <div className="terra-docs-workspace-groups">
         {groups.map((group, index) => (
           <div className="terra-docs-workspace-group" key={`${group.title}-${index}`}>
             <h2>{group.title}</h2>
             <ul>
               {group.leaves.map((leaf, leafIndex) => (
-                <li key={`${leaf.href}-${leafIndex}`}>
+                <li
+                  key={`${leaf.href}-${leafIndex}`}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    const menu = event.currentTarget.querySelector('details');
+                    if (menu) menu.open = true;
+                  }}
+                >
                   <a href={leaf.href} aria-current={leaf.href === currentPath ? 'page' : undefined}>
                     {leaf.title}
                   </a>
+                  <details className="terra-docs-leaf-menu">
+                    <summary aria-label={`Actions for ${leaf.title}`}>⋯</summary>
+                    <div role="group" aria-label={`Actions for ${leaf.title}`}>
+                      <a href={leaf.href} target="_blank" rel="noopener noreferrer">
+                        Open in new tab
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(
+                            new URL(leaf.href, window.location.href).href,
+                          );
+                        }}
+                      >
+                        Copy link
+                      </button>
+                    </div>
+                  </details>
                 </li>
               ))}
             </ul>
           </div>
         ))}
       </div>
-      {groups.length === 0 && <p className="terra-docs-empty">No pages found.</p>}
+      {groups.length === 0 && <p className="terra-docs-empty">No pages in this section.</p>}
     </nav>
   );
 }
@@ -144,24 +147,32 @@ export function DocsWorkspaceToolbar({
   }, [mode]);
   return (
     <div className="terra-docs-workspace-toolbar" role="toolbar" aria-label="Document controls">
-      <label htmlFor="terra-docs-mode">Mode</label>
-      <select
-        id="terra-docs-mode"
-        aria-label="Mode"
-        value={mode}
-        onChange={(event) => {
-          const next = event.currentTarget.value as DocsMode;
-          setMode(next);
-          onModeChange?.(next);
-          if (next === 'edit') onEdit?.();
-        }}
-      >
-        <option value="view">View</option>
-        <option value="attachments">
-          Attachments{attachments.length ? ` (${attachments.length})` : ''}
-        </option>
-        {capabilities.edit && remoteProvider && <option value="edit">Edit</option>}
-      </select>
+      <div className="terra-docs-mode-group" aria-label="Document mode">
+        {(
+          [
+            'view',
+            'attachments',
+            ...(capabilities.edit && remoteProvider ? ['edit'] : []),
+          ] as DocsMode[]
+        ).map((next) => (
+          <button
+            key={next}
+            type="button"
+            aria-pressed={mode === next}
+            onClick={() => {
+              setMode(next);
+              onModeChange?.(next);
+              if (next === 'edit') onEdit?.();
+            }}
+          >
+            {next === 'view'
+              ? 'View'
+              : next === 'edit'
+                ? 'Edit'
+                : `Attachments${attachments.length ? ` (${attachments.length})` : ''}`}
+          </button>
+        ))}
+      </div>
       {mode === 'edit' && capabilities.save && (
         <button type="button" onClick={onSave}>
           Save

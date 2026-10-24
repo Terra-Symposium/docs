@@ -27,12 +27,14 @@ const activeLeaf = workspaceSections.flatMap(section => section.groups.flatMap(g
       <slot name="sidebar" />
     </aside>
     <main class="terra-docs-site-main">
+      <header class="terra-docs-document-header">
+        <h1>{pageTitle ?? activeLeaf?.title ?? title}</h1>
+        {activeLeaf?.description && <p class="terra-docs-site-metadata">{activeLeaf.description}</p>}
+        {activeLeaf?.updatedAt && <p class="terra-docs-site-metadata">Updated {activeLeaf.updatedAt}</p>}
+      </header>
       <div class="terra-docs-toolbar-shell"><DocsWorkspaceToolbar attachments={attachments} client:load /><div class="terra-docs-formatting-slot"></div></div>
       <DocsAttachmentsView attachments={attachments} />
       <article class="terra-docs-site-article">
-        {pageTitle && <h1 class="terra-docs-site-page-title">{pageTitle}</h1>}
-        {activeLeaf?.description && <p class="terra-docs-site-metadata">{activeLeaf.description}</p>}
-        {activeLeaf?.updatedAt && <p class="terra-docs-site-metadata">Updated {activeLeaf.updatedAt}</p>}
         <slot />
       </article>
     </main>

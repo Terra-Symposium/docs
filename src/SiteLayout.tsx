@@ -84,6 +84,15 @@ export function DocsSiteLayout({
           {sidebarContent}
         </aside>
         <main className="terra-docs-site-main">
+          <header className="terra-docs-document-header">
+            <h1>{pageTitle ?? activeLeaf?.title ?? title}</h1>
+            {activeLeaf?.description && (
+              <p className="terra-docs-site-metadata">{activeLeaf.description}</p>
+            )}
+            {activeLeaf?.updatedAt && (
+              <p className="terra-docs-site-metadata">Updated {activeLeaf.updatedAt}</p>
+            )}
+          </header>
           <div className="terra-docs-toolbar-shell">
             <DocsWorkspaceToolbar
               attachments={attachments}
@@ -98,16 +107,7 @@ export function DocsSiteLayout({
             <div className="terra-docs-formatting-slot" />
           </div>
           <DocsAttachmentsView attachments={attachments} onUpload={onUpload} />
-          <article className="terra-docs-site-article">
-            {pageTitle && <h1 className="terra-docs-site-page-title">{pageTitle}</h1>}
-            {activeLeaf?.description && (
-              <p className="terra-docs-site-metadata">{activeLeaf.description}</p>
-            )}
-            {activeLeaf?.updatedAt && (
-              <p className="terra-docs-site-metadata">Updated {activeLeaf.updatedAt}</p>
-            )}
-            {children}
-          </article>
+          <article className="terra-docs-site-article">{children}</article>
         </main>
       </div>
     </div>

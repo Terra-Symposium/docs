@@ -77,6 +77,24 @@ body:has(.terra-docs-site) {
   min-width: 0;
   padding: 34px 0 80px;
 }
+.terra-docs-document-header {
+  max-width: 820px;
+  margin: 0 auto 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--terra-docs-border);
+}
+.terra-docs-document-header h1 {
+  margin: 0 0 8px;
+  color: var(--terra-docs-ink);
+  font:
+    italic 500 clamp(2rem, 4vw, 3rem)/1.2 Georgia,
+    'Times New Roman',
+    serif;
+  letter-spacing: -0.035em;
+}
+.terra-docs-document-header .terra-docs-site-metadata {
+  margin: 0;
+}
 .terra-docs-site-article {
   max-width: 820px;
   margin: 0 auto;
@@ -514,6 +532,9 @@ body:has(.terra-docs-site) {
 }
 .terra-docs-workspace-group li {
   margin: 1px 0;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 .terra-docs-workspace-group a {
   display: block;
@@ -521,6 +542,40 @@ body:has(.terra-docs-site) {
   border-radius: 5px;
   color: var(--terra-docs-ink);
   text-decoration: none;
+}
+.terra-docs-workspace-group li > a {
+  flex: 1;
+  min-width: 0;
+}
+.terra-docs-leaf-menu summary {
+  padding: 3px 7px;
+  cursor: pointer;
+  list-style: none;
+}
+.terra-docs-leaf-menu summary::-webkit-details-marker {
+  display: none;
+}
+.terra-docs-leaf-menu > div {
+  position: absolute;
+  right: 0;
+  z-index: 30;
+  width: 170px;
+  padding: 4px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 7px;
+  background: white;
+  box-shadow: 0 8px 20px #22352e22;
+}
+.terra-docs-leaf-menu > div > * {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--terra-docs-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 .terra-docs-workspace-group a:hover,
 .terra-docs-workspace-group a[aria-current='page'] {
@@ -540,8 +595,7 @@ body:has(.terra-docs-site) {
     sans-serif;
 }
 .terra-docs-toolbar-shell {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -554,6 +608,23 @@ body:has(.terra-docs-site) {
   border-radius: 10px;
   background: #edf1ed;
   box-shadow: 0 4px 16px #22352e14;
+}
+.terra-docs-mode-group {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 7px;
+  background: #fff;
+}
+.terra-docs-mode-group button {
+  border: 0;
+  background: transparent;
+}
+.terra-docs-mode-group button[aria-pressed='true'] {
+  color: var(--terra-docs-accent, #216750);
+  background: #eaf1ec;
+  font-weight: 600;
 }
 .terra-docs-toolbar-shell .terra-docs-workspace-toolbar,
 .terra-docs-toolbar-shell .terra-docs-toolbar {
