@@ -3,5 +3,6 @@ import react from '@astrojs/react';
 
 export default defineConfig({
   outDir: './site-dist/',
+  devToolbar: { enabled: false },
   integrations: [react()],
 });

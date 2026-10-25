@@ -2,8 +2,13 @@ import { colors } from '@terra-symposium/styling';
 import type { CSSProperties, JSX } from 'react';
 
 export type DocsNavNode = {
+  id?: string;
+  path?: string;
   title: string;
   href?: string;
+  description?: string;
+  updatedAt?: string;
+  attachments?: import('./workspace.js').DocsAttachment[];
   children?: DocsNavNode[];
 };
 

@@ -1,12 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  DOCS_BLOCK_TYPES,
-  docsValueToMarkdown,
-  enabledDocsBlocks,
-  markdownToDocsValue,
-  renderMarkdown,
-} from '../lib-dist/index.js';
+import { DOCS_BLOCK_TYPES, enabledDocsBlocks } from '../lib-dist/blocks.js';
+import { docsValueToMarkdown, markdownToDocsValue } from '../lib-dist/markdown-model.js';
+import { renderMarkdown } from '../lib-dist/markdown.js';
 
 test('all reusable rich blocks are enabled by default and can be opted out individually', () => {
   assert.equal(DOCS_BLOCK_TYPES.length, 11);

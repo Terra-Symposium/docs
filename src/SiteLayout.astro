@@ -1,50 +1,38 @@
 ---
-import { DocsWorkspaceNavigation, DocsWorkspaceToolbar, DocsAttachmentsView } from '../lib-dist/workspace.js';
-import { colors } from '@terra-symposium/styling';
-import './style.css';
+import { DocsStaticWorkspace } from '../lib-dist/StaticWorkspace.js';
+import '../lib-dist/style.css';
+import type { DocsAttachment, DocsSection, DocsNavNode } from '../lib-dist/index.js';
 
-interface Props {
-  title: string;
-  homeHref?: string;
-  description?: string;
-  pageTitle?: string;
-  nodes: import('./navigation').DocsNavNode[];
-  currentPath: string;
-  hue?: number | null;
-  sections?: import('./workspace').DocsSection[];
-  attachments?: import('./workspace').DocsAttachment[];
-}
+type Props = {
+	title: string;
+	homeHref?: string;
+	description?: string;
+	pageTitle?: string;
+	nodes?: DocsNavNode[];
+	sections?: DocsSection[];
+	currentPath: string;
+	rootPath?: string;
+	markdown?: string;
+	content?: unknown;
+	attachments?: DocsAttachment[];
+	updatedAt?: string;
+};
 
-const { title, homeHref = '/', description, pageTitle, nodes, currentPath, hue = 145, sections, attachments = [] } = Astro.props;
-const workspaceSections = sections ?? nodes.map(node => ({ title: node.title, groups: [{ title: node.title, leaves: (node.children?.length ? node.children : [node]).filter(entry => entry.href).map(entry => ({ title: entry.title, href: entry.href! })) }] }));
-const activeLeaf = workspaceSections.flatMap(section => section.groups.flatMap(group => group.leaves)).find(leaf => leaf.href === currentPath);
-const [primary, secondary] = colors(hue);
-const palette = Object.fromEntries([...primary.light.map((rgb, index) => [`--primary-${index + 1}`, rgb]), ...secondary.light.map((rgb, index) => [`--secondary-${index + 1}`, rgb])]);
+const { title, homeHref = '/', description, pageTitle, nodes = [], sections, currentPath, rootPath = '/', markdown = '', content, attachments = [], updatedAt } = Astro.props;
 ---
 
-<div class="terra-docs-site" style={palette}>
-  <div class="terra-docs-site-layout">
-    <aside class="terra-docs-site-sidebar">
-      <header class="terra-docs-site-header"><a class="terra-docs-site-brand" href={homeHref}>{title}</a>{description && <span class="terra-docs-site-description">{description}</span>}</header>
-      <DocsWorkspaceNavigation sections={workspaceSections} currentPath={currentPath} client:load />
-      <slot name="sidebar" />
-    </aside>
-    <main class="terra-docs-site-main">
-      <header class="terra-docs-document-header">
-        <h1>{pageTitle ?? activeLeaf?.title ?? title}</h1>
-        {activeLeaf?.description && <p class="terra-docs-site-metadata">{activeLeaf.description}</p>}
-        {activeLeaf?.updatedAt && <p class="terra-docs-site-metadata">Updated {activeLeaf.updatedAt}</p>}
-      </header>
-      <div class="docs-toolbar-scroll not-prose pointer-events-auto sticky top-10 isolate z-50 -mx-3 -mt-5 mb-5 w-[calc(100%+1.5rem)] max-w-[calc(100%+1.5rem)] overflow-visible text-primary-12 print:hidden" data-docs-toolbar-frame data-docs-toolbar-scroll>
-        <div aria-hidden="true" class="docs-toolbar-backdrop pointer-events-none absolute -inset-x-4 -bottom-12 -top-16 z-0"></div>
-        <div class="relative z-10 rounded-lg border border-primary-6 bg-primary-3">
-          <div class="mdxeditor-toolbar not-prose relative z-10 box-border flex w-full min-w-0 flex-wrap items-center justify-between gap-1.5 gap-x-3 px-2 py-1 text-primary-12 print:hidden" data-docs-main-toolbar><DocsWorkspaceToolbar attachments={attachments} client:load /><div class="terra-docs-formatting-slot"></div></div>
-        </div>
-      </div>
-      <DocsAttachmentsView attachments={attachments} client:load />
-      <article class="terra-docs-site-article">
-        <slot />
-      </article>
-    </main>
-  </div>
-</div>
+<DocsStaticWorkspace
+	client:load
+	title={title}
+	homeHref={homeHref}
+	description={description}
+	pageTitle={pageTitle}
+	nodes={nodes}
+	sections={sections}
+	currentPath={currentPath}
+	rootPath={rootPath}
+	markdown={markdown}
+	content={content}
+	attachments={attachments}
+	updatedAt={updatedAt}
+/>

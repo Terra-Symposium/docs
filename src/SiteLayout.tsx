@@ -1,6 +1,7 @@
 import { colors } from '@terra-symposium/styling';
 import { DocsToolbarFrame } from '@terra-symposium/styling/ui';
 import { DocsWorkspaceNavigation, DocsWorkspaceToolbar, DocsAttachmentsView } from './workspace.js';
+import { DocsStaticWorkspace } from './StaticWorkspace.js';
 import type {
   DocsSection,
   DocsAttachment,
@@ -25,6 +26,9 @@ export function DocsSiteLayout({
   sidebarContent,
   sections,
   attachments = [],
+  rootPath,
+  markdown,
+  content,
   capabilities,
   onEdit,
   onSave,
@@ -42,10 +46,13 @@ export function DocsSiteLayout({
   nodes: DocsNavNode[];
   currentPath: string;
   hue?: number | null;
-  children: ReactNode;
+  children?: ReactNode;
   sidebarContent?: ReactNode;
   sections?: DocsSection[];
   attachments?: DocsAttachment[];
+  rootPath?: string;
+  markdown?: string;
+  content?: unknown;
   capabilities?: DocsCapabilities;
   onEdit?: () => void;
   onSave?: () => void;
@@ -56,6 +63,24 @@ export function DocsSiteLayout({
   onUpload?: (file: File) => void | Promise<void>;
   treeActions?: DocsTreeActions;
 }): JSX.Element {
+  if (markdown !== undefined || content !== undefined) {
+    return (
+      <DocsStaticWorkspace
+        title={title}
+        homeHref={homeHref}
+        {...(description ? { description } : {})}
+        {...(pageTitle ? { pageTitle } : {})}
+        hue={hue}
+        nodes={nodes}
+        {...(sections ? { sections } : {})}
+        currentPath={currentPath}
+        {...(rootPath ? { rootPath } : {})}
+        {...(markdown !== undefined ? { markdown } : {})}
+        {...(content !== undefined ? { content } : {})}
+        attachments={attachments}
+      />
+    );
+  }
   const [accent, neutral] = colors(hue);
   const style = {
     '--terra-docs-accent': `rgb(${accent.light[8]})`,
@@ -79,7 +104,7 @@ export function DocsSiteLayout({
     .flatMap((section) => section.groups.flatMap((group) => group.leaves))
     .find((leaf) => leaf.href === currentPath);
   return (
-    <div className="terra-docs-site" style={style}>
+    <div className="terra-docs-site light" style={style}>
       <div className="terra-docs-site-layout">
         <aside className="terra-docs-site-sidebar">
           <header className="terra-docs-site-header">

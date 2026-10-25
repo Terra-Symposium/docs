@@ -1,5 +1,8 @@
 @import 'katex/dist/katex.min.css';
-@import '@terra-symposium/styling/ui.css';
+@import '@xyflow/react/dist/style.css';
+@import '../node_modules/@terra-symposium/styling/dist/tokens.css';
+@import './terra/prose.css';
+@tailwind utilities;
 .terra-docs {
   color: inherit;
   font-family: inherit;

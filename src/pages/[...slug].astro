@@ -1,46 +1,27 @@
 ---
-import DocsSiteLayout from '../SiteLayout.astro';
-import type { DocsNavNode } from '../navigation';
-import '@terra-symposium/docs/style.css';
-
-const nodes: DocsNavNode[] = [
-  { title: 'Start here', children: [
-    { title: 'Terra Docs', href: '/' },
-    { title: 'Create an instance', href: '/getting-started/' },
-  ] },
-  { title: 'Configure', children: [
-    { title: 'Configuration', href: '/configuration/' },
-    { title: 'Storage providers', href: '/storage/' },
-    { title: 'Deploy an instance', href: '/deploy/' },
-  ] },
-  { title: 'Reference', children: [
-    { title: 'Component reference', href: '/component/' },
-    { title: 'Develop Terra Docs', href: '/development/' },
-  ] },
-];
+import { DocsLocalWorkspace } from '../LocalDocsWorkspace';
+import { docsPages, docsTree } from '../docs-catalog';
+import '../../lib-dist/style.css';
 
 export function getStaticPaths() {
-  const modules = import.meta.glob('../content/docs/**/*.md', { eager: true }) as Record<string, { default: unknown; frontmatter?: { title?: string } }>;
-  return Object.entries(modules).map(([path, module]) => {
-    const slug = path.replace('../content/docs/', '').replace(/(?:^|\/)index\.md$/, '').replace(/\.md$/, '');
-    return { params: { slug: slug || undefined }, props: { Page: module.default, pageTitle: module.frontmatter?.title ?? '' } };
-  });
+	return docsPages.map(page => ({
+		params: { slug: page.id === 'index' ? undefined : page.id },
+		props: { pageId: page.id },
+	}));
 }
 
-const { Page, pageTitle } = Astro.props;
-const currentPath = Astro.url.pathname;
+const { pageId } = Astro.props;
+const page = docsPages.find(entry => entry.id === pageId) ?? docsPages[0];
 ---
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{pageTitle} · Terra Docs</title>
-  </head>
-  <body>
-    <DocsSiteLayout title="Terra Docs" description="Install and configure independent Terra Docs instances." nodes={nodes} currentPath={currentPath} pageTitle={pageTitle}>
-      <Page />
-    </DocsSiteLayout>
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{page?.title ?? 'Terra Docs'}</title>
+	</head>
+	<body>
+		<DocsLocalWorkspace client:load tree={docsTree} pages={docsPages} pathname={Astro.url.pathname} title="Terra Docs" description="Install and configure independent Terra Docs instances." rootPath="/" homePath="/" />
+	</body>
 </html>
