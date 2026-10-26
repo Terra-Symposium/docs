@@ -42,7 +42,10 @@
     "format:check": "prettier --check .",
     "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck",
     "test": "pnpm build && node --test test/*.test.mjs",
-    "test:browser": "pnpm docs:build && playwright test"
+    "test:browser": "pnpm docs:build && playwright test",
+    "prepare": "husky",
+    "changeset": "changeset",
+    "version-packages": "changeset version"
   },
   "peerDependencies": {
     "@terra-symposium/styling": "^0.1.6",
@@ -51,6 +54,7 @@
   },
   "devDependencies": {
     "@astrojs/react": "^7.1.0",
+    "@changesets/cli": "^3.0.3",
     "@eslint/js": "10.0.1",
     "@playwright/test": "^1.64.1",
     "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.12.tgz",
@@ -62,6 +66,7 @@
     "@vitejs/plugin-react": "6.1.2",
     "astro": "^7.4.2",
     "eslint": "10.13.0",
+    "husky": "^9.1.7",
     "prettier": "3.9.10",
     "react": "19.3.1",
     "react-dom": "19.3.1",
