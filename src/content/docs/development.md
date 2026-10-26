@@ -11,4 +11,4 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The command starts the Vite component playground. Run the Starlight documentation site separately with `pnpm docs:dev`. Build with `pnpm run check`, `pnpm run build`, `pnpm run build:demo`, and `pnpm run docs:build`.
+The command starts the Vite component playground. Run the Astro installation guide separately with `pnpm docs:dev`. Build the package, playground, and guide with `pnpm run check`, `pnpm run build`, `pnpm run build:demo`, and `pnpm run docs:build`.

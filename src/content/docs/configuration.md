@@ -14,6 +14,8 @@ The library has no global configuration object. Configure each instance through 
 
 `mode` is `edit` or `view`. Edit mode requires `onChange`; view mode is read-only. `value` is a Portable Text block array. `className` adds a class to the component container.
 
+All reusable rich blocks are enabled by default. Set `blocks={{ embed: false }}` or any other individual member to `false` for an instance. This option changes available authoring and rendering controls; it does not delete stored source.
+
 Import `@terra-symposium/docs/style.css` for the default styles. Add host styles under your own wrapper class to adjust spacing and colors. A supported theme prop is not available yet.
 
 ## Data boundary

@@ -1,0 +1,38 @@
+---
+import { DocsStaticWorkspace } from '../../lib-dist/components/StaticWorkspace.js';
+import '../../lib-dist/style.css';
+import type { DocsAttachment, DocsSection, DocsNavNode } from '../../lib-dist/lib/index.js';
+
+type Props = {
+	title: string;
+	homeHref?: string;
+	description?: string;
+	pageTitle?: string;
+	nodes?: DocsNavNode[];
+	sections?: DocsSection[];
+	currentPath: string;
+	rootPath?: string;
+	markdown?: string;
+	content?: unknown;
+	attachments?: DocsAttachment[];
+	updatedAt?: string;
+};
+
+const { title, homeHref = '/', description, pageTitle, nodes = [], sections, currentPath, rootPath = '/', markdown = '', content, attachments = [], updatedAt } = Astro.props;
+---
+
+<DocsStaticWorkspace
+	client:load
+	title={title}
+	homeHref={homeHref}
+	description={description}
+	pageTitle={pageTitle}
+	nodes={nodes}
+	sections={sections}
+	currentPath={currentPath}
+	rootPath={rootPath}
+	markdown={markdown}
+	content={content}
+	attachments={attachments}
+	updatedAt={updatedAt}
+/>

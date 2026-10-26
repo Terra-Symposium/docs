@@ -1,0 +1,325 @@
+/* Styling owns the shared Tailwind utility layer. Docs adds only its component
+   styles here so responsive utilities are not re-generated in a second bundle. */
+@import '@terra-symposium/styling/ui.css';
+@import './workspace.css';
+.terra-docs {
+  color: inherit;
+  font-family: inherit;
+  line-height: 2;
+  overflow-wrap: anywhere;
+}
+
+.terra-docs-content {
+  min-height: 320px;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0;
+}
+.terra-docs-content p {
+  margin: 16px 0;
+}
+.terra-docs-content h2,
+.terra-docs-content h3,
+.terra-docs-content h4,
+.terra-docs-content h5,
+.terra-docs-content h6 {
+  line-height: 1.3;
+  font-weight: 600;
+}
+.terra-docs-content h2 {
+  font-size: 30px;
+  margin: 40px 0 12px;
+  letter-spacing: -0.025em;
+}
+.terra-docs-content h3 {
+  font-size: 24px;
+  margin: 32px 0 12px;
+}
+.terra-docs-content h4 {
+  font-size: 20px;
+  margin: 24px 0 8px;
+}
+.terra-docs-content h5 {
+  font-size: 16px;
+  margin: 24px 0 8px;
+}
+.terra-docs-content h6 {
+  font-size: 16px;
+  margin: 20px 0 8px;
+}
+.terra-docs-content > :first-child :is(p, h2, h3, h4, h5, h6, blockquote) {
+  margin-top: 0;
+}
+.terra-docs-content blockquote {
+  margin: 24px 0;
+  border-left: 2px solid #9bad9e;
+  padding-left: 20px;
+  color: #5d6b64;
+}
+.terra-docs-content a {
+  color: #216750;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .terra-docs-toolbar {
+    gap: 2px;
+    padding: 6px;
+  }
+  .terra-docs-toolbar button.terra-docs-select {
+    width: 112px;
+  }
+  .terra-docs-toolbar-divider {
+    margin: 0 2px;
+  }
+}
+
+.terra-docs-link-dialog {
+  width: min(360px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid #c9d2cb;
+  border-radius: 12px;
+  color: #22352e;
+  background: white;
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+.terra-docs-link-dialog::backdrop {
+  background: #16251f55;
+}
+.terra-docs-link-dialog h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+.terra-docs-link-dialog label {
+  display: block;
+  margin-bottom: 6px;
+}
+.terra-docs-link-dialog input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #c9d2cb;
+  border-radius: 6px;
+  font: inherit;
+}
+.terra-docs-link-dialog form > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.terra-docs-link-dialog button {
+  width: auto;
+  padding: 6px 12px;
+  border-color: #c9d2cb;
+}
+.terra-docs-link-dialog button[type='submit'] {
+  background: #234c3c;
+  color: white;
+}
+.terra-docs-link-dialog [role='alert'] {
+  color: #a12b2b;
+}
+
+.terra-docs-nav {
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+.terra-docs-nav-list {
+  list-style: none;
+  margin: 0;
+  padding-left: 1rem;
+}
+.terra-docs-nav > .terra-docs-nav-list {
+  padding-left: 0;
+}
+.terra-docs-nav li {
+  margin: 0.15rem 0;
+}
+.terra-docs-nav a {
+  color: inherit;
+  display: block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+.terra-docs-nav a:hover,
+.terra-docs-nav a[aria-current='page'] {
+  color: var(--docs-accent, #25634e);
+  background: color-mix(in srgb, var(--docs-accent, #25634e) 10%, white);
+}
+.terra-docs-nav span {
+  display: block;
+  padding: 10px 8px 4px;
+  color: #68726b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .terra-docs-site-header {
+    padding: 0 0 16px;
+    margin-bottom: 16px;
+  }
+  .terra-docs-site-layout {
+    display: block;
+    padding: 0 18px;
+  }
+  .terra-docs-site-sidebar {
+    position: static;
+    max-height: 35vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--terra-docs-border);
+    padding: 14px 0;
+  }
+  .terra-docs-site-main {
+    padding: 24px 0 56px;
+  }
+}
+
+.terra-docs-accordion,
+.terra-docs-tab {
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.5rem;
+  margin-block: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.terra-docs-accordion > summary,
+.terra-docs-tab > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.terra-docs-accordion > summary:focus-visible,
+.terra-docs-tab > summary:focus-visible {
+  outline: 2px solid var(--docs-accent, #25634e);
+  outline-offset: 3px;
+}
+
+.terra-docs-rich-editor {
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 10px;
+  background: #fbfcfa;
+}
+.terra-docs-rich-editor > button,
+.terra-docs-rich-fields button,
+.terra-docs-attachment-upload {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 6px;
+  background: white;
+  color: var(--terra-docs-ink);
+  cursor: pointer;
+}
+.terra-docs-rich-fields {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+.terra-docs-rich-fields fieldset {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 8px;
+}
+.terra-docs-rich-fields label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.terra-docs-rich-fields input,
+.terra-docs-rich-fields textarea,
+.terra-docs-rich-fields select {
+  min-height: 34px;
+  padding: 6px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 5px;
+  font: inherit;
+}
+.terra-docs-rich-fields textarea {
+  min-height: 70px;
+}
+.terra-docs-rich-item {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 6px;
+}
+.terra-docs-callout {
+  margin: 14px 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--terra-docs-accent, #216750);
+  background: #edf4ef;
+}
+.terra-docs-callout-warning {
+  border-color: #b16d22;
+  background: #fff4e5;
+}
+.terra-docs-callout-error {
+  border-color: #a53d43;
+  background: #fff0f0;
+}
+.terra-docs-diagram svg {
+  display: block;
+  width: 100%;
+  max-height: 560px;
+  color: var(--terra-docs-accent, #216750);
+}
+.terra-docs-diagram text {
+  fill: var(--terra-docs-ink);
+  font:
+    14px system-ui,
+    sans-serif;
+}
+.terra-docs-diagram figcaption {
+  color: var(--terra-docs-muted);
+  font-size: 12px;
+}
+.terra-docs-tabs,
+.terra-docs-accordions {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.terra-docs-tabs details,
+.terra-docs-accordions details {
+  padding: 9px 12px;
+  border: 1px solid var(--terra-docs-border);
+  border-radius: 7px;
+}
+.terra-docs-tabs summary,
+.terra-docs-accordions summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.terra-docs-table {
+  overflow-x: auto;
+}
+.terra-docs-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.terra-docs-table td {
+  padding: 8px;
+  border: 1px solid var(--terra-docs-border);
+}
+.terra-docs-math {
+  overflow-x: auto;
+}
+.terra-docs-attachment-upload {
+  margin-bottom: 12px;
+}

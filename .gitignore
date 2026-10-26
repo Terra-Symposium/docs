@@ -3,10 +3,10 @@ dist/
 demo-dist/
 site-dist/
 coverage/
+test-results/
 .astro/
 .env
 .env.*
-!.env.example
 .DS_Store
 *.tsbuildinfo
 
