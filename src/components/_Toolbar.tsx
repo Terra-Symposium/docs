@@ -103,7 +103,6 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
         </Button>
       ))}
       <Button
-
         variant="ghost"
         size="xs"
         aria-label="Link"
@@ -146,7 +145,6 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
       </Select>
       {blocks?.inlineMath !== false && (
         <Button
-
           variant="ghost"
           size="xs"
           aria-label="Insert inline math"
@@ -163,7 +161,6 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
         </Button>
       )}
       <Button
-
         variant="ghost"
         size="xs"
         aria-label="Undo"
@@ -177,7 +174,6 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
         <Undo size={16} aria-hidden="true" />
       </Button>
       <Button
-
         variant="ghost"
         size="xs"
         aria-label="Redo"
@@ -222,7 +218,6 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
           {linkError && <p role="alert">Enter a valid web, email, or relative URL.</p>}
           <div>
             <Button
-
               variant="ghost"
               onClick={() => {
                 linkDialog.current?.close();

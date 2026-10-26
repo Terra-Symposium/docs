@@ -86,7 +86,13 @@ export type DocsHostOperationContracts = {
     output: DocsHostAttachment[];
   };
   'write.doc.save': {
-    input: { path: string; title: string; description?: string; content?: unknown[]; source?: string };
+    input: {
+      path: string;
+      title: string;
+      description?: string;
+      content?: unknown[];
+      source?: string;
+    };
     output: DocsHostDocument;
   };
   'write.doc.reorder': {
@@ -103,7 +109,10 @@ export type DocsHostOperationContracts = {
 export type DocsHostAdapter = {
   capabilities: DocsHostCapabilities;
   /** Legacy action bridge for host-specific operations outside the stable contract. */
-  invoke<T = unknown>(operation: DocsActionOperation, input?: unknown): Promise<DocsActionResult<T>>;
+  invoke<T = unknown>(
+    operation: DocsActionOperation,
+    input?: unknown,
+  ): Promise<DocsActionResult<T>>;
   /** Load a host-owned draft when an editor enters Edit mode. */
   loadDraft?: (path: string) => Promise<DocsHostDocument | null>;
   /** Publish the current saved draft from the shared toolbar when supported by the host. */

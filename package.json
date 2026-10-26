@@ -10,24 +10,23 @@
   },
   "files": [
     "lib-dist",
-    "src/style.css",
-    "src/navigation.tsx",
-    "src/SiteLayout.astro",
-    "src/NotFound.astro",
-    "src/NotFound.tsx"
+    "src/components/navigation.tsx",
+    "src/components/SiteLayout.astro",
+    "src/components/NotFound.astro",
+    "src/components/NotFound.tsx"
   ],
   "exports": {
     ".": {
-      "types": "./lib-dist/index.d.ts",
-      "import": "./lib-dist/index.js"
+      "types": "./lib-dist/lib/index.d.ts",
+      "import": "./lib-dist/lib/index.js"
     },
     "./style.css": "./lib-dist/style.css",
     "./local-workspace": {
-      "types": "./lib-dist/LocalDocsWorkspace.d.ts",
-      "import": "./lib-dist/LocalDocsWorkspace.js"
+      "types": "./lib-dist/components/LocalDocsWorkspace.d.ts",
+      "import": "./lib-dist/components/LocalDocsWorkspace.js"
     },
-    "./site-layout.astro": "./src/SiteLayout.astro",
-    "./not-found.astro": "./src/NotFound.astro"
+    "./site-layout.astro": "./src/components/SiteLayout.astro",
+    "./not-found.astro": "./src/components/NotFound.astro"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --open",
@@ -35,7 +34,7 @@
     "docs:build": "pnpm build && astro build",
     "docs:preview": "astro preview --host 127.0.0.1",
     "dev:library": "tsc --watch",
-    "build": "tsc && tailwindcss -c tailwind.docs.config.mjs -i src/style.css -o lib-dist/docs-style.css --minify && node scripts/copy-runtime.mjs",
+    "build": "rm -rf lib-dist && tsc && tailwindcss -c tailwind.docs.config.mjs -i src/styles/style.css -o lib-dist/docs-style.css --minify && node scripts/copy-runtime.mjs",
     "build:demo": "vite build",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.demo.json",
     "lint": "eslint .",

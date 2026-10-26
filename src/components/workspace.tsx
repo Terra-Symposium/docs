@@ -31,8 +31,8 @@ import {
 
 export type DocsAttachment = { title: string; href: string; type?: string; size?: number };
 export type DocsLeaf = {
-	id?: string;
-	path?: string;
+  id?: string;
+  path?: string;
   title: string;
   href: string;
   description?: string;
@@ -455,17 +455,17 @@ export function DocsWorkspaceToolbar({
         </ToggleGroup>
       )}
       {mode === 'edit' && capabilities.save && (
-        <Button  size="xs" onClick={onSave}>
+        <Button size="xs" onClick={onSave}>
           Save
         </Button>
       )}
       {mode === 'edit' && capabilities.history && (
-        <Button  size="xs" variant="ghost" onClick={onHistory}>
+        <Button size="xs" variant="ghost" onClick={onHistory}>
           History
         </Button>
       )}
       {mode === 'edit' && capabilities.publish && (
-        <Button  size="xs" variant="tonal" onClick={onPublish}>
+        <Button size="xs" variant="tonal" onClick={onPublish}>
           Publish
         </Button>
       )}

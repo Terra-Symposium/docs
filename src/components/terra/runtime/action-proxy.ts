@@ -1,11 +1,17 @@
 import type { DocsActionOperation, DocsActionResult } from '../../../lib/host.js';
 
-let invoke: <T = unknown>(operation: DocsActionOperation, input?: unknown) => Promise<DocsActionResult<T>> = async operation => ({
+let invoke: <T = unknown>(
+  operation: DocsActionOperation,
+  input?: unknown,
+) => Promise<DocsActionResult<T>> = async (operation) => ({
   error: new Error(`Docs host action is not configured: ${operation}`),
 });
 
 export function configureDocsActionProxy(
-  handler: <T = unknown>(operation: DocsActionOperation, input?: unknown) => Promise<DocsActionResult<T>>,
+  handler: <T = unknown>(
+    operation: DocsActionOperation,
+    input?: unknown,
+  ) => Promise<DocsActionResult<T>>,
 ): void {
   invoke = handler;
 }

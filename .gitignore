@@ -7,7 +7,6 @@ test-results/
 .astro/
 .env
 .env.*
-!.env.example
 .DS_Store
 *.tsbuildinfo
 

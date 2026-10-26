@@ -32,39 +32,45 @@ EXPORTS
  * @return Positioned nodes and the computed graph height.
  */
 export function layoutGraph<TNode extends FlowNodeLike>(
-	nodes: TNode[],
-	edges: Pick<Edge, 'source' | 'target'>[],
-	direction: 'TB' | 'LR',
-	nodeSep: number,
-	rankSep: number,
-	opts: {
-		getSize: (node: TNode) => FlowSize;
-		getGroupId?: (node: TNode) => string | undefined;
-		getCustomPosition?: (node: TNode) => import('@xyflow/react').XYPosition | undefined;
-		registerNode?: (graph: Dagre.graphlib.Graph, node: TNode, size: FlowSize) => void;
-		placeNode?: (node: TNode, dagreNode: DagreNode | undefined, persisted: import('@xyflow/react').XYPosition | undefined) => TNode;
-	},
+  nodes: TNode[],
+  edges: Pick<Edge, 'source' | 'target'>[],
+  direction: 'TB' | 'LR',
+  nodeSep: number,
+  rankSep: number,
+  opts: {
+    getSize: (node: TNode) => FlowSize;
+    getGroupId?: (node: TNode) => string | undefined;
+    getCustomPosition?: (node: TNode) => import('@xyflow/react').XYPosition | undefined;
+    registerNode?: (graph: Dagre.graphlib.Graph, node: TNode, size: FlowSize) => void;
+    placeNode?: (
+      node: TNode,
+      dagreNode: DagreNode | undefined,
+      persisted: import('@xyflow/react').XYPosition | undefined,
+    ) => TNode;
+  },
 ): { positionedNodes: TNode[]; graphHeight: number } {
-	const graph = new Dagre.graphlib.Graph({ compound: true });
-	graph.setGraph({ rankdir: direction, nodesep: nodeSep, ranksep: rankSep });
-	graph.setDefaultEdgeLabel(() => ({}));
-	nodes.forEach(n => {
-		const size = opts.getSize(n);
-		if (opts.registerNode) opts.registerNode(graph, n, size);
-		else graph.setNode(n.id, { width: size.w, height: size.h });
-	});
-	nodes.forEach(n => {
-		const parentId = opts.getGroupId?.(n);
-		if (parentId && graph.hasNode(parentId)) graph.setParent(n.id, parentId);
-	});
-	edges.forEach(e => graph.setEdge(e.source, e.target));
-	Dagre.layout(graph);
-	return {
-		positionedNodes: nodes.map(n => {
-			const persisted = opts.getCustomPosition?.(n);
-			const dagreNode = graph.node(n.id) as DagreNode | undefined;
-			return opts.placeNode ? opts.placeNode(n, dagreNode, persisted) : { ...n, position: persisted ?? { x: dagreNode?.x ?? 0, y: dagreNode?.y ?? 0 } };
-		}),
-		graphHeight: (graph.graph() as { height?: number }).height ?? 0,
-	};
+  const graph = new Dagre.graphlib.Graph({ compound: true });
+  graph.setGraph({ rankdir: direction, nodesep: nodeSep, ranksep: rankSep });
+  graph.setDefaultEdgeLabel(() => ({}));
+  nodes.forEach((n) => {
+    const size = opts.getSize(n);
+    if (opts.registerNode) opts.registerNode(graph, n, size);
+    else graph.setNode(n.id, { width: size.w, height: size.h });
+  });
+  nodes.forEach((n) => {
+    const parentId = opts.getGroupId?.(n);
+    if (parentId && graph.hasNode(parentId)) graph.setParent(n.id, parentId);
+  });
+  edges.forEach((e) => graph.setEdge(e.source, e.target));
+  Dagre.layout(graph);
+  return {
+    positionedNodes: nodes.map((n) => {
+      const persisted = opts.getCustomPosition?.(n);
+      const dagreNode = graph.node(n.id) as DagreNode | undefined;
+      return opts.placeNode
+        ? opts.placeNode(n, dagreNode, persisted)
+        : { ...n, position: persisted ?? { x: dagreNode?.x ?? 0, y: dagreNode?.y ?? 0 } };
+    }),
+    graphHeight: (graph.graph() as { height?: number }).height ?? 0,
+  };
 }

@@ -11,7 +11,13 @@ IMPORTS
 // API
 import katex from 'katex';
 import { cn } from '../../runtime/runtime.js';
-import { createElement as __terraQualityCreateElement, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createElement as __terraQualityCreateElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useEditor } from '@portabletext/editor';
 
 // COMPONENTS
@@ -24,7 +30,11 @@ import { Textarea } from '@terra-symposium/styling/ui/terra-original';
 
 // TYPES
 import type { BlockTgt } from '../../runtime/types.js';
-import type { DocsBlock, PortableTextBlockEditorProps, PortableTextBlockRendererProps } from '../types.js';
+import type {
+  DocsBlock,
+  PortableTextBlockEditorProps,
+  PortableTextBlockRendererProps,
+} from '../types.js';
 
 /*//////////////////////////////////////////////////
 CONFIG
@@ -44,85 +54,129 @@ HELPERS
  *
  * @return The formatted math expression or editable math control.
  */
-export function renderMath({ code, inline, className, write }: { code: string; inline?: boolean; className?: string; write?: (code: string, inline?: boolean) => void }): JSX.Element {
-	const [open, setOpen] = useState(false);
-	const [val, setVal] = useState(code);
-	const ref = useRef<HTMLSpanElement>(null);
-	useEffect(() => {
-		setVal(code);
-	}, [code]);
-	useEffect(() => {
-		if (!ref.current || !write) return;
-		(ref.current as BlockTgt).__blockActions = [
-			{ text: 'Edit Formula', icon: <EditIcon className='mr-2 size-4' aria-hidden='true' />, onSelect: () => setOpen(true) },
-			{ text: `Set to ${inline ? 'Display' : 'Inline'}`, icon: <MathIcon className='mr-2 size-4' aria-hidden='true' />, onSelect: () => write(code, !inline) },
-		];
-	}, [code, inline, write]);
-	const math = __terraQualityCreateElement(inline ? 'span' : 'div', {
-		className: cn('docs-math', !inline && 'my-4 flex w-full justify-center overflow-x-auto', className),
-		dangerouslySetInnerHTML: {
-			__html: useMemo(() => {
-				if (!code) return '';
-				try {
-					return katex.renderToString(code, { throwOnError: false, displayMode: !inline, strict: false });
-				} catch (err) {
-					return `<span class="text-red-500">${String(err)}</span>`;
-				}
-			}, [code, inline]),
-		},
-	});
-	if (!write) return math;
-	return (
-		<ErrorBoundary name='MathBlock'>
-			<Popover open={open} onOpenChange={setOpen}>
-				<span
-					ref={ref}
-					className={cn('docs-math-wrapper relative cursor-context-menu select-none outline-none ring-0', inline ? 'inline-block' : 'block')}
-					contentEditable={false}
-					data-docs-editor-block='math'
-					data-math-inline={inline ? 'true' : 'false'}
-					data-math-code={code}
-				>
-					<PopoverPrimitive.Anchor className={cn('pointer-events-none', inline ? 'inline-block' : 'block')}>{math}</PopoverPrimitive.Anchor>
-				</span>
-				<PopoverContent
-					align='center'
-					className='not-prose z-[120] w-96 space-y-4'
-					onClick={e => e.stopPropagation()}
-					onInteractOutside={e => {
-						if ((e.target as HTMLElement).closest('[data-radix-popper-content-wrapper], [data-radix-menu-content]')) e.preventDefault();
-					}}
-				>
-					<div className='space-y-2'>
-						<h4 className='text-sm font-semibold'>Edit LaTeX Formula</h4>
-						<Textarea aria-label='LaTeX formula' value={val} onChange={e => setVal(e.target.value)} placeholder="f'(x) = ..." className='h-32 font-mono text-xs' />
-					</div>
-					<div className='flex justify-end gap-2'>
-						<Button
-							variant='ghost'
-							size='sm'
-							onClick={() => {
-								setVal(code);
-								setOpen(false);
-							}}
-						>
-							Cancel
-						</Button>
-						<Button
-							variant='default'
-							size='sm'
-							onClick={() => {
-								write(val, inline);
-								setOpen(false);
-							}}
-						>
-							Save Formula
-						</Button>
-					</div>
-				</PopoverContent>
-			</Popover>
-		</ErrorBoundary>
-	);
+export function renderMath({
+  code,
+  inline,
+  className,
+  write,
+}: {
+  code: string;
+  inline?: boolean;
+  className?: string;
+  write?: (code: string, inline?: boolean) => void;
+}): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(code);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    setVal(code);
+  }, [code]);
+  useEffect(() => {
+    if (!ref.current || !write) return;
+    (ref.current as BlockTgt).__blockActions = [
+      {
+        text: 'Edit Formula',
+        icon: <EditIcon className="mr-2 size-4" aria-hidden="true" />,
+        onSelect: () => setOpen(true),
+      },
+      {
+        text: `Set to ${inline ? 'Display' : 'Inline'}`,
+        icon: <MathIcon className="mr-2 size-4" aria-hidden="true" />,
+        onSelect: () => write(code, !inline),
+      },
+    ];
+  }, [code, inline, write]);
+  const math = __terraQualityCreateElement(inline ? 'span' : 'div', {
+    className: cn(
+      'docs-math',
+      !inline && 'my-4 flex w-full justify-center overflow-x-auto',
+      className,
+    ),
+    dangerouslySetInnerHTML: {
+      __html: useMemo(() => {
+        if (!code) return '';
+        try {
+          return katex.renderToString(code, {
+            throwOnError: false,
+            displayMode: !inline,
+            strict: false,
+          });
+        } catch (err) {
+          return `<span class="text-red-500">${String(err)}</span>`;
+        }
+      }, [code, inline]),
+    },
+  });
+  if (!write) return math;
+  return (
+    <ErrorBoundary name="MathBlock">
+      <Popover open={open} onOpenChange={setOpen}>
+        <span
+          ref={ref}
+          className={cn(
+            'docs-math-wrapper relative cursor-context-menu select-none outline-none ring-0',
+            inline ? 'inline-block' : 'block',
+          )}
+          contentEditable={false}
+          data-docs-editor-block="math"
+          data-math-inline={inline ? 'true' : 'false'}
+          data-math-code={code}
+        >
+          <PopoverPrimitive.Anchor
+            className={cn('pointer-events-none', inline ? 'inline-block' : 'block')}
+          >
+            {math}
+          </PopoverPrimitive.Anchor>
+        </span>
+        <PopoverContent
+          align="center"
+          className="not-prose z-[120] w-96 space-y-4"
+          onClick={(e) => e.stopPropagation()}
+          onInteractOutside={(e) => {
+            if (
+              (e.target as HTMLElement).closest(
+                '[data-radix-popper-content-wrapper], [data-radix-menu-content]',
+              )
+            )
+              e.preventDefault();
+          }}
+        >
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold">Edit LaTeX Formula</h4>
+            <Textarea
+              aria-label="LaTeX formula"
+              value={val}
+              onChange={(e) => setVal(e.target.value)}
+              placeholder="f'(x) = ..."
+              className="h-32 font-mono text-xs"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setVal(code);
+                setOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => {
+                write(val, inline);
+                setOpen(false);
+              }}
+            >
+              Save Formula
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </ErrorBoundary>
+  );
 }
 
 /**
@@ -133,7 +187,7 @@ export function renderMath({ code, inline, className, write }: { code: string; i
  * @return The rendered math expression.
  */
 function MathBlock({ block }: { block: MathBlockData }): JSX.Element {
-	return renderMath({ code: block.code ?? '', inline: Boolean(block.inline) });
+  return renderMath({ code: block.code ?? '', inline: Boolean(block.inline) });
 }
 Object.assign(MathBlock, { displayName: 'DocsMathPreview' });
 
@@ -145,8 +199,18 @@ Object.assign(MathBlock, { displayName: 'DocsMathPreview' });
  *
  * @return The math block renderer in editable or read-only mode.
  */
-export function renderMathBlock({ attributes: attrs, children, node, path, readOnly }: PortableTextBlockRendererProps<MathBlockData>): JSX.Element {
-	return readOnly ? <MathBlock block={node} /> : <MathEditor attributes={attrs} children={children} node={node} path={path} />;
+export function renderMathBlock({
+  attributes: attrs,
+  children,
+  node,
+  path,
+  readOnly,
+}: PortableTextBlockRendererProps<MathBlockData>): JSX.Element {
+  return readOnly ? (
+    <MathBlock block={node} />
+  ) : (
+    <MathEditor attributes={attrs} children={children} node={node} path={path} />
+  );
 }
 Object.assign(renderMathBlock, { displayName: 'DocsMathRenderer' });
 
@@ -159,7 +223,7 @@ Object.assign(renderMathBlock, { displayName: 'DocsMathRenderer' });
  * @return The editable math expression controls.
  */
 function MathEditor(props: PortableTextBlockEditorProps<MathBlockData>): JSX.Element {
-	return <MathEditorContent {...props} editor={useEditor()} />;
+  return <MathEditorContent {...props} editor={useEditor()} />;
 }
 Object.assign(MathEditor, { displayName: 'DocsMathEditor' });
 
@@ -170,17 +234,26 @@ Object.assign(MathEditor, { displayName: 'DocsMathEditor' });
  *
  * @return The math block controls and any nested editor content.
  */
-function MathEditorContent({ attributes: attrs, children, node, path, editor }: PortableTextBlockEditorProps<MathBlockData> & { editor: ReturnType<typeof useEditor> }): JSX.Element {
-	const math = node as { code?: string; inline?: boolean };
-	return (
-		<div {...attrs} contentEditable={false} data-terra-block='math'>
-			{renderMath({
-				code: math.code ?? '',
-				...(math.inline === undefined ? {} : { inline: math.inline }),
-				write: (code, inline) => editor.send({ type: 'block.set', at: path, props: { code, inline } }),
-			})}
-			{children}
-		</div>
-	);
+function MathEditorContent({
+  attributes: attrs,
+  children,
+  node,
+  path,
+  editor,
+}: PortableTextBlockEditorProps<MathBlockData> & {
+  editor: ReturnType<typeof useEditor>;
+}): JSX.Element {
+  const math = node as { code?: string; inline?: boolean };
+  return (
+    <div {...attrs} contentEditable={false} data-terra-block="math">
+      {renderMath({
+        code: math.code ?? '',
+        ...(math.inline === undefined ? {} : { inline: math.inline }),
+        write: (code, inline) =>
+          editor.send({ type: 'block.set', at: path, props: { code, inline } }),
+      })}
+      {children}
+    </div>
+  );
 }
 Object.assign(MathEditorContent, { displayName: 'DocsMathEditorContent' });

@@ -25,11 +25,15 @@ HELPERS
  *
  * @return Rendered raw documentation content.
  */
-export function Raw({ block }: { block: /** Sanity Portable Text raw markup block fields. */ DocsBlock<'raw'> }): JSX.Element {
-	return (
-		<ErrorBoundary name='Raw'>
-			<CodeBlock docsSource code={block.markdown ?? ''} language='mdx' tone='view' />
-		</ErrorBoundary>
-	);
+export function Raw({
+  block,
+}: {
+  block: /** Sanity Portable Text raw markup block fields. */ DocsBlock<'raw'>;
+}): JSX.Element {
+  return (
+    <ErrorBoundary name="Raw">
+      <CodeBlock docsSource code={block.markdown ?? ''} language="mdx" tone="view" />
+    </ErrorBoundary>
+  );
 }
 Object.assign(Raw, { displayName: 'DocsRawMarkup' });

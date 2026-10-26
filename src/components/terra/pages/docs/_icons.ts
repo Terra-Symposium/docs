@@ -10,18 +10,18 @@ IMPORTS
 
 // COMPONENTS
 import {
-	Catalog as CatalogIcon,
-	Code as CodeIcon,
-	DecisionNode as NodesIcon,
-	FunctionMath as MathIcon,
-	Heading as HeadingIcon,
-	Image as ImageIcon,
-	InformationSquare as CalloutIcon,
-	Link as EmbedIcon,
-	Table as AccordionIcon,
-	TableSplit as TableIcon,
-	TextFont as TextIcon,
-	WatsonHealthStackedScrolling_1 as TabsIcon,
+  Catalog as CatalogIcon,
+  Code as CodeIcon,
+  DecisionNode as NodesIcon,
+  FunctionMath as MathIcon,
+  Heading as HeadingIcon,
+  Image as ImageIcon,
+  InformationSquare as CalloutIcon,
+  Link as EmbedIcon,
+  Table as AccordionIcon,
+  TableSplit as TableIcon,
+  TextFont as TextIcon,
+  WatsonHealthStackedScrolling_1 as TabsIcon,
 } from '@carbon/icons-react';
 
 /*//////////////////////////////////////////////////
@@ -29,17 +29,17 @@ CONFIG
 //////////////////////////////////////////////////*/
 
 export const DOCS_BLOCK_ICONS = {
-	accordion: AccordionIcon,
-	callout: CalloutIcon,
-	code: CodeIcon,
-	docImage: ImageIcon,
-	embed: EmbedIcon,
-	heading: HeadingIcon,
-	math: MathIcon,
-	nodes: NodesIcon,
-	paragraph: TextIcon,
-	raw: CodeIcon,
-	table: TableIcon,
-	tabs: TabsIcon,
-	tsDocs: CatalogIcon,
+  accordion: AccordionIcon,
+  callout: CalloutIcon,
+  code: CodeIcon,
+  docImage: ImageIcon,
+  embed: EmbedIcon,
+  heading: HeadingIcon,
+  math: MathIcon,
+  nodes: NodesIcon,
+  paragraph: TextIcon,
+  raw: CodeIcon,
+  table: TableIcon,
+  tabs: TabsIcon,
+  tsDocs: CatalogIcon,
 } as const;

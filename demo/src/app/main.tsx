@@ -1,9 +1,9 @@
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Docs } from '../src/index.js';
-import type { DocsMode, DocsValue } from '../src/index.js';
-import '../src/style.css';
-import './style.css';
+import { Docs } from '../../../src/lib/index.js';
+import type { DocsMode, DocsValue } from '../../../src/lib/index.js';
+import '../../../src/styles/style.css';
+import '../styles/style.css';
 
 const sample: DocsValue = [
   {
@@ -38,12 +38,8 @@ function Playground(): React.JSX.Element {
       <header className="demo-header">
         <span>Terra Docs</span>
         <div role="group" aria-label="Preview mode">
-          <button  onClick={() => setValue([])}>
-            New document
-          </button>
-          <button  onClick={() => setValue(structuredClone(sample))}>
-            Reset document
-          </button>
+          <button onClick={() => setValue([])}>New document</button>
+          <button onClick={() => setValue(structuredClone(sample))}>Reset document</button>
           {(['edit', 'view'] as const).map((value) => (
             <button
               key={value}

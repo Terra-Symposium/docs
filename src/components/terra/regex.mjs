@@ -70,7 +70,8 @@ export const REGEX_MD_MDX_I_REGEX = () => /\.(md|mdx)$/i;
 export const REGEX_MD_MDX_PDF_I_REGEX = () => /\.(md|mdx|pdf)$/i;
 
 // @terra-quality-regex-key "\\.(png|jpe?g|gif|webp|svg|avif)$/i"
-export const REGEX_PNG_JPE_G_GIF_WEBP_SVG_AVIF_I_REGEX_2 = () => /\.(png|jpe?g|gif|webp|svg|avif)$/i;
+export const REGEX_PNG_JPE_G_GIF_WEBP_SVG_AVIF_I_REGEX_2 = () =>
+  /\.(png|jpe?g|gif|webp|svg|avif)$/i;
 
 // @terra-quality-regex-key "\\.(png|jpg)$"
 export const REGEX_PNG_JPG_REGEX = () => /\.(png|jpg)$/;
@@ -224,13 +225,14 @@ export const REGEX_T_N_REGEX = () => /^(?:[ \t]*\n)+/;
 
 // @terra-quality-regex-key "^(?:10\\.|100\\.(?:6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\\.|127\\.|169\\.254\\.|172\\.(?:1[6-9]|2[0-9]|3[0-1])\\.|192\\.0\\.[02]\\.|192\\.168\\.|198\\.(?:1[8-9]|51\\.100)\\.|203\\.0\\.113\\.|2(?:2[4-9]|[3-5][0-9])\\.|0\\.)"
 export const REGEX_10_100_6_4_9_7_9_0_9_1_0_1_0_9_12_0_7_127_169_254_172_1_6_9__REGEX = () =>
-	/^(?:10\.|100\.(?:6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\.|127\.|169\.254\.|172\.(?:1[6-9]|2[0-9]|3[0-1])\.|192\.0\.[02]\.|192\.168\.|198\.(?:1[8-9]|51\.100)\.|203\.0\.113\.|2(?:2[4-9]|[3-5][0-9])\.|0\.)/;
+  /^(?:10\.|100\.(?:6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\.|127\.|169\.254\.|172\.(?:1[6-9]|2[0-9]|3[0-1])\.|192\.0\.[02]\.|192\.168\.|198\.(?:1[8-9]|51\.100)\.|203\.0\.113\.|2(?:2[4-9]|[3-5][0-9])\.|0\.)/;
 
 // @terra-quality-regex-key "^(?:docs|share)\\/(read|write)\\/(.*)$/i"
 export const REGEX_DOCS_SHARE_READ_WRITE_I_REGEX = () => /^(?:docs|share)\/(read|write)\/(.*)$/i;
 
 // @terra-quality-regex-key "^(?:true|false|null|undefined|-?\\d+(?:\\.\\d+)?)$/u"
-export const REGEX_TRUE_FALSE_NULL_UNDEFINED_D_D_U_REGEX = () => /^(?:true|false|null|undefined|-?\d+(?:\.\d+)?)$/u;
+export const REGEX_TRUE_FALSE_NULL_UNDEFINED_D_D_U_REGEX = () =>
+  /^(?:true|false|null|undefined|-?\d+(?:\.\d+)?)$/u;
 
 // @terra-quality-regex-key "^[-\\w]{10,100}$"
 export const REGEX_W_10_100_REGEX = () => /^[-\w]{10,100}$/;
@@ -239,7 +241,8 @@ export const REGEX_W_10_100_REGEX = () => /^[-\w]{10,100}$/;
 export const REGEX_W_1_64_REGEX = () => /^[\w-]{1,64}$/;
 
 // @terra-quality-regex-key "^[a-z][a-zA-Z0-9]*(?:[._-][a-zA-Z0-9]+)*$"
-export const REGEX_A_Z_A_ZA_Z0_9_A_ZA_Z0_9_REGEX = () => /^[a-z][a-zA-Z0-9]*(?:[._-][a-zA-Z0-9]+)*$/;
+export const REGEX_A_Z_A_ZA_Z0_9_A_ZA_Z0_9_REGEX = () =>
+  /^[a-z][a-zA-Z0-9]*(?:[._-][a-zA-Z0-9]+)*$/;
 
 // @terra-quality-regex-key "^[A-Za-z_$][\\w$]*/u"
 export const REGEX_A_ZA_Z_W_U_REGEX = () => /^[A-Za-z_$][\w$]*/u;
@@ -386,13 +389,15 @@ export const REGEX_D_G_REGEX = () => /&#(\d+);/g;
 export const REGEX_APOS_G_REGEX = () => /&apos;/g;
 
 // @terra-quality-regex-key "^word\\/(?:document|header\\d*|footer\\d*|footnotes|endnotes)\\.xml$/i"
-export const REGEX_WORD_DOCUMENT_HEADER_D_FOOTER_D_FOOTNOTES_ENDNOTES_XML_I_REGEX = () => /^word\/(?:document|header\d*|footer\d*|footnotes|endnotes)\.xml$/i;
+export const REGEX_WORD_DOCUMENT_HEADER_D_FOOTER_D_FOOTNOTES_ENDNOTES_XML_I_REGEX = () =>
+  /^word\/(?:document|header\d*|footer\d*|footnotes|endnotes)\.xml$/i;
 
 // @terra-quality-regex-key "<\\/w:p>|<\\/a:p>|<\\/w:tr>|<\\/a:tr>/gi"
 export const REGEX_W_P_A_P_W_TR_A_TR_GI_REGEX = () => /<\/w:p>|<\/a:p>|<\/w:tr>|<\/a:tr>/gi;
 
 // @terra-quality-regex-key "<w:instrText\\b[^>]*>[\\s\\S]*?<\\/w:instrText>|<w:instrText\\b[^>]*\\/>/gi"
-export const REGEX_W_INSTRTEXT_B_S_S_W_INSTRTEXT_W_INSTRTEXT_B_GI_REGEX = () => /<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>|<w:instrText\b[^>]*\/>/gi;
+export const REGEX_W_INSTRTEXT_B_S_S_W_INSTRTEXT_W_INSTRTEXT_B_GI_REGEX = () =>
+  /<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>|<w:instrText\b[^>]*\/>/gi;
 
 // @terra-quality-regex-key "<w:tab\\s*\\/?>(?:<\\/w:tab>)?/gi"
 export const REGEX_W_TAB_S_W_TAB_GI_REGEX = () => /<w:tab\s*\/?>(?:<\/w:tab>)?/gi;

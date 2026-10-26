@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { DocsSiteLayout } from '../lib-dist/SiteLayout.js';
+import { DocsSiteLayout } from '../lib-dist/components/SiteLayout.js';
 
 const sections = [
   {

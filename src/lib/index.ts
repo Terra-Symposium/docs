@@ -50,7 +50,11 @@ export type {
   TerraDocsWorkspaceProps,
 } from './host.js';
 
-export { DocsWorkspaceNavigation, DocsWorkspaceToolbar, DocsAttachmentsView } from '../components/workspace.js';
+export {
+  DocsWorkspaceNavigation,
+  DocsWorkspaceToolbar,
+  DocsAttachmentsView,
+} from '../components/workspace.js';
 export type {
   DocsAttachment,
   DocsLeaf,

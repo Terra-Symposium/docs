@@ -25,21 +25,31 @@ COMPONENTS
  *
  * @return Inline rendered formula.
  */
-export default function MathInline({ attributes: attrs, children, node }: InlineObjectRenderProps): React.JSX.Element {
-	return (
-		<span {...attrs} className='mx-1 inline align-baseline' contentEditable={false} data-terra-inline='math' suppressContentEditableWarning>
-			{renderMath({
-				code:
-					(
-						node as /** Optional math source read from the inline Portable Text object's node value. */ {
-							code?: string;
-						}
-					).code || '',
-				inline: true,
-				className: 'align-baseline',
-			})}
-			{children}
-		</span>
-	);
+export default function MathInline({
+  attributes: attrs,
+  children,
+  node,
+}: InlineObjectRenderProps): React.JSX.Element {
+  return (
+    <span
+      {...attrs}
+      className="mx-1 inline align-baseline"
+      contentEditable={false}
+      data-terra-inline="math"
+      suppressContentEditableWarning
+    >
+      {renderMath({
+        code:
+          (
+            node as /** Optional math source read from the inline Portable Text object's node value. */ {
+              code?: string;
+            }
+          ).code || '',
+        inline: true,
+        className: 'align-baseline',
+      })}
+      {children}
+    </span>
+  );
 }
 Object.assign(MathInline, { displayName: 'DocsMathInline' });
