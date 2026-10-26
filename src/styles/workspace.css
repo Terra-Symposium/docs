@@ -1,0 +1,4 @@
+/* Docs-only entrypoint for hosts that already load Styling's shared UI bundle. */
+@import 'katex/dist/katex.min.css';
+@import '@xyflow/react/dist/style.css';
+@import './prose.css';

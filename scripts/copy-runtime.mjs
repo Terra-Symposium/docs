@@ -3,8 +3,8 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const source = join(root, 'src', 'components', 'terra');
-const output = join(root, 'lib-dist', 'components', 'terra');
+const source = join(root, 'src', 'lib', 'terra');
+const output = join(root, 'lib-dist', 'lib', 'terra');
 
 async function copyRuntime(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -28,8 +28,9 @@ for (const name of ['EditorHarness', 'WorkspaceDemo']) {
   }
 }
 await cp(
-  join(root, 'node_modules', '@terra-symposium', 'styling', 'dist', 'fonts'),
-  join(root, 'lib-dist', 'fonts'),
+  join(root, 'node_modules', '@terra-symposium', 'styling', 'dist', 'assets', 'fonts'),
+  join(root, 'lib-dist', 'assets', 'fonts'),
   { recursive: true },
 );
-await writeFile(join(root, 'lib-dist', 'style.css'), "@import './docs-style.css';\n");
+await cp(join(root, 'src', 'styles', 'style.css'), join(root, 'lib-dist', 'style.css'));
+await writeFile(join(root, 'lib-dist', 'workspace.css'), "@import './docs-workspace-style.css';\n");

@@ -10,7 +10,7 @@ IMPORTS
 
 import { Children, isValidElement, useEffect, useRef, useState } from 'react';
 import { Link as LinkIcon } from '@carbon/icons-react';
-import * as TerraQualityRegex from '../../regex.mjs';
+import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 
 import type { ReactNode } from 'react';
 

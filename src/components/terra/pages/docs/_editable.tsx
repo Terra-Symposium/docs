@@ -17,29 +17,29 @@ import {
   $surfaceReady,
   $toolbar,
   clearTransition,
-  isDocBody,
   transitionStore,
-  uploadAssetChunked,
   useAtom,
   useTransitionState,
-} from './_helpers.js';
-import { actions } from '../../runtime/action-proxy.js';
-import { cn } from '../../runtime/runtime.js';
+} from '../../../../lib/terra/docs/state.js';
+import { uploadAssetChunked } from '../../../../lib/terra/docs/assets.js';
+import { isDocBody } from '../../../../lib/terra/runtime/types.js';
+import { actions } from '../../../../lib/terra/runtime/action-proxy.js';
+import { cn } from '../../../../lib/terra/runtime/runtime.js';
 import { toast } from 'sonner';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 
 // COMPONENTS
 import React from 'react';
-import { EditStateCtx, EditorSurfaceCtx, TransitionCtx } from './_helpers.js';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { EditStateCtx, EditorSurfaceCtx, TransitionCtx } from '../../../../lib/terra/docs/state.js';
+import { ErrorBoundary } from '../../ui.js';
 import { Progress } from '@terra-symposium/styling/ui/terra-original';
 
 // DATA
-import { IMG_RESPONSIVE } from '../../runtime/ui.js';
+import { IMG_RESPONSIVE } from '../../ui.js';
 
 // TYPES
-import type { DocBody } from '../../runtime/types.js';
+import type { DocBody } from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsPermissionLevel as Permission,
   Draft,
@@ -50,7 +50,7 @@ import type {
   Mode,
   PathProps,
   ToolbarState,
-} from '../../runtime/types.js';
+} from '../../../../lib/terra/runtime/types.js';
 import type { ReactNode } from 'react';
 
 /*//////////////////////////////////////////////////

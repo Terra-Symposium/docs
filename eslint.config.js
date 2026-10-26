@@ -16,7 +16,7 @@ export default tseslint.config(
   tseslint.configs.recommended,
   {
     // The imported Terra editor still carries unchecked types and placeholder bindings.
-    files: ['src/components/terra/**/*.{ts,tsx}'],
+    files: ['src/components/terra/**/*.{ts,tsx}', 'src/lib/terra/**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/no-explicit-any': 'off',

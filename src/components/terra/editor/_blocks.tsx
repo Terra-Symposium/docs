@@ -10,7 +10,7 @@ IMPORTS
 
 // API
 import { isValidElement, useId, useState } from 'react';
-import { cn } from '../runtime/runtime.js';
+import { cn } from '../../../lib/terra/runtime/runtime.js';
 
 // COMPONENTS
 import { Add as AddIcon, Close as CloseIcon, TrashCan as TrashIcon } from '@carbon/icons-react';
@@ -23,13 +23,13 @@ import {
 } from '@terra-symposium/styling/ui/terra-original';
 import { Button } from '@terra-symposium/styling/ui/terra-original';
 import { Card, CardContent, CardHeader } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../runtime/ui.js';
+import { ErrorBoundary } from '../ui.js';
 import { Input } from '@terra-symposium/styling/ui/terra-original';
 import { Tabs, TabsList, TabsTrigger } from '@terra-symposium/styling/ui/terra-original';
 
 // TYPES
 import type { ReactElement, ReactNode } from 'react';
-import * as TerraQualityRegex from '../regex.mjs';
+import * as TerraQualityRegex from '../../../lib/terra/regex.mjs';
 
 /*//////////////////////////////////////////////////
 CONFIG

@@ -1,6 +1,6 @@
 {
   "name": "@terra-symposium/docs",
-  "version": "0.1.19",
+  "version": "0.1.22",
   "description": "Reusable React document editor and viewer.",
   "repository": "https://github.com/Terra-Symposium/docs",
   "type": "module",
@@ -21,6 +21,7 @@
       "import": "./lib-dist/lib/index.js"
     },
     "./style.css": "./lib-dist/style.css",
+    "./workspace.css": "./lib-dist/workspace.css",
     "./local-workspace": {
       "types": "./lib-dist/components/LocalDocsWorkspace.d.ts",
       "import": "./lib-dist/components/LocalDocsWorkspace.js"
@@ -30,11 +31,11 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --open",
-    "docs:dev": "astro dev --host 127.0.0.1 --open",
+    "docs:dev": "pnpm build && astro dev --host 127.0.0.1 --open",
     "docs:build": "pnpm build && astro build",
-    "docs:preview": "astro preview --host 127.0.0.1",
+    "docs:preview": "pnpm docs:build && astro preview --host 127.0.0.1",
     "dev:library": "tsc --watch",
-    "build": "rm -rf lib-dist && tsc && tailwindcss -c tailwind.docs.config.mjs -i src/styles/style.css -o lib-dist/docs-style.css --minify && node scripts/copy-runtime.mjs",
+    "build": "rm -rf lib-dist && tsc && tailwindcss -c tailwind.docs.config.mjs -i src/styles/workspace.css -o lib-dist/docs-workspace-style.css --minify && node scripts/copy-runtime.mjs",
     "build:demo": "vite build",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.demo.json",
     "lint": "eslint .",
@@ -48,7 +49,7 @@
     "version-packages": "changeset version"
   },
   "peerDependencies": {
-    "@terra-symposium/styling": "^0.1.6",
+    "@terra-symposium/styling": "^0.1.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -57,7 +58,7 @@
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "10.0.1",
     "@playwright/test": "^1.64.1",
-    "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.12.tgz",
+    "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.16.tgz",
     "@types/katex": "^0.16.8",
     "@types/node": "^24.19.2",
     "@types/react": "19.3.0",

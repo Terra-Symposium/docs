@@ -9,12 +9,12 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // API
-import { actions } from '../../runtime/action-proxy.js';
-import { cn, error as logError, errorLog } from '../../runtime/runtime.js';
+import { actions } from '../../../../lib/terra/runtime/action-proxy.js';
+import { cn, error as logError, errorLog } from '../../../../lib/terra/runtime/runtime.js';
 import { useEffect, useMemo, useState } from 'react';
 
 // COMPONENTS
-import * as TerraQualityRegex from '../../regex.mjs';
+import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import React from 'react';
 import { Button } from '@terra-symposium/styling/ui/terra-original';
 import {
@@ -34,8 +34,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../runtime/ui.js';
-import { Empty } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
+import { Empty } from '../../ui.js';
 import { Input } from '@terra-symposium/styling/ui/terra-original';
 import {
   Popover,

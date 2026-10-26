@@ -22,7 +22,7 @@ import {
   isRec,
   validateType,
   warn as logWarn,
-} from '../runtime/runtime.js';
+} from '../../../lib/terra/runtime/runtime.js';
 import { getCustomPos, getGroupId, getNodeSize, layoutGraph, useEditor } from './_chrome.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -79,7 +79,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../runtime/ui.js';
+import { ErrorBoundary } from '../ui.js';
 import { Handles, SkeletonCard, ZoomControls } from './_chrome.js';
 
 // TYPES
@@ -93,8 +93,14 @@ import type {
   NodeProps,
   XYPosition,
 } from '@xyflow/react';
-import type { Edge, FlowEdgeData, FlowNode, NodeData, Pos } from '../runtime/types.js';
-import type { GroupNodeData, NodesProps } from '../runtime/types.js';
+import type {
+  Edge,
+  FlowEdgeData,
+  FlowNode,
+  NodeData,
+  Pos,
+} from '../../../lib/terra/runtime/types.js';
+import type { GroupNodeData, NodesProps } from '../../../lib/terra/runtime/types.js';
 import type { FlowMenuContext } from './menuContext.js';
 
 /*//////////////////////////////////////////////////

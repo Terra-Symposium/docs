@@ -1,4 +1,5 @@
 import { colors } from '@terra-symposium/styling';
+import type { DocsAttachment } from '../lib/workspace-types.js';
 import type { CSSProperties, JSX } from 'react';
 
 export type DocsNavNode = {
@@ -8,7 +9,7 @@ export type DocsNavNode = {
   href?: string;
   description?: string;
   updatedAt?: string;
-  attachments?: import('./workspace.js').DocsAttachment[];
+  attachments?: DocsAttachment[];
   children?: DocsNavNode[];
 };
 

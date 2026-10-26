@@ -19,6 +19,7 @@ export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element 
       {...(props.updatedAt ? { updatedAt: props.updatedAt } : {})}
       {...(props.source ? { source: props.source } : {})}
       {...(props.content !== undefined ? { content: props.content as any } : {})}
+      {...(props.renderContent !== undefined ? { viewContent: props.renderContent } : {})}
       {...(props.standalone !== undefined ? { standalone: props.standalone } : {})}
       {...(props.full !== undefined ? { full: props.full } : {})}
       {...(props.mode ? { mode: props.mode } : {})}

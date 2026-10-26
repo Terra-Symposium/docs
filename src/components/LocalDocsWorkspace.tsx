@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { colors } from '@terra-symposium/styling';
 import { markdownToDocsValue } from '../lib/markdown-model.js';
 import { TerraDocsWorkspace } from './terra/Workspace.js';
 import type {
@@ -9,7 +10,7 @@ import type {
   DocsHostTreeNode,
   DocsCustomBlock,
 } from '../lib/host.js';
-import type { JSX } from 'react';
+import type { CSSProperties, JSX } from 'react';
 
 /** A local page supplied by a repository or static site build. */
 export type DocsLocalPage = {
@@ -30,6 +31,7 @@ export type DocsLocalWorkspaceProps = {
   pathname: string;
   title: string;
   description?: string;
+  hue?: number | null;
   rootPath?: string;
   homePath?: string;
   customBlocks?: DocsCustomBlock[];
@@ -102,12 +104,22 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
     pathname,
     title,
     description,
+    hue = 145,
     rootPath = '/',
     homePath,
     customBlocks,
   } = props;
   const page = findPage(pages, pathname) ?? pages[0];
   const content = useMemo(() => (page ? markdownToDocsValue(page.markdown) : []), [page]);
+  const [primary, secondary] = colors(hue);
+  const theme = {
+    ...Object.fromEntries(primary.light.map((value, index) => ['--primary-' + (index + 1), value])),
+    ...Object.fromEntries(
+      secondary.light.map((value, index) => ['--secondary-' + (index + 1), value]),
+    ),
+    '--background': primary.light[0],
+    '--ring': primary.light[7],
+  } as CSSProperties;
   const host = useMemo<DocsHostAdapter>(() => {
     const activePage = (): DocsLocalPage | undefined =>
       typeof window === 'undefined'
@@ -224,20 +236,20 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
   }, [description, homePath, pages, pathname, rootPath, title, tree]);
 
   return (
-    <TerraDocsWorkspace
-      host={host}
-      tree={tree}
-      pathname={pathname}
-      permission="read"
-      title={page?.title ?? title}
-      {...(page?.path ? { path: page.path } : {})}
-      {...((page?.description ?? description)
-        ? { description: page?.description ?? description }
-        : {})}
-      {...(page?.contributors ? { contributors: page.contributors } : {})}
-      {...(page?.updatedAt ? { updatedAt: page.updatedAt } : {})}
-      {...(page ? { source: page.markdown, content } : { content })}
-      {...(customBlocks ? { customBlocks } : {})}
-    />
+    <div style={theme}>
+      <TerraDocsWorkspace
+        host={host}
+        tree={tree}
+        pathname={pathname}
+        permission="read"
+        title={page?.title ?? title}
+        {...(page?.path ? { path: page.path } : {})}
+        {...(page?.description ? { description: page.description } : {})}
+        {...(page?.contributors ? { contributors: page.contributors } : {})}
+        {...(page?.updatedAt ? { updatedAt: page.updatedAt } : {})}
+        {...(page ? { source: page.markdown, content } : { content })}
+        {...(customBlocks ? { customBlocks } : {})}
+      />
+    </div>
   );
 }

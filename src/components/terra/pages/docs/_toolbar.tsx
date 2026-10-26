@@ -10,40 +10,32 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // API
-import {
-  $attachmentFilter,
-  clearTransition,
-  codeViewOf,
-  isDocBody,
-  setTransition,
-  toolbarFocusValue,
-  useAtom,
-} from './_helpers.js';
+import { clearTransition, setTransition, useAtom } from '../../../../lib/terra/docs/state.js';
+import { $attachmentFilter } from '../../../../lib/terra/docs/attachments.js';
+import { codeViewOf } from '../../../../lib/terra/docs/editor-dom.js';
+import { FindReplace } from './_toolbar-find-replace.js';
+import { toolbarFocusValue } from '../../../../lib/terra/docs/toolbar.js';
+import { isDocBody } from '../../../../lib/terra/runtime/types.js';
 import { $createHeadingNode } from '@lexical/rich-text';
 import { $createParagraphNode, $getNearestNodeFromDOMNode, $isElementNode } from 'lexical';
-import { actions } from '../../runtime/action-proxy.js';
-import { docsRootPath } from '../../runtime/shared.js';
-import { cn, notify } from '../../runtime/runtime.js';
-import { components as repoComponents } from './_custom.js';
-import { dirname, toPascal } from '../../runtime/shared.js';
+import { actions } from '../../../../lib/terra/runtime/action-proxy.js';
+import { docsRootPath } from '../../../../lib/terra/runtime/shared.js';
+import { cn, notify } from '../../../../lib/terra/runtime/runtime.js';
+import { components as repoComponents } from '../../../../lib/terra/custom-components.js';
+import { dirname, toPascal } from '../../../../lib/terra/runtime/shared.js';
 import { redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
-import { stringifyDocBody } from '../../runtime/content.js';
+import { stringifyDocBody } from '../../../../lib/terra/runtime/content/document-markdown.js';
 import { toast } from 'sonner';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 
 // COMPONENTS
-import * as TerraQualityRegex from '../../regex.mjs';
+import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import React from 'react';
 import { TextTooltip, TooltipProvider } from '@terra-symposium/styling/ui/terra-original';
 import {
-  ArrowLeft as LeftArrowIcon,
-  ArrowRight as RightArrowIcon,
   ArrowUpRight as PopOutIcon,
-  ButtonCentered as FullWordIcon,
   CaretDown as CaretDownIcon,
-  CharacterPatterns as ReplaceIcon,
-  CharacterSentenceCase as CaseIcon,
   DataShare as ShareIcon,
   Image as ImageIcon,
   Link as LinkIcon,
@@ -82,8 +74,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@terra-symposium/styling/ui/terra-original';
-import { EditStateCtx } from './_helpers.js';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { EditStateCtx } from '../../../../lib/terra/docs/state.js';
+import { ErrorBoundary } from '../../ui.js';
 import { Input } from '@terra-symposium/styling/ui/terra-original';
 import { Label } from '@terra-symposium/styling/ui/terra-original';
 import {
@@ -102,21 +94,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@terra-symposium/styling/ui/terra-original';
-import { Textarea } from '@terra-symposium/styling/ui/terra-original';
-import { Toggle } from '@terra-symposium/styling/ui/terra-original';
 import { ToggleGroup, ToggleGroupItem } from '@terra-symposium/styling/ui/terra-original';
 
 // DATA
-import { ATTCH_TYPES } from './_helpers.js';
+import { ATTCH_TYPES } from '../../../../lib/terra/docs/attachments.js';
 import { DOCS_BLOCK_ICONS } from './_icons.js';
-import { EMPTY_NODES } from '../../runtime/nodes.js';
+import { EMPTY_NODES } from '../../../../lib/terra/runtime/nodes.js';
 
 // TYPES
-import type { AttchType, BlockOpt, MenuTree, RepoComponentWithLabel } from '../../runtime/types.js';
-import type { DocBody, DocVer, Md } from '../../runtime/types.js';
-import type { EditorToolbarAdapter, PortableEditorBlock } from '../../runtime/types.js';
-import type { Mode as ToolbarMode, ToolbarState, Tree } from '../../runtime/types.js';
-import type { DocsAttachment } from '../../runtime/types.js';
+import type {
+  AttchType,
+  BlockOpt,
+  MenuTree,
+  RepoComponentWithLabel,
+} from '../../../../lib/terra/runtime/types.js';
+import type { DocBody, DocVer, Md } from '../../../../lib/terra/runtime/types.js';
+import type {
+  EditorToolbarAdapter,
+  PortableEditorBlock,
+} from '../../../../lib/terra/runtime/types.js';
+import type {
+  Mode as ToolbarMode,
+  ToolbarState,
+  Tree,
+} from '../../../../lib/terra/runtime/types.js';
+import type { DocsAttachment } from '../../../../lib/terra/runtime/types.js';
 import type { LexicalEditor, LexicalNode } from 'lexical';
 import type { MouseEvent, ReactNode } from 'react';
 
@@ -335,197 +337,6 @@ function Mode({
  * @return The mode, history, save, or version actions supported by the active Docs editor toolbar.
  */
 const TOOLBAR_COMPONENTS = {
-  DocsToolbarActions({
-    activeMode: aMode,
-    editable,
-    size = 'xs',
-    toolbar,
-  }: {
-    activeMode: ToolbarMode;
-    editable: boolean;
-    size?: 'sm' | 'xs';
-    toolbar: ToolbarState | null;
-  }): JSX.Element | null {
-    const edit = useContext(EditStateCtx);
-    const [versions, setVersions] = useState<DocVer[]>([]);
-    const [historyOpen, setHistoryOpen] = useState(false);
-    const [selectedVersionId, setSelectedVersionId] = useState('');
-    const ready = !!toolbar;
-    const selectedVersion = versions.find((v) => v.savedAt === selectedVersionId);
-    const preview = useMemo(() => parseVerBody(selectedVersion), [selectedVersion]);
-    useEffect(() => {
-      let live = true;
-      if (!editable || !toolbar?.path || !historyOpen) {
-        setVersions([]);
-        return;
-      }
-      const path = toolbar.path;
-      const id = path.split('/').pop()?.replace(TerraQualityRegex.REGEX_MDX_I_REGEX(), '') || path;
-      void (async (): Promise<void> => {
-        try {
-          const result = await actions.write.doc.versions.get({ path });
-          if (result.error) throw result.error;
-          let data = result.data;
-          if (Array.isArray(data) && data.length === 0 && path !== id) {
-            const fallback = await actions.write.doc.versions.get({ path: id });
-            if (fallback.error) throw fallback.error;
-            if (Array.isArray(fallback.data) && fallback.data.length > 0) data = fallback.data;
-          }
-          if (live && Array.isArray(data)) setVersions(data as DocVer[]);
-        } catch (err) {
-          console.error('[Toolbar:versions] load-failed', { path, error: err });
-          toast.error(err instanceof Error ? err.message : 'Failed to load doc versions.');
-        }
-      })();
-      return () => {
-        live = false;
-      };
-    }, [editable, historyOpen, toolbar?.path]);
-    useEffect(() => {
-      if (historyOpen && !selectedVersionId && versions[0])
-        setSelectedVersionId(versions[0].savedAt);
-    }, [historyOpen, selectedVersionId, versions]);
-    const save = async (e: { preventDefault: () => void }): Promise<void> => {
-      e.preventDefault();
-      if (!toolbar?.save) return;
-      try {
-        await toolbar.save();
-      } catch (err) {
-        console.error('[Docs:save] failed', err);
-        toast.error(err instanceof Error ? err.message : 'Unable to save document.');
-      }
-    };
-    useEffect(() => {
-      if (aMode === 'view') return;
-      const onKeyDown = (e: KeyboardEvent): void => {
-        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') void save(e);
-      };
-      document.addEventListener('keydown', onKeyDown);
-      return () => {
-        document.removeEventListener('keydown', onKeyDown);
-      };
-    }, [aMode, toolbar]);
-    if (!editable) return null;
-    return (
-      <TooltipProvider>
-        <div className="flex items-center gap-1" data-docs-toolbar-actions>
-          <Mode
-            editable={editable}
-            mode={aMode}
-            size={size}
-            disabled={!ready}
-            onModeChange={(m) => {
-              if (!toolbar) return;
-              toolbar.setMode(m).catch((e) => {
-                console.error('[Toolbar:mode] change-failed', { error: e, mode: m });
-                toast.error(e instanceof Error ? e.message : 'Failed to change mode.');
-                clearTransition();
-              });
-            }}
-          />
-          {aMode !== 'view' && aMode !== 'attachments' && (
-            <>
-              <ButtonGroup>
-                <TextTooltip content="Save (⌘S)" side="top" align="center" delayDuration={400}>
-                  <UiButton
-                    size={size}
-                    disabled={!ready || !(toolbar?.dirty ?? false)}
-                    loading={(toolbar?.busy ?? null) === 'saving'}
-                    onMouseDown={preserveSel}
-                    onClick={(e) => void save(e)}
-                  >
-                    Save
-                  </UiButton>
-                </TextTooltip>
-                <TextTooltip
-                  content="Version History"
-                  side="top"
-                  align="center"
-                  delayDuration={400}
-                >
-                  <UiButton
-                    size={size}
-                    className="px-0.5"
-                    disabled={!ready}
-                    aria-label="Version History"
-                    onMouseDown={preserveSel}
-                    onClick={() => {
-                      if (versions.length > 0 && !selectedVersionId)
-                        setSelectedVersionId(versions[0].savedAt);
-                      setHistoryOpen(true);
-                    }}
-                  >
-                    <CaretDownIcon />
-                  </UiButton>
-                </TextTooltip>
-                <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Version History</DialogTitle>
-                      <DialogDescription className="sr-only">
-                        Select a version to preview and restore.
-                      </DialogDescription>
-                      <Select value={selectedVersionId} onValueChange={setSelectedVersionId}>
-                        <SelectTrigger className="h-14" aria-label="Select a version">
-                          <SelectValue placeholder="Select a version" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {versions.map((v) => (
-                            <SelectItem key={v.savedAt} value={v.savedAt}>
-                              <span className="flex flex-col text-left">
-                                <span>
-                                  {v.title} ({new Date(v.savedAt).toLocaleString()})
-                                </span>
-                                <span className={SECONDARY_TEXT_CLASS}>{v.description}</span>
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </DialogHeader>
-                    <div className="min-h-0 flex-1 overflow-y-auto">
-                      <CodeBlock
-                        tone="view"
-                        language="mdx"
-                        docsSource
-                        code={preview.markdown.trim() || ' '}
-                      />
-                    </div>
-                    <DialogFooter>
-                      <UiButton variant="ghost" onClick={() => setHistoryOpen(false)}>
-                        Cancel
-                      </UiButton>
-                      <UiButton
-                        disabled={!selectedVersion}
-                        onClick={(): void => {
-                          if (!edit || !selectedVersionId) return;
-                          edit.update?.({
-                            content: preview.body,
-                            description: selectedVersion?.description || '',
-                            source: preview.markdown,
-                            title: selectedVersion?.title || '',
-                          });
-                          (edit.setCode ?? edit.setSrc)?.(preview.markdown);
-                          setHistoryOpen(false);
-                          notify({
-                            error: null,
-                            fallback: 'Restored version to local draft. Save to apply.',
-                          });
-                        }}
-                      >
-                        Restore
-                      </UiButton>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </ButtonGroup>
-            </>
-          )}
-        </div>
-      </TooltipProvider>
-    );
-  },
-
   /**
    * Undo and Redo control group dynamically checking CodeMirror depth levels.
    *
@@ -624,297 +435,6 @@ const TOOLBAR_COMPONENTS = {
           </Button>
         ))}
       </ButtonGroup>
-    );
-  },
-
-  /**
-   * Complex Popover enabling blind/case-sensitive searches and sequential replacement inside active viewports.
-   *
-   * @param props - Active editing mode and toolbar state used to find text and apply replacements in the current editor.
-   * @param {ToolbarMode} props.mode - The active interface mode determining search limits.
-   * @param {ToolbarState | null} props.toolbar - System toolbar state reference to execute replacements.
-   *
-   * @return {JSX.Element | null} The Find and Replace popover or null in view mode.
-   */
-  FindReplace({
-    mode,
-    toolbar,
-  }: {
-    mode: ToolbarMode;
-    toolbar: ToolbarState | null;
-  }): JSX.Element | null {
-    // STATES
-    const ref = useRef<HTMLTextAreaElement | null>(null);
-    const [cfg, setCfg] = useState({
-      blind: false,
-      case: false,
-      find: '',
-      full: false,
-      open: false,
-      replace: '',
-    });
-    const [idx, setIdx] = useState(0);
-    const [content, setContent] = useState('');
-
-    // INIT
-    useEffect(() => {
-      if (!cfg.open || !toolbar) return;
-      let a = true;
-      void toolbar.readSearchText().then((r) => {
-        if (a) setContent(r || '');
-      });
-      return () => {
-        a = false;
-      };
-    }, [cfg.open, cfg.find, toolbar]);
-
-    // PROCESS
-    const searchable = useMemo(() => {
-      return cfg.blind ? BLIND_REGEX.reduce((a, r) => a.replace(r, ''), content) : content;
-    }, [cfg.blind, content]);
-    const matcher = useMemo(() => {
-      if (!cfg.find) return null;
-      const v = cfg.blind ? BLIND_REGEX.reduce((a, r) => a.replace(r, ''), cfg.find) : cfg.find;
-      if (!v) return null;
-      const body = v.replace(TerraQualityRegex.REGEX_G_REGEX_9(), '\\$&');
-      return new RegExp(
-        cfg.full ? `(?<!${FIND_WORD})${body}(?!${FIND_WORD})` : body,
-        `${cfg.case ? 'g' : 'gi'}u`,
-      );
-    }, [cfg]);
-    const matches = useMemo(
-      () =>
-        matcher && searchable ? Array.from(searchable.matchAll(matcher), (m) => m.index ?? 0) : [],
-      [matcher, searchable],
-    );
-    const jsonBlocked = looksLikeJsonBlob(cfg.find) || looksLikeJsonBlob(cfg.replace);
-
-    // HELPERS
-    /**
-     * Handles focus find.
-     */
-    const focusFind = (): void => {
-      requestAnimationFrame(() => {
-        ref.current?.focus();
-        ref.current?.select();
-      });
-    };
-    /**
-     * Handles open sel.
-     */
-    const openSel = (): void => {
-      setCfg(
-        ((selectedText: string) => (prev: typeof cfg) => ({
-          ...prev,
-          find: selectedText || prev.find,
-          open: true,
-        }))(window.getSelection()?.toString().replace(/\r\n?/gu, '\n') ?? ''),
-      );
-      focusFind();
-    };
-    /**
-     * Handles navigate.
-     *
-     * @param backward - Whether navigation should move toward the previous item.
-     */
-    const navigate = (backward = false): void => {
-      const browser = window as Window & {
-        find?: (
-          val: string,
-          caseSensitive?: boolean,
-          backward?: boolean,
-          wrapAround?: boolean,
-          wholeWord?: boolean,
-          searchInFrames?: boolean,
-          showDialog?: boolean,
-        ) => boolean;
-      };
-      const finder = typeof browser.find === 'function' ? browser.find.bind(browser) : null;
-      if (cfg.find && !cfg.blind && matches.length)
-        setIdx((p) => (p + (backward ? -1 : 1) + matches.length) % matches.length);
-      if (cfg.find && !cfg.blind && finder) {
-        finder(cfg.find, cfg.case, backward, true, false, true, cfg.full);
-        requestAnimationFrame(() => {
-          const sel = window.getSelection();
-          if (!sel || !sel.rangeCount) return;
-          let rect = sel.getRangeAt(0).getBoundingClientRect();
-          if (rect.width === 0 && rect.height === 0) {
-            const codemirrorSel = document.querySelector(
-              '.docs-code-block .cm-selectionBackground, .docs-code-block .cm-search-match',
-            );
-            if (codemirrorSel) rect = codemirrorSel.getBoundingClientRect();
-          }
-          if (rect.width === 0 && rect.height === 0) return;
-          const toolbarEl = document.querySelector('[data-docs-toolbar-frame]');
-          const top = toolbarEl ? toolbarEl.getBoundingClientRect().bottom : 60;
-          if (rect.top < top + 40) {
-            window.scrollBy({ top: rect.top - top - 60, behavior: 'auto' });
-          } else if (rect.bottom > window.innerHeight - 40) {
-            window.scrollBy({ top: rect.bottom - window.innerHeight + 60, behavior: 'auto' });
-          }
-        });
-      }
-    };
-
-    // INIT
-    useEffect(() => {
-      if (cfg.open) focusFind();
-    }, [cfg.open]);
-    useEffect(() => {
-      setIdx(0);
-    }, [cfg.find]);
-    useEffect(() => {
-      if (!matches.length) {
-        setIdx(0);
-        return;
-      }
-      setIdx((p) => Math.min(p, matches.length - 1));
-    }, [matches.length]);
-    useEffect(() => {
-      if (mode === 'view') return;
-      /**
-       * Handles on key down.
-       *
-       * @param e - Pointer event received from the toolbar control.
-       */
-      const onKeyDown = (e: KeyboardEvent): void => {
-        if ((e.metaKey || e.ctrlKey) && e.key?.toLowerCase() === 'f') {
-          e.preventDefault();
-          openSel();
-          return;
-        }
-        if (cfg.open && e.key === 'Enter') {
-          e.preventDefault();
-          navigate(e.shiftKey);
-        }
-      };
-      document.addEventListener('keydown', onKeyDown, true);
-      return () => {
-        document.removeEventListener('keydown', onKeyDown, true);
-      };
-    }, [cfg, mode]);
-
-    // RENDER
-    // validation
-    if (mode === 'view') return null;
-    // component
-    return (
-      <Popover
-        open={cfg.open}
-        onOpenChange={(o) => {
-          setCfg((p) => ({ ...p, open: o }));
-        }}
-      >
-        {/* TRIGGER */}
-        <PopoverTrigger asChild>
-          <UiButton
-            size="xs"
-            variant="ghost"
-            onMouseDown={(e) => {
-              e.preventDefault();
-            }}
-            onClick={openSel}
-          >
-            <SearchIcon /> Find
-          </UiButton>
-        </PopoverTrigger>
-        {/* CONTENT*/}
-        <PopoverContent align="end" className="w-80 space-y-2">
-          {/* query */}
-          {[
-            { title: 'Find', val: cfg.find, key: 'find', ref, placeholder: 'Search text' },
-            { title: 'Replace', val: cfg.replace, key: 'replace', placeholder: 'Replace' },
-          ].map((f) => (
-            <div key={f.title} className="space-y-1">
-              <Label>{f.title}</Label>
-              <Textarea
-                ref={'ref' in f ? f.ref : undefined}
-                value={f.val}
-                onChange={(e) => {
-                  const inputChange = { field: f.key, value: e.currentTarget?.value ?? '' };
-                  setCfg((p) => ({ ...p, [inputChange.field]: inputChange.value }));
-                }}
-                placeholder={f.placeholder}
-                rows={Math.max(2, f.val.split('\n').length)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    navigate(e.shiftKey);
-                  }
-                }}
-              />
-            </div>
-          ))}
-          {/* match */}
-          <div className="flex items-center justify-between text-xs text-primary-11">
-            <span>
-              {' '}
-              {cfg.find && (matches.length ? `Result ${idx + 1}/${matches.length}` : 'No matches')}
-            </span>
-            {cfg.blind && <span>Text only</span>}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { icon: <LeftArrowIcon />, backward: true, lbl: 'Previous match' },
-              { icon: <RightArrowIcon />, backward: false, lbl: 'Next match' },
-            ].map((b) => (
-              <UiButton
-                key={String(b.backward)}
-                size="xs"
-                variant="tonal"
-                disabled={!cfg.find || cfg.blind}
-                onClick={() => {
-                  navigate(b.backward);
-                }}
-                aria-label={b.lbl}
-                title={b.lbl}
-              >
-                {b.icon}
-              </UiButton>
-            ))}
-            {/* search params */}
-            {[
-              { key: 'case', title: 'Case sensitive', content: <CaseIcon /> },
-              { key: 'full', title: 'Full words', content: <FullWordIcon /> },
-              { key: 'blind', title: 'Markdown blind', content: 'Blind' },
-            ].map((t) => (
-              <Toggle
-                key={t.key}
-                size="xs"
-                variant="tonal"
-                aria-label={t.title}
-                title={t.title}
-                pressed={cfg[t.key as keyof typeof cfg] as boolean}
-                onPressedChange={(v) => {
-                  setCfg((p) => ({ ...p, [t.key]: v }));
-                }}
-              >
-                {t.content}
-              </Toggle>
-            ))}
-            {/* replace */}
-            <UiButton
-              size="xs"
-              disabled={
-                !matches.length || !toolbar || toolbar.busy === 'saving' || cfg.blind || jsonBlocked
-              }
-              onClick={() => {
-                if (jsonBlocked) {
-                  toast.error('Paste markdown, not JSON, into find or replace.');
-                  return;
-                }
-                if (matcher && toolbar)
-                  toolbar.applySearchText(content.replace(matcher, cfg.replace));
-              }}
-              aria-label="Replace"
-              title="Replace"
-            >
-              <ReplaceIcon />
-            </UiButton>
-            {jsonBlocked && <span className="text-red-11 text-xs">JSON input blocked</span>}
-          </div>
-        </PopoverContent>
-      </Popover>
     );
   },
 
@@ -2240,6 +1760,7 @@ const TOOLBAR_COMPONENTS = {
           className="docs-toolbar-scroll not-prose pointer-events-auto sticky top-10 isolate z-50 -mx-3 -mt-5 mb-5 w-[calc(100%+1.5rem)] max-w-[calc(100%+1.5rem)] overflow-visible text-primary-12 print:hidden"
           data-docs-toolbar-frame
           data-docs-toolbar-scroll
+          data-can-edit={editable ? 'true' : 'false'}
         >
           <div
             aria-hidden="true"
@@ -2438,7 +1959,7 @@ const TOOLBAR_COMPONENTS = {
                         align="center"
                         delayDuration={400}
                       >
-                        {docs && <TOOLBAR_COMPONENTS.FindReplace mode={mode} toolbar={toolbar} />}
+                        {docs && <FindReplace mode={mode} toolbar={toolbar} />}
                       </TextTooltip>
                       {/* undo/redo */}
                       <TOOLBAR_COMPONENTS.Undo
@@ -2620,5 +2141,4 @@ const TOOLBAR_COMPONENTS = {
   },
 };
 
-export const { DocsToolbarActions } = TOOLBAR_COMPONENTS;
 export const { Toolbar } = TOOLBAR_COMPONENTS;

@@ -1,179 +1,16 @@
-import { DocsLocalWorkspace, TerraDocsWorkspace } from '../lib/index.js';
+import { useEffect, useMemo, useState } from 'react';
 import { colors } from '@terra-symposium/styling';
-import type {
-  DocsActionOperation,
-  DocsActionResult,
-  DocsHostAdapter,
-  DocsHostTreeNode,
-} from '../lib/host.js';
+import { DocsLocalWorkspace, TerraDocsWorkspace } from '../lib/index.js';
+import {
+  createWorkspaceDemoHost,
+  createWorkspaceDemoSeed,
+  readWorkspaceDemoState,
+  routedWorkspaceTree,
+  WORKSPACE_DEMO_PATH,
+  type WorkspaceDemoState,
+} from './workspace-demo-fixture.js';
+import type { DocsHostTreeNode } from '../lib/host.js';
 import type { CSSProperties, JSX } from 'react';
-
-const pathname = '/workspace-demo/';
-const leafPath = 'overview/start-here/salesphere.mdx';
-const tree: DocsHostTreeNode[] = [
-  {
-    type: 'branch',
-    origName: 'overview',
-    title: 'Overview',
-    path: 'overview',
-    url: `${pathname}#overview`,
-    permission: 'write',
-    hue: 145,
-    children: [
-      {
-        type: 'branch',
-        origName: 'start-here',
-        title: 'Start here',
-        path: 'overview/start-here',
-        url: `${pathname}#start-here`,
-        permission: 'write',
-        children: [
-          {
-            type: 'leaf',
-            origName: 'salesphere',
-            title: 'Salesphere',
-            path: leafPath,
-            url: pathname,
-            permission: 'write',
-          },
-          {
-            type: 'leaf',
-            origName: 'runtime-map',
-            title: 'Runtime map',
-            path: 'overview/start-here/runtime-map.mdx',
-            url: `${pathname}#runtime-map`,
-            permission: 'write',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    type: 'branch',
-    origName: 'configure',
-    title: 'Configure',
-    path: 'configure',
-    url: `${pathname}#configure`,
-    permission: 'write',
-    hue: 210,
-    children: [
-      {
-        type: 'branch',
-        origName: 'providers',
-        title: 'Storage providers',
-        path: 'configure/providers',
-        url: `${pathname}#providers`,
-        permission: 'write',
-        children: [
-          {
-            type: 'leaf',
-            origName: 'local-files',
-            title: 'Local files',
-            path: 'configure/providers/local-files.mdx',
-            url: pathname,
-            permission: 'write',
-          },
-        ],
-      },
-    ],
-  },
-];
-
-const content = [
-  {
-    _key: 'intro',
-    _type: 'block',
-    style: 'normal',
-    markDefs: [],
-    children: [
-      {
-        _key: 'intro-text',
-        _type: 'span',
-        marks: [],
-        text: 'Salesphere helps sales professionals choose a useful next step in a customer relationship and understand why it matters. This site connects that product intent to the current implementation.',
-      },
-    ],
-  },
-  {
-    _key: 'start-heading',
-    _type: 'block',
-    style: 'h2',
-    markDefs: [],
-    children: [{ _key: 'heading-text', _type: 'span', marks: [], text: 'Start with the product' }],
-  },
-  {
-    _key: 'product-copy',
-    _type: 'block',
-    style: 'normal',
-    markDefs: [
-      { _key: 'purpose', _type: 'link', href: '/product/purpose/' },
-      { _key: 'map', _type: 'link', href: '/product/structure/' },
-    ],
-    children: [
-      { _key: 'read', _type: 'span', marks: [], text: 'Read ' },
-      { _key: 'purpose-text', _type: 'span', marks: ['purpose'], text: 'Salesphere’s purpose' },
-      { _key: 'then', _type: 'span', marks: [], text: ' for the larger aim, then use the ' },
-      { _key: 'map-text', _type: 'span', marks: ['map'], text: 'product map' },
-      {
-        _key: 'rest',
-        _type: 'span',
-        marks: [],
-        text: ' to see how principles, intelligence, work surfaces, reflection, and platform capabilities fit together.',
-      },
-    ],
-  },
-  {
-    _key: 'implementation-heading',
-    _type: 'block',
-    style: 'h2',
-    markDefs: [],
-    children: [
-      { _key: 'implementation-title', _type: 'span', marks: [], text: 'Find the implementation' },
-    ],
-  },
-  {
-    _key: 'runtime',
-    _type: 'block',
-    style: 'normal',
-    markDefs: [],
-    children: [
-      {
-        _key: 'runtime-copy',
-        _type: 'span',
-        marks: [],
-        text: 'Runtime system map follows a request through the Astro app.',
-      },
-    ],
-  },
-];
-
-const document = {
-  title: 'Salesphere',
-  description: 'Product and engineering documentation.',
-  contributors: ['Kai'],
-  updatedAt: 'Oct 24, 2026',
-  content,
-};
-const attachments = [
-  {
-    id: 'overview-brief',
-    name: 'Product brief.pdf',
-    path: '/assets/product-brief.pdf',
-    type: 'application/pdf',
-    size: 328_512,
-  },
-];
-
-function withPermission(
-  nodes: DocsHostTreeNode[],
-  permission: 'read' | 'write',
-): DocsHostTreeNode[] {
-  return nodes.map((node) => ({
-    ...node,
-    permission,
-    ...(node.children ? { children: withPermission(node.children, permission) } : {}),
-  }));
-}
 
 function withLocalRoute(nodes: DocsHostTreeNode[]): DocsHostTreeNode[] {
   return nodes.map((node) => ({
@@ -183,122 +20,108 @@ function withLocalRoute(nodes: DocsHostTreeNode[]): DocsHostTreeNode[] {
   }));
 }
 
-const host: DocsHostAdapter = {
-  siteTitle: 'Salesphere Docs',
-  siteDescription: 'Product and engineering documentation.',
-  rootPath: '/',
-  homePath: pathname,
-  capabilities: {
-    read: true,
-    write: true,
-    reorder: true,
-    attachments: true,
-    export: true,
-    history: true,
-    publish: true,
-  },
-  async invoke<T = unknown>(
-    operation: DocsActionOperation,
-    input?: unknown,
-  ): Promise<DocsActionResult<T>> {
-    if (typeof window !== 'undefined') {
-      const browserWindow = window as Window & {
-        __terraDocsActionCalls?: Array<{ operation: string; input?: unknown }>;
-      };
-      browserWindow.__terraDocsActionCalls ??= [];
-      browserWindow.__terraDocsActionCalls.push({ operation, input });
-    }
-    let data: unknown = null;
-    if (operation === 'read.doc.list') {
-      const request = input as { type?: string } | undefined;
-      data = request?.type === 'nav' ? tree : [];
-    } else if (operation === 'read.doc.get') data = document;
-    else if (operation === 'read.doc.attachments') data = attachments;
-    else if (operation === 'read.asset.get') data = new ArrayBuffer(0);
-    else if (operation === 'read.util.pathname') data = pathname;
-    else if (operation === 'read.util.node') data = { title: 'Salesphere', origName: 'salesphere' };
-    else if (operation === 'read.tsdocs') data = { scopes: [] };
-    else if (operation === 'read.source.body') data = content;
-    return { data: data as T };
-  },
-  assetUrl: () => undefined,
-  resolveRoute: (value) => ({
-    sectionId: 'overview',
-    groupId: 'start-here',
-    leafId: 'salesphere',
-    targetId: 'salesphere',
-    pathname: new URL(value, 'http://localhost').pathname,
-  }),
-  buildRoute: () => pathname,
-  isDevelopmentOrigin: (value) =>
-    /^(?:https?:\/\/)?(?:localhost|127\.0\.0\.1)(?::\d+)?$/u.test(value),
-};
+function currentLocation(): string {
+  if (typeof window === 'undefined') return WORKSPACE_DEMO_PATH;
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function activeDocumentId(state: WorkspaceDemoState, location: string): string {
+  try {
+    const requested = new URL(location, 'http://localhost').searchParams.get('leaf');
+    if (requested && state.documents[requested]) return requested;
+  } catch {
+    // The seed leaf is the stable fallback for malformed demo routes.
+  }
+  return state.documents.salesphere ? 'salesphere' : (Object.keys(state.documents)[0] ?? '');
+}
 
 export default function WorkspaceDemo({
   readOnly = false,
-}: { readOnly?: boolean } = {}): JSX.Element {
-  const [primary, secondary] = colors(145);
+  hue = 145,
+}: { readOnly?: boolean; hue?: number | null } = {}): JSX.Element {
+  const [state, setState] = useState<WorkspaceDemoState>(() => createWorkspaceDemoSeed());
+  const [location, setLocation] = useState(WORKSPACE_DEMO_PATH);
+
+  useEffect(() => {
+    const syncFixture = (): void => {
+      setState(readWorkspaceDemoState());
+      setLocation(currentLocation());
+    };
+    const syncLocation = (event: Event): void => {
+      const detail = (event as CustomEvent<{ pathname?: unknown; url?: unknown }>).detail;
+      const route =
+        typeof detail?.pathname === 'string'
+          ? detail.pathname
+          : typeof detail?.url === 'string'
+            ? detail.url
+            : currentLocation();
+      setLocation(route);
+      setState(readWorkspaceDemoState());
+    };
+    syncFixture();
+    window.addEventListener('terra-docs-fixture-updated', syncFixture);
+    window.addEventListener('popstate', syncFixture);
+    document.addEventListener('docs:navigate', syncLocation);
+    return () => {
+      window.removeEventListener('terra-docs-fixture-updated', syncFixture);
+      window.removeEventListener('popstate', syncFixture);
+      document.removeEventListener('docs:navigate', syncLocation);
+    };
+  }, []);
+
+  const selectedId = activeDocumentId(state, location);
+  const selectedDocument = state.documents[selectedId] ?? state.documents.salesphere;
+  const host = useMemo(() => createWorkspaceDemoHost(readOnly), [readOnly]);
+  const [primary, secondary] = colors(hue);
   const theme = {
     ...Object.fromEntries(primary.light.map((rgb, index) => [`--primary-${index + 1}`, rgb])),
     ...Object.fromEntries(secondary.light.map((rgb, index) => [`--secondary-${index + 1}`, rgb])),
+    '--background': primary.light[0],
+    '--ring': primary.light[7],
   } as CSSProperties;
-  const fixtureTree = withPermission(tree, readOnly ? 'read' : 'write');
-  const fixtureHost: DocsHostAdapter = {
-    ...host,
-    capabilities: {
-      ...host.capabilities,
-      write: !readOnly,
-      reorder: !readOnly,
-      attachments: !readOnly,
-      history: !readOnly,
-      publish: !readOnly,
-    },
-  };
+
+  if (!selectedDocument) return <div className="min-h-svh" />;
+
   const localPage = {
     id: 'salesphere',
-    path: leafPath,
+    path: selectedDocument.path,
     pathname: '/workspace-readonly/',
-    title: document.title,
-    description: document.description,
-    updatedAt: document.updatedAt,
+    title: selectedDocument.title,
+    description: 'A page level description for the Salesphere overview.',
+    updatedAt: selectedDocument.updatedAt,
     markdown:
       '# Salesphere\n\nSalesphere helps sales professionals choose a useful next step in a customer relationship and understand why it matters.\n\n## Start with the product\n\nRead [Salesphere’s purpose](/product/purpose/) for the larger aim.',
-    attachments: [
-      {
-        id: 'overview-brief',
-        name: 'Product brief.pdf',
-        path: '/assets/product-brief.pdf',
-        type: 'application/pdf',
-        size: 328_512,
-      },
-    ],
+    attachments: selectedDocument.attachments,
   };
+
   const workspace = readOnly ? (
     <DocsLocalWorkspace
-      tree={withLocalRoute(fixtureTree)}
+      tree={withLocalRoute(routedWorkspaceTree(state, true))}
       pages={[localPage]}
       pathname={localPage.pathname}
       title="Salesphere Docs"
-      description={document.description}
+      description="Product and engineering documentation."
       rootPath="/workspace-readonly/"
       homePath={localPage.pathname}
     />
   ) : (
     <TerraDocsWorkspace
-      tree={fixtureTree}
-      host={fixtureHost}
-      pathname={pathname}
+      tree={routedWorkspaceTree(state, false)}
+      host={host}
+      pathname={location}
       permission="write"
-      path={leafPath}
-      title={document.title}
-      description={document.description}
-      contributors={document.contributors}
-      updatedAt={document.updatedAt}
-      content={content}
+      path={selectedDocument.path}
+      title={selectedDocument.title}
+      description={selectedDocument.description}
+      contributors={selectedDocument.contributors}
+      updatedAt={selectedDocument.updatedAt}
+      content={selectedDocument.content}
+      source={selectedDocument.source}
     />
   );
+
   return (
-    <div className="min-h-svh bg-primary-1 text-primary-12" style={theme}>
+    <div className="workspace-demo-theme min-h-svh bg-primary-1 text-primary-12" style={theme}>
       {workspace}
     </div>
   );

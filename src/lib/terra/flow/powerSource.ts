@@ -1,4 +1,3 @@
-// @ts-nocheck -- source-preserving extraction; public host contracts are typed in src/host.ts.
 /**
  * astro/src/components/flow/powerSource.ts
  * Power Source graph placement and route presentation.

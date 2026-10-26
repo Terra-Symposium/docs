@@ -1,4 +1,4 @@
-import { stringifyDocBody } from './content.js';
+import { stringifyDocBody } from './content/document-markdown.js';
 import type { DocBody } from './types.js';
 
 export const toPortableBody = (value: unknown): DocBody =>

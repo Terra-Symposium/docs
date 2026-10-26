@@ -9,8 +9,9 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // API
-import { $hydrating, $transition, htmlToMd } from '../../pages/docs/_helpers.js';
-import { cn, errorLog } from '../../runtime/runtime.js';
+import { $hydrating, $transition } from '../../../../lib/terra/docs/state.js';
+import { htmlToMd } from '../../../../lib/terra/docs/editor-dom.js';
+import { cn, errorLog } from '../../../../lib/terra/runtime/runtime.js';
 import {
   copyLineDown,
   copyLineUp,
@@ -28,22 +29,25 @@ import {
 import { drawSelection, keymap, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import { indentUnit } from '@codemirror/language';
-import { isDarkMode } from '../../runtime/runtime.js';
-import { isEndpointVal } from '../../runtime/shared.js';
+import { isDarkMode } from '../../../../lib/terra/runtime/runtime.js';
+import { isEndpointVal } from '../../../../lib/terra/runtime/shared.js';
 import { languages } from '@codemirror/language-data';
 import { markdown } from '@codemirror/lang-markdown';
-import { mdTableToHtml, stringifyCodeValue } from '../../runtime/content.js';
+import {
+  mdTableToHtml,
+  stringifyCodeValue,
+} from '../../../../lib/terra/runtime/content/markdown.js';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // COMPONENTS
-import * as TerraQualityRegex from '../../regex.mjs';
+import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import { AlertError } from '@terra-symposium/styling/ui/terra-original';
 import { Button } from '@terra-symposium/styling/ui/terra-original';
 import { Checkmark as CheckIcon, Copy as CopyIcon } from '@carbon/icons-react';
 import { Compartment, EditorSelection, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
 import {
   Select,
   SelectContent,

@@ -18,11 +18,12 @@ const sections = [
   },
 ];
 
-test('document header precedes the shared mode toolbar and body', () => {
+test('static layout delegates to the shared workspace and keeps its document order', () => {
   const html = renderToStaticMarkup(
     React.createElement(DocsSiteLayout, {
       title: 'Docs',
       pageTitle: 'Intro',
+      description: 'Site tagline stays in the sidebar.',
       nodes: [],
       sections,
       currentPath: '/intro',
@@ -31,28 +32,14 @@ test('document header precedes the shared mode toolbar and body', () => {
   );
   assert.ok(html.indexOf('terra-docs-document-header') < html.indexOf('data-docs-toolbar-frame'));
   assert.ok(html.indexOf('data-docs-toolbar-frame') < html.indexOf('Body text'));
-  assert.match(html, /Search pages/);
-  assert.match(html, /Actions for Intro/);
+  assert.doesNotMatch(html, /Search pages/);
   assert.match(html, /data-can-edit="false"/);
-});
-
-test('remote edit appears only when provider and capability are both supplied', () => {
-  const provider = {
-    loadDraft: async () => ({ markdown: '', revision: 0 }),
-    saveDraft: async () => 1,
-    publish: async () => 1,
-    history: async () => [],
-  };
-  const html = renderToStaticMarkup(
-    React.createElement(DocsSiteLayout, {
-      title: 'Docs',
-      nodes: [],
-      sections,
-      currentPath: '/intro',
-      capabilities: { edit: true },
-      remoteProvider: provider,
-      children: React.createElement('p', null, 'Body'),
-    }),
-  );
-  assert.match(html, /data-can-edit="true"/);
+  const header = html.match(
+    /<header class="terra-docs-document-header[^>]*>[\s\S]*?<\/header>/,
+  )?.[0];
+  assert.ok(header, 'the canonical document header renders');
+  assert.match(header, /Intro/);
+  assert.doesNotMatch(header, /Site tagline stays in the sidebar/);
+  assert.match(html, /Site tagline stays in the sidebar/);
+  assert.doesNotMatch(html, />Edit</);
 });

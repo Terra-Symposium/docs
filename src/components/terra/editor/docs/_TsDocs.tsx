@@ -8,20 +8,20 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // API
-import { actions } from '../../runtime/action-proxy.js';
-import { cn } from '../../runtime/runtime.js';
+import { actions } from '../../../../lib/terra/runtime/action-proxy.js';
+import { cn } from '../../../../lib/terra/runtime/runtime.js';
 import { useEffect, useState } from 'react';
 
 // COMPONENTS
 import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../runtime/ui.js';
-import { Empty } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
+import { Empty } from '../../ui.js';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 
 // TYPES
 import type { DocsBlock } from '../types.js';
-import type { TerraContent as TerraContentData } from '../../runtime/types.js';
-import type { TsDocsItem } from '../../runtime/types.js';
+import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
+import type { TsDocsItem } from '../../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 HELPERS

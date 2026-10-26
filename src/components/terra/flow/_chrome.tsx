@@ -26,7 +26,7 @@ import {
   isString,
   normArcGraph,
   resolvedEdges,
-} from '../runtime/runtime.js';
+} from '../../../lib/terra/runtime/runtime.js';
 import {
   createContext,
   useCallback,
@@ -36,7 +36,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { layoutGraph } from './_layout.js';
+import { layoutGraph } from '../../../lib/terra/flow/_layout.js';
 
 // COMPONENTS
 import {
@@ -53,7 +53,7 @@ import {
 import { Button } from '@terra-symposium/styling/ui/terra-original';
 import { ButtonGroup } from '@terra-symposium/styling/ui/terra-original';
 import { Card, CardDescription } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../runtime/ui.js';
+import { ErrorBoundary } from '../ui.js';
 import {
   FitToScreen as FitToScreenIcon,
   MagicWand as MagicWandIcon,
@@ -89,8 +89,8 @@ import type {
   FlowSkin,
   FlowTone,
   Pos,
-} from '../runtime/types.js';
-import type { GroupNodeData } from '../runtime/types.js';
+} from '../../../lib/terra/runtime/types.js';
+import type { GroupNodeData } from '../../../lib/terra/runtime/types.js';
 import type {
   ComponentPropsWithoutRef,
   ComponentType,
@@ -113,7 +113,7 @@ import type {
   ReactFlowInstance,
   XYPosition,
 } from '@xyflow/react';
-import type { Problem } from '../runtime/types.js';
+import type { Problem } from '../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 CONFIG
@@ -505,7 +505,7 @@ export function useArcNodeLayout(
  *
  * @returns Positioned nodes and the resulting graph height.
  */
-export { layoutGraph } from './_layout.js';
+export { layoutGraph } from '../../../lib/terra/flow/_layout.js';
 
 /*//////////////////////////////////////////////////
 NODE CHROME

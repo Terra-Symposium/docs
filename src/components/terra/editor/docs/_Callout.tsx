@@ -3,16 +3,16 @@
 
 import { useEditor } from '@portabletext/editor';
 import { TerraContentEditor } from '../TerraContentEditor.js';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
 import { Input } from '@terra-symposium/styling/ui/terra-original';
 
-import type { DocsNestedContent } from '../../runtime/types.js';
+import type { DocsNestedContent } from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsBlock,
   PortableTextBlockEditorProps,
   PortableTextBlockRendererProps,
 } from '../types.js';
-import type { TerraContent as TerraContentData } from '../../runtime/types.js';
+import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
 
 /** Sanity Portable Text callout data consumed by the docs editor and renderer. */
 type CalloutBlock = DocsBlock<'callout'>;

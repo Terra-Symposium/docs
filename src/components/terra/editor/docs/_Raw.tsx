@@ -9,7 +9,7 @@ IMPORTS
 
 // COMPONENTS
 import { CodeBlock } from './_CodeBlock.js';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
 
 // TYPES
 import type { DocsBlock } from '../types.js';

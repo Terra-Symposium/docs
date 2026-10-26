@@ -3,7 +3,7 @@
 
 import { useEditor } from '@portabletext/editor';
 import { useEffect, useRef, useState } from 'react';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
 import { Button } from '@terra-symposium/styling/ui/terra-original';
 import {
   Dialog,
@@ -15,7 +15,7 @@ import { Input } from '@terra-symposium/styling/ui/terra-original';
 import { Label } from '@terra-symposium/styling/ui/terra-original';
 import { CodeBlock } from './_CodeBlock.js';
 
-import type { BlockTgt } from '../../runtime/types.js';
+import type { BlockTgt } from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsBlock,
   PortableTextBlockEditorProps,

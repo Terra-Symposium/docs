@@ -31,9 +31,9 @@ export { renderSections } from '../components/terra/editor/docs/_Tabs.js';
 export { TsDocs } from '../components/terra/editor/docs/_TsDocs.js';
 export { DocsHeading } from '../components/terra/editor/docs/heading.js';
 export { DOCS_BLOCK_ICONS } from '../components/terra/pages/docs/_icons.js';
-export { ATTCH_TYPES } from '../components/terra/pages/docs/_helpers.js';
+export { ATTCH_TYPES } from './terra/docs/attachments.js';
 export { ExportDialog } from '../components/terra/pages/docs/_export-dialog.js';
-export type { DocsExportOpts, ExportTgt } from '../components/terra/runtime/types.js';
+export type { DocsExportOpts, ExportTgt } from './terra/runtime/types.js';
 export { configureDocsHost, getDocsHostAdapter } from './host-runtime.js';
 export type {
   DocsActionOperation,
@@ -50,19 +50,4 @@ export type {
   TerraDocsWorkspaceProps,
 } from './host.js';
 
-export {
-  DocsWorkspaceNavigation,
-  DocsWorkspaceToolbar,
-  DocsAttachmentsView,
-} from '../components/workspace.js';
-export type {
-  DocsAttachment,
-  DocsLeaf,
-  DocsGroup,
-  DocsSection,
-  DocsCapabilities,
-  DocsRemoteProvider,
-  DocsTreeAction,
-  DocsTreeActionName,
-  DocsTreeActions,
-} from '../components/workspace.js';
+export type { DocsAttachment, DocsLeaf, DocsGroup, DocsSection } from './workspace-types.js';

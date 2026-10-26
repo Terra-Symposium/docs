@@ -1,5 +1,5 @@
 import { cn as stylingCn } from '@terra-symposium/styling/ui';
-import { getDocsHostAdapter } from '../../../lib/host-runtime.js';
+import { getDocsHostAdapter } from '../../host-runtime.js';
 
 export const cn = stylingCn;
 export function isDevOrigin(value: string | URL): boolean {
@@ -12,7 +12,7 @@ export function isDevOrigin(value: string | URL): boolean {
     return false;
   }
 }
-export const isRec = (value: unknown): value is Record<string, any> =>
+export const isRec = (value: unknown): value is Record<string, unknown> =>
   Boolean(value && typeof value === 'object' && !Array.isArray(value));
 export const isString = (value: unknown): value is string => typeof value === 'string';
 export const isNumber = (value: unknown): value is number =>
@@ -46,25 +46,44 @@ export const canonicalId = (value: string): string =>
     .replace(/[^a-z0-9_-]/gi, '-')
     .toLowerCase();
 export const normArcGraph = <T>(graph: T): T => graph;
-export function resolvedEdges(graph: any): any[] {
-  const nodes = Array.isArray(graph?.nodes) ? graph.nodes.filter((node: any) => !node.hidden) : [];
-  const keys = new Set(nodes.map((node: any) => node._key));
-  const edges = (Array.isArray(graph?.edges) ? graph.edges : []).filter(
-    (edge: any) => keys.has(edge.source) && keys.has(edge.target),
+type ArcNode = Record<string, unknown> & { _key?: string; hidden?: boolean; type?: string };
+type ArcEdge = Record<string, unknown> & { _key?: string; source?: string; target?: string };
+
+export function resolvedEdges(graph: unknown): ArcEdge[] {
+  const record = isRec(graph) ? graph : {};
+  const nodes: ArcNode[] = Array.isArray(record.nodes)
+    ? record.nodes.filter((node): node is ArcNode => isRec(node) && !node.hidden)
+    : [];
+  const keys = new Set(nodes.flatMap((node) => (typeof node._key === 'string' ? [node._key] : [])));
+  const edges: ArcEdge[] = (Array.isArray(record.edges) ? record.edges : []).filter(
+    (edge): edge is ArcEdge =>
+      isRec(edge) &&
+      typeof edge.source === 'string' &&
+      typeof edge.target === 'string' &&
+      keys.has(edge.source) &&
+      keys.has(edge.target),
   );
-  const terminal = nodes.find((node: any) => node.type === 'terminal');
-  if (!terminal) return edges;
-  const sources = new Set(edges.map((edge: any) => edge.source));
+  const terminal = nodes.find((node) => node.type === 'terminal');
+  const terminalKey = terminal?._key;
+  if (typeof terminalKey !== 'string') return edges;
+  // Capture the narrowed key before entering the callback; TypeScript widens
+  // the optional property again inside the closure.
+  const resolvedTerminalKey: string = terminalKey;
+  const sources = new Set(edges.flatMap((edge) => (edge.source ? [edge.source] : [])));
   return [
     ...edges,
-    ...nodes
-      .filter((node: any) => node.type === 'content' && !sources.has(node._key))
-      .map((node: any) => ({
-        _key: `terminal:${node._key}`,
-        _type: 'edge',
-        source: node._key,
-        target: terminal._key,
-      })),
+    ...nodes.flatMap((node) => {
+      if (node.type !== 'content' || typeof node._key !== 'string' || sources.has(node._key))
+        return [];
+      return [
+        {
+          _key: `terminal:${node._key}`,
+          _type: 'edge',
+          source: node._key,
+          target: resolvedTerminalKey,
+        },
+      ];
+    }),
   ];
 }
 export function setDocumentTitle(title: string): void {

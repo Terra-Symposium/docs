@@ -10,16 +10,23 @@ IMPORTS
 
 // API
 import {
-  $attachmentFilter,
   $surfaceReady,
   $transition,
   clearTransition,
-  sanitizeName,
-  uploadAssetChunked,
   useAtom,
-} from './_helpers.js';
-import { actions } from '../../runtime/action-proxy.js';
-import { cn, error as logError, errorLog, isRec, notify, warn } from '../../runtime/runtime.js';
+} from '../../../../lib/terra/docs/state.js';
+import { $attachmentFilter } from '../../../../lib/terra/docs/attachments.js';
+import { sanitizeName } from '../../../../lib/terra/docs/tree.js';
+import { uploadAssetChunked } from '../../../../lib/terra/docs/assets.js';
+import { actions } from '../../../../lib/terra/runtime/action-proxy.js';
+import {
+  cn,
+  error as logError,
+  errorLog,
+  isRec,
+  notify,
+  warn,
+} from '../../../../lib/terra/runtime/runtime.js';
 import {
   createElement,
   createElement as __terraQualityCreateElement,
@@ -29,12 +36,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { currLeafSrc } from '../../runtime/leaf.js';
-import { dirname, docsPath, isDocsPath } from '../../runtime/shared.js';
+import { currLeafSrc } from '../../../../lib/terra/runtime/leaf.js';
+import { dirname, docsPath, isDocsPath } from '../../../../lib/terra/runtime/shared.js';
 import { toast } from 'sonner';
 
 // COMPONENTS
-import * as TerraQualityRegex from '../../regex.mjs';
+import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import {
   ArrowUpRight as PopOutIcon,
   Box as BoxIcon,
@@ -66,8 +73,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../runtime/ui.js';
-import { Empty } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
+import { Empty } from '../../ui.js';
 import { Input } from '@terra-symposium/styling/ui/terra-original';
 import { Label } from '@terra-symposium/styling/ui/terra-original';
 import {
@@ -81,12 +88,12 @@ import { Textarea } from '@terra-symposium/styling/ui/terra-original';
 import { TsDocsSelect } from './_blocks.js';
 
 // DATA
-import { ATTCH_TYPES } from './_helpers.js';
+import { ATTCH_TYPES } from '../../../../lib/terra/docs/attachments.js';
 
 // TYPES
-import type { AttchType, DocsTreeMenuAction, Sister } from '../../runtime/types.js';
-import type { Leaf as LeafNode, Tree as TreeType } from '../../runtime/types.js';
-import type { Md } from '../../runtime/types.js';
+import type { AttchType, DocsTreeMenuAction, Sister } from '../../../../lib/terra/runtime/types.js';
+import type { Leaf as LeafNode, Tree as TreeType } from '../../../../lib/terra/runtime/types.js';
+import type { Md } from '../../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 HELPERS

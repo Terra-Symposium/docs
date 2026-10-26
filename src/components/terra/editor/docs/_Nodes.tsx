@@ -8,17 +8,17 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // API
-import { cn } from '../../runtime/runtime.js';
-import { decodeNodesPayload } from '../../runtime/nodes.js';
+import { cn } from '../../../../lib/terra/runtime/runtime.js';
+import { decodeNodesPayload } from '../../../../lib/terra/runtime/nodes.js';
 
 // COMPONENTS
 import Canvas from '../../flow/Nodes.js';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
 
 // TYPES
 import type { DocsBlock } from '../types.js';
-import type { Edge, FlowNode } from '../../runtime/types.js';
-import type { NodesProps } from '../../runtime/types.js';
+import type { Edge, FlowNode } from '../../../../lib/terra/runtime/types.js';
+import type { NodesProps } from '../../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 HELPERS

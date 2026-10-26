@@ -1,4 +1,3 @@
-// @ts-nocheck -- source-preserving extraction; public host contracts are typed in src/host.ts.
 /**
  * astro/src/components/flow/_layout.ts
  * Pure Dagre layout primitives shared by flow UI and testable graph helpers.

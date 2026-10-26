@@ -68,6 +68,4 @@ const sections: DocsSection[] = [
 </DocsSiteLayout>;
 ```
 
-Repository-backed hosts omit `capabilities`, so the browser shows View and Attachments. Remote hosts pass a `DocsRemoteProvider`, grant `capabilities={{ edit: true, save: true, history: true, publish: true }}`, and wire save, history, and publish callbacks after their own permission checks. These callbacks do not bypass host authorization. Astro hosts can use `@terra-symposium/docs/site-layout.astro` for read-only pages.
-
-For a mutable tree, pass `treeActions` to `DocsSiteLayout`. Its `available(action)` function decides which section, group, and leaf menu items to show; `perform(action)` persists a requested operation through the host. Supported requests include create, rename, duplicate, move or reorder, attachment management, download, and deletion. The host must check permissions again on the server and return an error if the mutation fails. Read-only hosts omit `treeActions` and retain leaf links, Copy link, Open in new tab, and Attachments view.
+`DocsSiteLayout` delegates to the canonical shared workspace and is intended for static React pages. Repository-backed hosts should use `DocsLocalWorkspace`, which loads each leaf and its adjacent attachments from the host-provided tree and remains read-only. Remote hosts should use `TerraDocsWorkspace` with a `DocsHostAdapter`; that adapter supplies the original tree controls and performs create, rename, duplicate, reorder, attachment, export, and delete operations after applying the host's own permission checks.

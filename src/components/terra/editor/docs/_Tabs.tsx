@@ -4,18 +4,18 @@
 import { useEditor } from '@portabletext/editor';
 import { AccordionGroup, AccordionItem, TabsGroup, TabsItem } from '../_blocks.js';
 import { Add as AddIcon } from '@carbon/icons-react';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
 import { Button } from '@terra-symposium/styling/ui/terra-original';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 
-import type { DocBody } from '../../runtime/types.js';
-import type { DocsNestedContent } from '../../runtime/types.js';
+import type { DocBody } from '../../../../lib/terra/runtime/types.js';
+import type { DocsNestedContent } from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsBlock,
   PortableTextBlockEditorProps,
   PortableTextBlockRendererProps,
 } from '../types.js';
-import type { TerraContent as TerraContentData } from '../../runtime/types.js';
+import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
 
 /** Union of the docs tabs and accordion block shapes. */
 type SectionsBlock = DocsBlock<'tabs'> | DocsBlock<'accordion'>;

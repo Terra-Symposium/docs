@@ -94,8 +94,8 @@ importers:
         specifier: ^1.64.1
         version: 1.64.1
       '@terra-symposium/styling':
-        specifier: file:vendor/terra-symposium-styling-0.1.12.tgz
-        version: file:vendor/terra-symposium-styling-0.1.12.tgz(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(yaml@2.9.1)
+        specifier: file:vendor/terra-symposium-styling-0.1.16.tgz
+        version: file:vendor/terra-symposium-styling-0.1.16.tgz(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(yaml@2.9.1)
       '@types/katex':
         specifier: ^0.16.8
         version: 0.16.8
@@ -1668,9 +1668,9 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.0.0 || >=4.0.0 || insiders'
 
-  '@terra-symposium/styling@file:vendor/terra-symposium-styling-0.1.12.tgz':
-    resolution: {integrity: sha512-gJJ+pGHHxTug1lbUwK9EUPFNgr8BlbyiD7IToDIaTRyJ7AZrEpwDq6dru+HTe+e3YewMZq0RWa9bCG4SB23wdQ==, tarball: file:vendor/terra-symposium-styling-0.1.12.tgz}
-    version: 0.1.12
+  '@terra-symposium/styling@file:vendor/terra-symposium-styling-0.1.16.tgz':
+    resolution: {integrity: sha512-U/Dr5Nqkxsk3P9TJ6CpQIItd/2QHvQUro3ZNyEZmbqSZvxNRVRRzf0REJG3FoSvByitYuBmX8fiYSis/eSiyPw==, tarball: file:vendor/terra-symposium-styling-0.1.16.tgz}
+    version: 0.1.16
     peerDependencies:
       react: ^19.0.0
       react-dom: ^19.0.0
@@ -5187,7 +5187,7 @@ snapshots:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.4.19(yaml@2.9.1)
 
-  '@terra-symposium/styling@file:vendor/terra-symposium-styling-0.1.12.tgz(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(yaml@2.9.1)':
+  '@terra-symposium/styling@file:vendor/terra-symposium-styling-0.1.16.tgz(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(yaml@2.9.1)':
     dependencies:
       '@carbon/icons-react': 11.90.0(react@19.3.1)
       '@headlessui/tailwindcss': 0.2.2(tailwindcss@3.4.19(yaml@2.9.1))

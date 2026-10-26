@@ -159,6 +159,8 @@ export type TerraDocsWorkspaceProps = {
   userData?: DocsHostUser | null;
   source?: string;
   content?: unknown;
+  /** Optional static React content slot rendered inside the canonical View surface. */
+  renderContent?: ReactNode;
   standalone?: boolean;
   full?: boolean;
   mode?: 'view' | 'edit' | 'attachments';

@@ -9,10 +9,14 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // DATA
-import { DOCS_BLOCK_SCHEMAS, PROBLEM_BLOCK_TYPES } from '../runtime/types.js';
+import { DOCS_BLOCK_SCHEMAS, PROBLEM_BLOCK_TYPES } from '../../../lib/terra/runtime/types.js';
 
 // TYPES
-import type { ArticleContent, DocsContent, ProblemContent } from '../runtime/types.js';
+import type {
+  ArticleContent,
+  DocsContent,
+  ProblemContent,
+} from '../../../lib/terra/runtime/types.js';
 import type { BlockObjectRenderProps } from '@portabletext/editor';
 
 /*//////////////////////////////////////////////////

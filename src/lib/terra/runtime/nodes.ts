@@ -1,4 +1,3 @@
-// @ts-nocheck -- canonical website diagram converter, now isolated from host imports.
 /**
  * astro/src/actions/docs/nodes.ts
  * Pure utility functions for parsing and rendering node blocks.
@@ -135,7 +134,7 @@ export const NODES = {
             if (content) result[NODES.keys[field.key]] = true;
             continue;
           }
-          if (validateType(['string'], content) && content.trim()) {
+          if (typeof content === 'string' && content.trim()) {
             const trimmed = content.trim();
             const key = trimmed.match(/^metadata\.([A-Za-z0-9_$]+)$/)?.[1];
             if (key) {
@@ -173,7 +172,8 @@ export const NODES = {
 				let i = 0;
 				while (i < line.length) {
 					const el = line.slice(i).match(/^([A-Za-z_$][\w$]*)\s*=\s*/u);
-					if (!el) break;
+					const attributeName = el?.[1];
+					if (!el || !attributeName) break;
 					i += el[0].length;
 					let v = '';
 					let depth = 0;
@@ -209,13 +209,13 @@ export const NODES = {
 							i++;
 							continue;
 						}
-						if (depth === 0 && TerraQualityRegex.REGEX_S_U_REGEX().test(char)) if (TerraQualityRegex.REGEX_A_ZA_Z_W_S_U_REGEX().test(line.slice(i).trimStart())) break;
+							if (depth === 0 && TerraQualityRegex.REGEX_S_U_REGEX().test(char ?? '') && TerraQualityRegex.REGEX_A_ZA_Z_W_S_U_REGEX().test(line.slice(i).trimStart())) break;
 						v += char;
 						i++;
 					}
 					const trimmed = v.trim();
-					assignmentVals[el[1]] = scalar((trimmed.match(/^\{([^{}\n]+)\}$/u)?.[1]?.trim() ?? (/^\{[-\w.'"`$]+\}$/u.test(trimmed) ? trimmed.slice(1, -1).trim() : null)) ?? trimmed);
-					while (i < line.length && TerraQualityRegex.REGEX_S_U_REGEX().test(line[i])) i++;
+						assignmentVals[attributeName] = scalar((trimmed.match(/^\{([^{}\n]+)\}$/u)?.[1]?.trim() ?? (/^\{[-\w.'"`$]+\}$/u.test(trimmed) ? trimmed.slice(1, -1).trim() : null)) ?? trimmed);
+						while (i < line.length && TerraQualityRegex.REGEX_S_U_REGEX().test(line[i] ?? '')) i++;
 				}
 			}
         const asgn = Object.keys(assignmentVals).length ? assignmentVals : null;
@@ -249,7 +249,7 @@ export const NODES = {
                   Object.entries(NODES.keys).map(([f, s]) => [s, f as Field['key']]),
                 ).get(k) ?? (FIELDS.has(k) ? (k as Field['key']) : null);
               if (!field) return [];
-              return [[NODES.keys[field], c]];
+              return [[NODES.keys[field as keyof typeof NODES.keys], c]];
             }),
           ),
         );
@@ -518,7 +518,7 @@ const quote = (x: string): string => {
   const y = x.trim();
   if (!y) return '""';
   if (
-    ['"', "'", '`', '{', '['].includes(y?.[0]) ||
+    ['"', "'", '`', '{', '['].includes(y.charAt(0)) ||
     TerraQualityRegex.REGEX_TRUE_FALSE_NULL_UNDEFINED_D_D_U_REGEX().test(y)
   )
     return y;
@@ -571,7 +571,7 @@ const loose = (body: string): string => {
     const src = body[i] ?? '';
     if (!src || ['"', "'", '`', '{', '[', '\n'].includes(src) || /[-\d]/u.test(src)) continue;
     let end = i;
-    while (end < body.length && !/[,\]\n}]/u.test(body[end])) end++;
+    while (end < body.length && !/[,\]\n}]/u.test(body[end] ?? '')) end++;
     const v = body.slice(i, end);
     if (/^(?:true|false|null|undefined)$/u.test(v.trim())) name += v;
     else name += quote(v);

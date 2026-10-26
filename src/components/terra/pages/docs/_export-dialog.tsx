@@ -21,12 +21,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../runtime/ui.js';
+import { ErrorBoundary } from '../../ui.js';
 import { Label } from '@terra-symposium/styling/ui/terra-original';
 import { Progress } from '@terra-symposium/styling/ui/terra-original';
 
 // TYPES
-import type { DocsExportOpts as ExportOptions, ExportTgt } from '../../runtime/types.js';
+import type {
+  DocsExportOpts as ExportOptions,
+  ExportTgt,
+} from '../../../../lib/terra/runtime/types.js';
 import type { ReactElement } from 'react';
 
 /*//////////////////////////////////////////////////
