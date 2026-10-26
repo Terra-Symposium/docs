@@ -29,9 +29,6 @@ import { isDocBody } from '../../../../lib/terra/runtime/types.js';
 import { cn, setDocumentTitle } from '../../../../lib/terra/runtime/runtime.js';
 import { toPortableBody } from '../../../../lib/terra/runtime/leaf.js';
 import { dirname } from '../../../../lib/terra/runtime/shared.js';
-import { docsValueToMarkdown } from '../../../../lib/markdown-model.js';
-import { renderMarkdown } from '../../../../lib/markdown.js';
-import type { DocsValue } from '../../../Docs.js';
 import {
   lazy,
   useCallback,
@@ -125,6 +122,7 @@ HOOKS
  * @return The read-only editor view for the supplied document body.
  */
 function View({ body, resetKey }: { body: DocBody; resetKey?: string }): JSX.Element {
+  const transition = useTransitionState();
   useEffect(() => {
     return ((timer: number) => () => {
       window.clearTimeout(timer);
@@ -135,15 +133,15 @@ function View({ body, resetKey }: { body: DocBody; resetKey?: string }): JSX.Ele
         document.dispatchEvent(new Event('docs:surface-ready'));
       }),
     );
-  }, []);
+  }, [resetKey, transition]);
   return (
-    <div
-      className="terra-docs-content"
-      data-docs-path={resetKey}
-      dangerouslySetInnerHTML={{
-        __html: renderMarkdown(docsValueToMarkdown(body as unknown as DocsValue)),
-      }}
-    />
+    <Suspense fallback={<div aria-hidden="true" data-docs-view-loading />}>
+      <TerraContentEditor
+        content={body as unknown as any[]}
+        readOnly
+        {...(resetKey !== undefined ? { resetKey } : {})}
+      />
+    </Suspense>
   );
 }
 
@@ -372,23 +370,18 @@ const EditorSurfaces = {
 						/>
 					</div>
 					<div>
-						{editable ? (
-							<>
-								<Label htmlFor='docs-description' className='sr-only'>
-									Description
-								</Label>
-								<Textarea
-									id='docs-description'
-									value={draft.description}
-									onChange={e => edit?.update({ description: e.currentTarget.value })}
-									placeholder='Add a description...'
-									className='min-h-0 resize-none border-none bg-transparent p-0 text-base text-pretty text-primary-11 shadow-none focus-visible:ring-0 dark:bg-transparent'
-									suppressHydrationWarning
-								/>
-							</>
-						) : (
-							<p className='m-0 min-h-6 whitespace-pre-wrap text-base text-pretty text-primary-11'>{draft.description || <span className='text-primary-11'>Add a description...</span>}</p>
-						)}
+						<Label htmlFor='docs-description' className='sr-only'>
+							Description
+						</Label>
+						<Textarea
+							id='docs-description'
+							value={draft.description}
+							onChange={e => edit?.update({ description: e.currentTarget.value })}
+							placeholder='Add a description...'
+							disabled={!editable}
+							className='min-h-0 resize-none border-none bg-transparent p-0 text-base text-pretty text-primary-11 shadow-none focus-visible:ring-0 disabled:cursor-default disabled:opacity-100 dark:bg-transparent'
+							suppressHydrationWarning
+						/>
 					</div>
 					{(updatedAt || contributors.length > 0) && (
 						<div className='mt-4 flex flex-wrap items-center gap-2 text-sm text-primary-11'>
@@ -461,7 +454,9 @@ export default function Scaffold({
 }): JSX.Element {
   // STATES
   const navigationState = { open: useAtom($sidebar), leafTitle: useAtom($leafTitle) };
-  const [hydrated, setHydrated] = useState<boolean>(standalone || permission === 'read');
+  // Match the original Docs shell: only render the Portable Text editor after hydration.
+  // Its external store is not SSR-safe, and rendering it in the initial HTML causes React #419.
+  const [hydrated, setHydrated] = useState<boolean>(standalone);
   const toolbar = useAtom($toolbar);
   const stored = useAtom($mode);
   const writable = permission === 'write';

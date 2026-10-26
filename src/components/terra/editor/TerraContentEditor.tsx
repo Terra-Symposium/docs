@@ -18,6 +18,7 @@ import { renderTable } from './docs/_Table.js';
 import { renderSections } from './docs/_Tabs.js';
 import { TsDocs } from './docs/_TsDocs.js';
 import { DocsHeading } from './docs/heading.js';
+import { createElement } from 'react';
 import type { JSX } from 'react';
 
 const rendererByType: Record<string, (props: any) => JSX.Element | null> = {
@@ -96,12 +97,14 @@ export function TerraContentEditor({
           renderStyle={({ children, schemaType }) => {
             const style = schemaType.value;
             if (style === 'blockquote') return <blockquote>{children}</blockquote>;
-            if (typeof style === 'string' && /^h[2-6]$/.test(style))
+            if (readOnly && typeof style === 'string' && /^h[2-6]$/.test(style))
               return (
                 <DocsHeading level={style as 'h2' | 'h3' | 'h4' | 'h5' | 'h6'}>
                   {children}
                 </DocsHeading>
               );
+            if (typeof style === 'string' && /^h[1-6]$/.test(style))
+              return createElement(style, {}, children);
             return <p>{children}</p>;
           }}
           renderDecorator={({ children, value }) =>

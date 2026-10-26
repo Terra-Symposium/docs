@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "suites": [
+    {
+      "name": "unit",
+      "command": "pnpm",
+      "args": ["test"],
+      "owns": ["test/*.test.mjs"]
+    },
+    {
+      "name": "browser",
+      "command": "pnpm",
+      "args": ["run", "test:browser"],
+      "owns": ["test/browser"]
+    },
+    {
+      "name": "consumer",
+      "command": "pnpm",
+      "args": ["run", "test:consumer"],
+      "owns": ["test/consumer-browser"]
+    }
+  ]
+}

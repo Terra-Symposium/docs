@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -20,9 +22,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
-      - run: pnpm run build
-      - run: pnpm test
       - run: pnpm run build:demo
-      - run: pnpm run docs:build
+      - run: pnpm docs:build
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm run test:browser
+      - uses: Terra-Symposium/standards/packages/testing@3392260a7a7a39ffcf9508b7ade2618a5dd9042e
+        with:
+          manifest: .terra-tests.json

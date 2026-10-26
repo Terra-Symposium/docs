@@ -44,7 +44,7 @@ test('nodes.spec: Preserve canvas height', async ({ page }) => {
 test('nodes.spec: Render nodes and edges', async ({ page }) => {
   test.fail(
     true,
-    'Docs Nodes drops schema-valid nodes without a position; see the coverage catalogue.',
+    'Pinned pre-abstraction Docs also omits Nodes entries without saved positions; retained as a baseline exclusion.',
   );
   await openEditor(page, nodesFixture);
   const flowchart = page.locator('[data-docs-editor-block="Nodes"]');
