@@ -14,7 +14,7 @@ import { actions } from '../../runtime/action-proxy.js';
 import { cn } from '../../runtime/runtime.js';
 import { toast } from 'sonner';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { getDocsHostAdapter } from '../../../host-runtime.js';
+import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 
 // COMPONENTS
 import React from 'react';

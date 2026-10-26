@@ -1,7 +1,7 @@
-import { markdownToDocsValue } from './markdown-model.js';
+import { markdownToDocsValue } from '../lib/markdown-model.js';
 import { TerraDocsWorkspace } from './terra/Workspace.js';
 import { colors } from '@terra-symposium/styling';
-import type { DocsHostAdapter, DocsHostAttachment, DocsHostTreeNode } from './host.js';
+import type { DocsHostAdapter, DocsHostAttachment, DocsHostTreeNode } from '../lib/host.js';
 import type { DocsAttachment, DocsLeaf, DocsSection } from './workspace.js';
 import type { DocsNavNode } from './navigation.js';
 import type { CSSProperties, JSX } from 'react';
@@ -171,7 +171,7 @@ export function DocsStaticWorkspace({
 			if (/^(?:https?:)?\/\//i.test(path) || path.startsWith('/')) return path;
 			return `${rootPath.replace(/\/$/, '')}/${path}`;
 		},
-		async invoke<T = unknown>(operation: import('./host.js').DocsActionOperation, input?: unknown): Promise<{ data?: T; error?: unknown }> {
+		async invoke<T = unknown>(operation: import('../lib/host.js').DocsActionOperation, input?: unknown): Promise<{ data?: T; error?: unknown }> {
 			let data: unknown;
 			if (operation === 'read.doc.list') {
 				const request = input as { type?: string; path?: string } | undefined;

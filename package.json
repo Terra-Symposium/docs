@@ -1,6 +1,6 @@
 {
   "name": "@terra-symposium/docs",
-  "version": "0.1.17",
+  "version": "0.1.19",
   "description": "Reusable React document editor and viewer.",
   "repository": "https://github.com/Terra-Symposium/docs",
   "type": "module",
@@ -12,7 +12,9 @@
     "lib-dist",
     "src/style.css",
     "src/navigation.tsx",
-    "src/SiteLayout.astro"
+    "src/SiteLayout.astro",
+    "src/NotFound.astro",
+    "src/NotFound.tsx"
   ],
   "exports": {
     ".": {
@@ -20,7 +22,12 @@
       "import": "./lib-dist/index.js"
     },
     "./style.css": "./lib-dist/style.css",
-    "./site-layout.astro": "./src/SiteLayout.astro"
+    "./local-workspace": {
+      "types": "./lib-dist/LocalDocsWorkspace.d.ts",
+      "import": "./lib-dist/LocalDocsWorkspace.js"
+    },
+    "./site-layout.astro": "./src/SiteLayout.astro",
+    "./not-found.astro": "./src/NotFound.astro"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --open",

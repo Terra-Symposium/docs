@@ -22,7 +22,7 @@ import { redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
 import { stringifyDocBody } from '../../runtime/content.js';
 import { toast } from 'sonner';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { getDocsHostAdapter } from '../../../host-runtime.js';
+import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 
 // COMPONENTS
 import * as TerraQualityRegex from '../../regex.mjs';

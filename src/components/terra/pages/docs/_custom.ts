@@ -1,4 +1,4 @@
-import type { DocsCustomBlock } from '../../../host.js';
+import type { DocsCustomBlock } from '../../../../lib/host.js';
 
 /** Mutated in place by a host before the workspace renders. */
 export const components: DocsCustomBlock[] = [];

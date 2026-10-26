@@ -38,16 +38,16 @@ function Playground(): React.JSX.Element {
       <header className="demo-header">
         <span>Terra Docs</span>
         <div role="group" aria-label="Preview mode">
-          <button type="button" onClick={() => setValue([])}>
+          <button  onClick={() => setValue([])}>
             New document
           </button>
-          <button type="button" onClick={() => setValue(structuredClone(sample))}>
+          <button  onClick={() => setValue(structuredClone(sample))}>
             Reset document
           </button>
           {(['edit', 'view'] as const).map((value) => (
             <button
               key={value}
-              type="button"
+
               aria-pressed={mode === value}
               onClick={() => setMode(value)}
             >

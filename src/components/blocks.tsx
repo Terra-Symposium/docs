@@ -1,7 +1,7 @@
 import { defineBlockObject, defineInlineObject, useEditor } from '@portabletext/editor';
 import { useState } from 'react';
 import katex from 'katex';
-import { renderMarkdown } from './markdown.js';
+import { renderMarkdown } from '../lib/markdown.js';
 import type { JSX } from 'react';
 import type { Path } from '@portabletext/editor';
 
@@ -358,7 +358,7 @@ function BlockEditor({
       <DocsRichBlock block={block} />
       {!readOnly && (
         <>
-          <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
+          <button  onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
             Edit {type}
           </button>
           {expanded && (
@@ -406,7 +406,7 @@ function BlockEditor({
                             />
                           </label>
                           <button
-                            type="button"
+
                             onClick={() =>
                               set({ items: items.filter((_entry, i) => i !== index), markdown: '' })
                             }
@@ -416,7 +416,7 @@ function BlockEditor({
                         </div>
                       ))}
                       <button
-                        type="button"
+
                         onClick={() =>
                           set({
                             items: [...items, { title: 'Item', markdown: '', content: [] }],
@@ -468,7 +468,7 @@ function BlockEditor({
                               </label>
                             ))}
                             <button
-                              type="button"
+
                               onClick={() =>
                                 set({
                                   rows: rows.map((entry, i) =>
@@ -489,7 +489,7 @@ function BlockEditor({
                               Add cell
                             </button>
                             <button
-                              type="button"
+
                               onClick={() =>
                                 set({
                                   rows: rows.filter((_entry, i) => i !== rowIndex),
@@ -503,7 +503,7 @@ function BlockEditor({
                         );
                       })}
                       <button
-                        type="button"
+
                         onClick={() =>
                           set({
                             rows: [
@@ -568,7 +568,7 @@ function BlockEditor({
                             />
                           </label>
                           <button
-                            type="button"
+
                             onClick={() =>
                               set({ nodes: nodes.filter((_entry, i) => i !== index), markdown: '' })
                             }
@@ -578,7 +578,7 @@ function BlockEditor({
                         </div>
                       ))}
                       <button
-                        type="button"
+
                         onClick={() =>
                           set({
                             nodes: [
@@ -627,7 +627,7 @@ function BlockEditor({
                             </label>
                           ))}
                           <button
-                            type="button"
+
                             onClick={() =>
                               set({ edges: edges.filter((_entry, i) => i !== index), markdown: '' })
                             }
@@ -637,7 +637,7 @@ function BlockEditor({
                         </div>
                       ))}
                       <button
-                        type="button"
+
                         disabled={nodes.length < 2}
                         onClick={() =>
                           set({

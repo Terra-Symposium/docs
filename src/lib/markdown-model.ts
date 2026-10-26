@@ -1,8 +1,8 @@
 import { marked } from 'marked';
-import type { DocsValue } from './Docs.js';
-import type { RichBlock } from './blocks.js';
-import { enabledDocsBlocks } from './blocks.js';
-import type { DocsBlockOptions } from './blocks.js';
+import type { DocsValue } from '../components/Docs.js';
+import type { RichBlock } from '../components/blocks.js';
+import { enabledDocsBlocks } from '../components/blocks.js';
+import type { DocsBlockOptions } from '../components/blocks.js';
 
 const key = () => crypto.randomUUID();
 type Token = {

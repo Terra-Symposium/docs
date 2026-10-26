@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { markdownToDocsValue } from './markdown-model.js';
+import { markdownToDocsValue } from '../lib/markdown-model.js';
 import { TerraDocsWorkspace } from './terra/Workspace.js';
-import type { DocsActionOperation, DocsActionResult, DocsHostAdapter, DocsHostAttachment, DocsHostTreeNode, DocsCustomBlock } from './host.js';
+import type { DocsActionOperation, DocsActionResult, DocsHostAdapter, DocsHostAttachment, DocsHostTreeNode, DocsCustomBlock } from '../lib/host.js';
 import type { JSX } from 'react';
 
 /** A local page supplied by a repository or static site build. */

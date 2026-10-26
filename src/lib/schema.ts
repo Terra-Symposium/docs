@@ -1,6 +1,6 @@
 import { defineSchema } from '@portabletext/editor';
-import { DOCS_BLOCK_FIELDS, enabledDocsBlocks } from './blocks.js';
-import type { DocsBlockOptions } from './blocks.js';
+import { DOCS_BLOCK_FIELDS, enabledDocsBlocks } from '../components/blocks.js';
+import type { DocsBlockOptions } from '../components/blocks.js';
 
 /** Basic text schema shared by the document surface and Terra formatting toolbar. */
 export function createDocsSchema(options: DocsBlockOptions = {}) {

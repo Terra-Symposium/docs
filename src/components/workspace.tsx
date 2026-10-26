@@ -455,17 +455,17 @@ export function DocsWorkspaceToolbar({
         </ToggleGroup>
       )}
       {mode === 'edit' && capabilities.save && (
-        <Button type="button" size="xs" onClick={onSave}>
+        <Button  size="xs" onClick={onSave}>
           Save
         </Button>
       )}
       {mode === 'edit' && capabilities.history && (
-        <Button type="button" size="xs" variant="ghost" onClick={onHistory}>
+        <Button  size="xs" variant="ghost" onClick={onHistory}>
           History
         </Button>
       )}
       {mode === 'edit' && capabilities.publish && (
-        <Button type="button" size="xs" variant="tonal" onClick={onPublish}>
+        <Button  size="xs" variant="tonal" onClick={onPublish}>
           Publish
         </Button>
       )}

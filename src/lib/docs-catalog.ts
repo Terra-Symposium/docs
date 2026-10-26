@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import type { DocsHostTreeNode } from './host.js';
-import type { DocsLocalPage } from './LocalDocsWorkspace.js';
+import type { DocsLocalPage } from '../components/LocalDocsWorkspace.js';
 
 const modules = import.meta.glob('./content/docs/**/*.md', { eager: true }) as Record<string, { default: unknown; frontmatter?: { title?: string; description?: string } }>;
 const sources = import.meta.glob('./content/docs/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;

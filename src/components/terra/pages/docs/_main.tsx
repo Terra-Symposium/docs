@@ -44,7 +44,7 @@ import { lazy, useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import { mdTableToHtml } from '../../runtime/content.js';
 import { toImgAlt, toImgMd } from './_blocks.js';
 import { toast } from 'sonner';
-import { getDocsHostAdapter } from '../../../host-runtime.js';
+import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 import { docsRootPath } from '../../runtime/shared.js';
 
 // COMPONENTS

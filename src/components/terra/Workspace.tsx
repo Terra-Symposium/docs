@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 import Scaffold from './pages/docs/_main.js';
-import { configureDocsHost } from '../host-runtime.js';
-import type { TerraDocsWorkspaceProps } from '../host.js';
+import { configureDocsHost } from '../../lib/host-runtime.js';
+import type { TerraDocsWorkspaceProps } from '../../lib/host.js';
 
 /** The source-preserving shared Terra Docs workspace used by host route adapters. */
 export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element {

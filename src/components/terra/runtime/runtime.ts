@@ -1,5 +1,5 @@
 import { cn as stylingCn } from '@terra-symposium/styling/ui';
-import { getDocsHostAdapter } from '../../host-runtime.js';
+import { getDocsHostAdapter } from '../../../lib/host-runtime.js';
 
 export const cn = stylingCn;
 export function isDevOrigin(value: string | URL): boolean {

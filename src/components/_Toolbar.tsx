@@ -24,7 +24,7 @@ import {
 } from '@terra-symposium/styling/ui';
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { safeLink, schema } from './schema.js';
+import { safeLink, schema } from '../lib/schema.js';
 import { defaultDocsBlock, enabledDocsBlocks } from './blocks.js';
 import type { DocsBlockOptions } from './blocks.js';
 import type { EditorSelection } from '@portabletext/editor';
@@ -87,7 +87,7 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
       ].map(({ Icon, name, label }) => (
         <Button
           key={name}
-          type="button"
+
           variant="ghost"
           size="xs"
           aria-label={label}
@@ -103,7 +103,7 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
         </Button>
       ))}
       <Button
-        type="button"
+
         variant="ghost"
         size="xs"
         aria-label="Link"
@@ -146,7 +146,7 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
       </Select>
       {blocks?.inlineMath !== false && (
         <Button
-          type="button"
+
           variant="ghost"
           size="xs"
           aria-label="Insert inline math"
@@ -163,7 +163,7 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
         </Button>
       )}
       <Button
-        type="button"
+
         variant="ghost"
         size="xs"
         aria-label="Undo"
@@ -177,7 +177,7 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
         <Undo size={16} aria-hidden="true" />
       </Button>
       <Button
-        type="button"
+
         variant="ghost"
         size="xs"
         aria-label="Redo"
@@ -222,7 +222,7 @@ export function Toolbar({ blocks }: { blocks?: DocsBlockOptions | undefined }): 
           {linkError && <p role="alert">Enter a valid web, email, or relative URL.</p>}
           <div>
             <Button
-              type="button"
+
               variant="ghost"
               onClick={() => {
                 linkDialog.current?.close();

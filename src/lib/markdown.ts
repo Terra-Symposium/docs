@@ -2,8 +2,8 @@ import { Marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { DocsRichBlock, enabledDocsBlocks } from './blocks.js';
-import type { DocsBlockOptions, RichBlock } from './blocks.js';
+import { DocsRichBlock, enabledDocsBlocks } from '../components/blocks.js';
+import type { DocsBlockOptions, RichBlock } from '../components/blocks.js';
 
 export function renderMarkdown(markdown: string, options: DocsBlockOptions = {}): string {
   const rendered: string[] = [];

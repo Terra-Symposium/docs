@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TerraContentEditor } from './terra/editor/TerraContentEditor.js';
-import { configureDocsHost } from './host-runtime.js';
-import type { DocsHostAdapter, DocsActionOperation } from './host.js';
+import { configureDocsHost } from '../lib/host-runtime.js';
+import type { DocsHostAdapter, DocsActionOperation } from '../lib/host.js';
 import type { JSX } from 'react';
 
 declare global {

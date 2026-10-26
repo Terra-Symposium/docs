@@ -1,6 +1,6 @@
-import { DocsLocalWorkspace, TerraDocsWorkspace } from './index.js';
+import { DocsLocalWorkspace, TerraDocsWorkspace } from '../lib/index.js';
 import { colors } from '@terra-symposium/styling';
-import type { DocsActionOperation, DocsActionResult, DocsHostAdapter, DocsHostTreeNode } from './host.js';
+import type { DocsActionOperation, DocsActionResult, DocsHostAdapter, DocsHostTreeNode } from '../lib/host.js';
 import type { CSSProperties, JSX } from 'react';
 
 const pathname = '/workspace-demo/';

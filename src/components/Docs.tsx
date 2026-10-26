@@ -2,7 +2,7 @@ import { EditorProvider, PortableTextEditable, useEditor } from '@portabletext/e
 import { EventListenerPlugin, NodePlugin } from '@portabletext/editor/plugins';
 import { useEffect } from 'react';
 import { Toolbar } from './_Toolbar.js';
-import { safeLink, createDocsSchema } from './schema.js';
+import { safeLink, createDocsSchema } from '../lib/schema.js';
 import { docsBlockNodes } from './blocks.js';
 import type { DocsBlockOptions } from './blocks.js';
 import type { PortableTextBlock } from '@portabletext/editor';

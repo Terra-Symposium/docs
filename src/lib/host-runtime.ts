@@ -1,5 +1,5 @@
-import { configureDocsActionProxy } from './terra/runtime/action-proxy.js';
-import { setDocsCustomComponents } from './terra/pages/docs/_custom.js';
+import { configureDocsActionProxy } from '../components/terra/runtime/action-proxy.js';
+import { setDocsCustomComponents } from '../components/terra/pages/docs/_custom.js';
 import type { DocsActionOperation, DocsActionResult, DocsCustomBlock, DocsHostAdapter } from './host.js';
 
 let activeHost: DocsHostAdapter | undefined;

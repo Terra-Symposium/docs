@@ -1,5 +1,5 @@
 import type { Tree } from './types.js';
-import { getDocsHostAdapter } from '../../host-runtime.js';
+import { getDocsHostAdapter } from '../../../lib/host-runtime.js';
 
 const stripExtension = /\.(?:md|mdx)$/i;
 export const FILES = { index: /^(?:\/|^)index\.(?:md|mdx)$/i, markdown: stripExtension } as const;

@@ -1,6 +1,6 @@
 import { EditorProvider, PortableTextEditable, defineBlockObject, defineInlineObject } from '@portabletext/editor';
 import { EventListenerPlugin, NodePlugin } from '@portabletext/editor/plugins';
-import { createDocsSchema, safeLink } from '../../schema.js';
+import { createDocsSchema, safeLink } from '../../../lib/schema.js';
 import { Embed } from './docs/_Embed.js';
 import { renderCallout } from './docs/_Callout.js';
 import { renderCode } from './docs/_DocsCode.js';

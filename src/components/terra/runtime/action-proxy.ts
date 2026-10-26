@@ -1,4 +1,4 @@
-import type { DocsActionOperation, DocsActionResult } from '../../host.js';
+import type { DocsActionOperation, DocsActionResult } from '../../../lib/host.js';
 
 let invoke: <T = unknown>(operation: DocsActionOperation, input?: unknown) => Promise<DocsActionResult<T>> = async operation => ({
   error: new Error(`Docs host action is not configured: ${operation}`),
