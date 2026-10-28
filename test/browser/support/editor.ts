@@ -1,4 +1,6 @@
 import type { Page } from '@playwright/test';
+import type { DocsBlockOptions } from '../../../src/components/blocks.js';
+import type { DocsHostAttachment } from '../../../src/lib/host.js';
 
 export type TerraContent = unknown[];
 
@@ -6,6 +8,8 @@ export async function openEditor(
   page: Page,
   content: TerraContent,
   options: {
+    attachments?: DocsHostAttachment[];
+    blocks?: DocsBlockOptions;
     readOnly?: boolean;
     mockResponses?: Record<string, { data?: unknown; error?: string }>;
   } = {},

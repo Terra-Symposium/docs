@@ -1,10 +1,10 @@
 import { markdownToDocsValue } from '../lib/markdown-model.js';
 import { TerraDocsWorkspace } from './terra/Workspace.js';
-import { colors } from '@terra-symposium/styling';
+import { docsHueTheme } from '../lib/docs-theme.js';
 import type { DocsHostAdapter, DocsHostAttachment, DocsHostTreeNode } from '../lib/host.js';
 import type { DocsAttachment, DocsLeaf, DocsSection } from '../lib/workspace-types.js';
 import type { DocsNavNode } from './navigation.js';
-import type { CSSProperties, JSX, ReactNode } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 type Props = {
   title: string;
@@ -106,13 +106,7 @@ export function DocsStaticWorkspace({
   renderContent,
 }: Props): JSX.Element {
   const workspaceSections: DocsSection[] = sections ?? sectionsFromNavigation(nodes);
-  const [accent, neutral] = colors(hue);
-  const theme = {
-    ...Object.fromEntries(accent.light.map((value, index) => [`--primary-${index + 1}`, value])),
-    ...Object.fromEntries(neutral.light.map((value, index) => [`--secondary-${index + 1}`, value])),
-    '--background': accent.light[0],
-    '--ring': accent.light[7],
-  } as CSSProperties;
+  const theme = docsHueTheme(hue);
   const currentKey = routeKey(currentPath);
   const allLeaves = workspaceSections.flatMap((section, sectionIndex) =>
     section.groups.flatMap((group, groupIndex) =>
@@ -281,7 +275,7 @@ export function DocsStaticWorkspace({
   };
 
   return (
-    <div style={theme}>
+    <div className="docs-theme-scope" style={theme}>
       <TerraDocsWorkspace
         host={host}
         tree={tree}

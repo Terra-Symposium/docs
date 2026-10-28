@@ -18,10 +18,15 @@ export async function uploadAssetChunked(
       message?: string;
     }) => void;
   },
-): Promise<{ path?: string; src?: string; compressedSize?: number; name?: string }> {
+): Promise<{ id?: string; path?: string; src?: string; compressedSize?: number; name?: string }> {
   const totalChunks = Math.ceil(file.size / ASSET_CHUNK_SIZE_BYTES) || 1;
-  let finalAsset: { path?: string; src?: string; compressedSize?: number; name?: string } | null =
-    null;
+  let finalAsset: {
+    id?: string;
+    path?: string;
+    src?: string;
+    compressedSize?: number;
+    name?: string;
+  } | null = null;
   for (let c = 0; c < totalChunks; c++) {
     const chunk = file.slice(c * ASSET_CHUNK_SIZE_BYTES, (c + 1) * ASSET_CHUNK_SIZE_BYTES);
     const formData = new FormData();
@@ -53,6 +58,7 @@ export async function uploadAssetChunked(
       }
       if (c === totalChunks - 1)
         finalAsset = data as {
+          id?: string;
           path?: string;
           src?: string;
           compressedSize?: number;

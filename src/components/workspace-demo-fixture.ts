@@ -738,6 +738,33 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
       } else if (operation === 'write.doc.reorder') {
         reorderChildren(state, request);
         changed = true;
+      } else if (operation === 'write.doc.retargetSources') {
+        const target = findDocument(state, request.targetId);
+        const sourceIds = Array.isArray(request.sourceIds)
+          ? request.sourceIds.filter((value): value is string => typeof value === 'string')
+          : [];
+        if (!target || sourceIds.length === 0) {
+          return { error: new Error('The merge target or source pages could not be found.') };
+        }
+
+        const attachmentKey = (attachment: DocsHostAttachment): string =>
+          attachment.id || `${attachment.path}\u0000${attachment.name}`;
+        const seenAttachments = new Set(target.attachments.map(attachmentKey));
+        for (const sourceId of sourceIds) {
+          const source = findDocument(state, sourceId);
+          if (!source || source.id === target.id) continue;
+          for (const attachment of source.attachments) {
+            const key = attachmentKey(attachment);
+            if (!seenAttachments.has(key)) {
+              seenAttachments.add(key);
+              target.attachments.push(clone(attachment));
+            }
+            const asset = state.assets[attachment.path];
+            if (asset) asset.docId = target.id;
+          }
+        }
+        data = true;
+        changed = true;
       } else if (operation === 'write.doc.rm') {
         const path = String(request.path ?? '');
         const document = findDocument(state, path);
@@ -825,7 +852,7 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
           };
           const owner = state.documents[asset.docId];
           if (owner) owner.attachments.push(attachment);
-          data = { path, name: fileName, compressedSize: bytes.length };
+          data = { id, path, name: fileName, compressedSize: bytes.length };
           changed = true;
         }
       } else if (operation === 'write.attachment.rm') {

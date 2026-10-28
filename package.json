@@ -1,6 +1,6 @@
 {
   "name": "@terra-symposium/docs",
-  "version": "0.1.23",
+  "version": "0.1.42",
   "description": "Reusable React document editor and viewer.",
   "repository": "https://github.com/Terra-Symposium/docs",
   "type": "module",
@@ -21,7 +21,10 @@
       "import": "./lib-dist/lib/index.js"
     },
     "./style.css": "./lib-dist/style.css",
-    "./workspace.css": "./lib-dist/workspace.css",
+    "./astro": {
+      "types": "./lib-dist/lib/astro.d.ts",
+      "import": "./lib-dist/lib/astro.js"
+    },
     "./local-workspace": {
       "types": "./lib-dist/components/LocalDocsWorkspace.d.ts",
       "import": "./lib-dist/components/LocalDocsWorkspace.js"
@@ -35,7 +38,7 @@
     "docs:build": "pnpm build && astro build",
     "docs:preview": "pnpm docs:build && astro preview --host 127.0.0.1",
     "dev:library": "tsc --watch",
-    "build": "rm -rf lib-dist && tsc && tailwindcss -c tailwind.docs.config.mjs -i src/styles/workspace.css -o lib-dist/docs-workspace-style.css --minify && node scripts/copy-runtime.mjs",
+    "build": "rm -rf lib-dist && tsc && tailwindcss --postcss tailwind.postcss.config.cjs -c tailwind.docs.config.mjs -i src/styles/style.css -o lib-dist/style.css --minify && node scripts/copy-runtime.mjs",
     "build:demo": "vite build",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.demo.json",
     "lint": "eslint .",
@@ -50,7 +53,7 @@
     "version-packages": "changeset version"
   },
   "peerDependencies": {
-    "@terra-symposium/styling": "^0.1.16",
+    "@terra-symposium/styling": "^0.1.24",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -59,7 +62,7 @@
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "10.0.1",
     "@playwright/test": "^1.64.1",
-    "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.16.tgz",
+    "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.27.tgz",
     "@types/katex": "^0.16.8",
     "@types/node": "^24.19.2",
     "@types/react": "19.3.0",
@@ -69,6 +72,8 @@
     "astro": "^7.4.2",
     "eslint": "10.13.0",
     "husky": "^9.1.7",
+    "postcss": "8.5.31",
+    "postcss-import": "15.1.0",
     "prettier": "3.9.10",
     "react": "19.3.1",
     "react-dom": "19.3.1",

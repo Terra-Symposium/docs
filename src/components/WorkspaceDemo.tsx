@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { colors } from '@terra-symposium/styling';
+import { colors, flattenColors, invert } from '@terra-symposium/styling';
 import { DocsLocalWorkspace, TerraDocsWorkspace } from '../lib/index.js';
 import {
   createWorkspaceDemoHost,
   createWorkspaceDemoSeed,
   readWorkspaceDemoState,
+  routeForWorkspaceDocument,
   routedWorkspaceTree,
   WORKSPACE_DEMO_PATH,
   type WorkspaceDemoState,
@@ -38,7 +39,14 @@ function activeDocumentId(state: WorkspaceDemoState, location: string): string {
 export default function WorkspaceDemo({
   readOnly = false,
   hue = 145,
-}: { readOnly?: boolean; hue?: number | null } = {}): JSX.Element {
+  siteTitle = 'Salesphere Docs',
+  siteDescription = 'Product and engineering documentation.',
+}: {
+  readOnly?: boolean;
+  hue?: number | null;
+  siteTitle?: string;
+  siteDescription?: string | null;
+} = {}): JSX.Element {
   const [state, setState] = useState<WorkspaceDemoState>(() => createWorkspaceDemoSeed());
   const [location, setLocation] = useState(WORKSPACE_DEMO_PATH);
 
@@ -71,13 +79,34 @@ export default function WorkspaceDemo({
 
   const selectedId = activeDocumentId(state, location);
   const selectedDocument = state.documents[selectedId] ?? state.documents.salesphere;
-  const host = useMemo(() => createWorkspaceDemoHost(readOnly), [readOnly]);
-  const [primary, secondary] = colors(hue);
+  const host = useMemo(() => {
+    const demoHost = createWorkspaceDemoHost(readOnly);
+    if (!siteDescription) delete demoHost.siteDescription;
+    return {
+      ...demoHost,
+      siteTitle,
+      ...(siteDescription ? { siteDescription } : {}),
+    };
+  }, [readOnly, siteDescription, siteTitle]);
+  // Keep the parity fixture's palette construction identical to the pinned
+  // pre-extraction website fixture. This makes screenshot diffs report UI
+  // regressions instead of comparing a different secondary/gray palette.
+  const [primary, baseGray] = colors(hue);
+  const [secondary, gray] = colors(invert(hue));
+  const colorTokens = {
+    ...flattenColors('primary', primary),
+    ...flattenColors('gray', gray ?? baseGray),
+    ...flattenColors('secondary', secondary ?? baseGray),
+  };
   const theme = {
     ...Object.fromEntries(primary.light.map((rgb, index) => [`--primary-${index + 1}`, rgb])),
-    ...Object.fromEntries(secondary.light.map((rgb, index) => [`--secondary-${index + 1}`, rgb])),
-    '--background': primary.light[0],
-    '--ring': primary.light[7],
+    ...Object.fromEntries(
+      (gray ?? baseGray).light.map((rgb, index) => [`--gray-${index + 1}`, rgb]),
+    ),
+    ...Object.fromEntries(
+      (secondary ?? baseGray).light.map((rgb, index) => [`--secondary-${index + 1}`, rgb]),
+    ),
+    ...colorTokens,
   } as CSSProperties;
 
   if (!selectedDocument) return <div className="min-h-svh" />;
@@ -108,7 +137,7 @@ export default function WorkspaceDemo({
     <TerraDocsWorkspace
       tree={routedWorkspaceTree(state, false)}
       host={host}
-      pathname={location}
+      pathname={routeForWorkspaceDocument(state, selectedDocument.id)}
       permission="write"
       path={selectedDocument.path}
       title={selectedDocument.title}

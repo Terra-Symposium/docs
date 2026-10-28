@@ -43,6 +43,7 @@ import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 import { docsRootPath } from '../../../../lib/terra/runtime/shared.js';
+import { actions } from '../../../../lib/terra/runtime/action-proxy.js';
 
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
@@ -61,7 +62,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@terra-symposium/styling/ui/terra-original';
-import { Toolbar } from './_toolbar.js';
+import { DocsToolbarActions, Toolbar } from './_toolbar.js';
 import { useBlockNav } from './use-block-nav.js';
 import { useMediaPaste } from './use-media-paste.js';
 import { EditStateCtx, EditorSurfaceCtx, TransitionCtx } from '../../../../lib/terra/docs/state.js';
@@ -101,6 +102,8 @@ import type {
 } from '../../../../lib/terra/runtime/types.js';
 import type { User } from '../../../../lib/terra/runtime/types.js';
 import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
+import type { DocsHostAttachment } from '../../../../lib/host.js';
+import type { DocsBlockOptions } from '../../../blocks.js';
 /*//////////////////////////////////////////////////
 HOOKS
 //////////////////////////////////////////////////*/
@@ -121,7 +124,15 @@ HOOKS
  *
  * @return The read-only editor view for the supplied document body.
  */
-function View({ body, resetKey }: { body: DocBody; resetKey?: string }): JSX.Element {
+function View({
+  body,
+  blocks,
+  resetKey,
+}: {
+  body: DocBody;
+  blocks?: DocsBlockOptions;
+  resetKey?: string;
+}): JSX.Element {
   const transition = useTransitionState();
   useEffect(() => {
     return ((timer: number) => () => {
@@ -139,6 +150,7 @@ function View({ body, resetKey }: { body: DocBody; resetKey?: string }): JSX.Ele
       <TerraContentEditor
         content={body as unknown as any[]}
         readOnly
+        {...(blocks ? { blocks } : {})}
         {...(resetKey !== undefined ? { resetKey } : {})}
       />
     </Suspense>
@@ -163,11 +175,20 @@ function useEditorSurfaceOptional(): EditorSurface | null {
  * @return The interactive Docs editing surface with its configured toolbar.
  */
 const EditorSurfaces = {
-  Edit({ className }: { className?: string }): JSX.Element {
+  Edit({
+    blocks,
+    className,
+    editable = false,
+  }: {
+    blocks?: DocsBlockOptions;
+    className?: string;
+    editable?: boolean;
+  }): JSX.Element {
     // INIT
     const surface = useEditorSurfaceOptional();
     const editorRefs = { toolbar: useAtom($toolbar), empty: useRef<EditorRefs>({} as EditorRefs) };
     const [init, setInit] = useState(false);
+    const [docsAttachments, setDocsAttachments] = useState<DocsHostAttachment[]>([]);
     const transition = useContext(TransitionCtx);
     useLayoutEffect(() => {
       if (!init) transition?.setLoading(true);
@@ -214,6 +235,26 @@ const EditorSurfaces = {
         observer.disconnect();
       };
     }, [surface?.path, surface?.parseError, surface?.editor.loaded]);
+    useEffect(() => {
+      let active = true;
+      const path = surface?.path;
+      if (!path) {
+        setDocsAttachments([]);
+        return;
+      }
+      void actions.read.doc.attachments({ path }).then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          console.error('[Docs:attachments] load-failed', { path, error });
+          setDocsAttachments([]);
+          return;
+        }
+        setDocsAttachments(Array.isArray(data) ? (data as DocsHostAttachment[]) : []);
+      });
+      return () => {
+        active = false;
+      };
+    }, [surface?.path]);
     useEffect(() => {
       $editReadyPath.set(null);
       $surfaceReady.set(null);
@@ -289,8 +330,18 @@ const EditorSurfaces = {
                   ? editor.draft.content
                   : undefined) as unknown as TerraContentData
               }
-              docsAttachments={[]}
+              docsAttachments={docsAttachments}
+              blocks={blocks}
+              readOnly={!editable}
               memberProfile="docs"
+              toolbarActions={
+                <DocsToolbarActions
+                  activeMode="edit"
+                  editable={editable}
+                  size="sm"
+                  toolbar={editorRefs.toolbar}
+                />
+              }
               onChange={(c) => {
                 surface.onBodyChange(
                   toPortableBody(
@@ -343,6 +394,100 @@ const EditorSurfaces = {
     const edit = useContext(EditStateCtx);
     const draft: Pick<Draft, 'description' | 'title'> = edit?.draft ?? { description, title };
     const contributors = initContributors ?? [];
+    const titleRef = useRef<HTMLInputElement>(null);
+    const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
+    useLayoutEffect(() => {
+      const input = titleRef.current;
+      const context = window.document.createElement('canvas').getContext('2d');
+      if (!input || !context) return;
+      let active = true;
+
+      const fitTitle = (): void => {
+        if (!active) return;
+        // Restore the responsive Tailwind size first so repeated resizes never
+        // compound a previous shrink. Then scale only titles that exceed the
+        // available content width.
+        input.style.removeProperty('font-size');
+        const styles = window.getComputedStyle(input);
+        const baseSize = Number.parseFloat(styles.fontSize);
+        const available =
+          input.clientWidth -
+          Number.parseFloat(styles.paddingLeft || '0') -
+          Number.parseFloat(styles.paddingRight || '0');
+        const text = input.value || input.placeholder;
+        if (!text || !Number.isFinite(baseSize) || available <= 0) return;
+
+        context.font = `${styles.fontStyle} ${styles.fontWeight} ${baseSize}px ${styles.fontFamily}`;
+        const letterSpacing = Number.parseFloat(styles.letterSpacing) || 0;
+        const textWidth =
+          context.measureText(text).width + Math.max(text.length - 1, 0) * letterSpacing;
+        if (textWidth > available) {
+          const fittedSize = Math.max(12, (baseSize * (available - 1)) / textWidth);
+          input.style.fontSize = `${fittedSize}px`;
+        }
+      };
+
+      fitTitle();
+      void window.document.fonts.ready.then(fitTitle);
+      window.document.fonts.addEventListener('loadingdone', fitTitle);
+
+      const parent = input.parentElement;
+      let previousWidth = parent?.getBoundingClientRect().width ?? input.clientWidth;
+      const resize = (): void => {
+        const nextWidth = parent?.getBoundingClientRect().width ?? input.clientWidth;
+        if (nextWidth === previousWidth) return;
+        previousWidth = nextWidth;
+        fitTitle();
+      };
+      const observer = new ResizeObserver(resize);
+      if (parent) observer.observe(parent);
+      window.addEventListener('resize', resize);
+      return () => {
+        active = false;
+        observer.disconnect();
+        window.document.fonts.removeEventListener('loadingdone', fitTitle);
+        window.removeEventListener('resize', resize);
+      };
+    }, [draft.title]);
+
+    useLayoutEffect(() => {
+      const textarea = descriptionRef.current;
+      if (!textarea) return;
+      let active = true;
+
+      const resize = (): void => {
+        if (!active) return;
+        // The original shared Textarea variant fixes this field at h-10 (40px).
+        // Measure that CSS height without the previous inline measurement, then
+        // grow only when the wrapped description needs more room.
+        textarea.style.removeProperty('height');
+        const baseHeight = textarea.getBoundingClientRect().height;
+        textarea.style.height = 'auto';
+        textarea.style.height = `${Math.max(baseHeight, textarea.scrollHeight)}px`;
+      };
+
+      resize();
+      const fonts = document.fonts;
+      void fonts.ready.then(resize);
+      fonts.addEventListener('loadingdone', resize);
+      let previousWidth = textarea.parentElement?.getBoundingClientRect().width;
+      const observer = new ResizeObserver(() => {
+        const nextWidth = textarea.parentElement?.getBoundingClientRect().width;
+        if (nextWidth !== previousWidth) {
+          previousWidth = nextWidth;
+          resize();
+        }
+      });
+      if (textarea.parentElement) observer.observe(textarea.parentElement);
+      window.addEventListener('resize', resize);
+      return () => {
+        active = false;
+        observer.disconnect();
+        fonts.removeEventListener('loadingdone', resize);
+        window.removeEventListener('resize', resize);
+      };
+    }, [draft.description]);
 
     // RENDER
     // prettier-ignore
@@ -354,6 +499,7 @@ const EditorSurfaces = {
 							Title
 						</Label>
 						<Input
+							ref={titleRef}
 							id='docs-title'
 							value={draft.title}
 							onChange={e => {
@@ -374,12 +520,14 @@ const EditorSurfaces = {
 							Description
 						</Label>
 						<Textarea
+							ref={descriptionRef}
 							id='docs-description'
+							rows={1}
 							value={draft.description}
 							onChange={e => edit?.update({ description: e.currentTarget.value })}
 							placeholder='Add a description...'
 							disabled={!editable}
-							className='min-h-0 resize-none border-none bg-transparent p-0 text-base text-pretty text-primary-11 shadow-none focus-visible:ring-0 disabled:cursor-default disabled:opacity-100 dark:bg-transparent'
+							className='min-h-0 resize-none overflow-hidden border-none bg-transparent p-0 text-base text-pretty text-primary-11 shadow-none focus-visible:ring-0 disabled:cursor-default disabled:opacity-100 dark:bg-transparent'
 							suppressHydrationWarning
 						/>
 					</div>
@@ -434,6 +582,8 @@ export default function Scaffold({
   content: initContent,
   mode: initialMode,
   viewContent,
+  afterContent,
+  blocks: docsBlocks,
 }: {
   tree: TreeType[];
   pathname: string;
@@ -451,6 +601,8 @@ export default function Scaffold({
   updatedAt?: string;
   mode?: Mode;
   viewContent?: ReactNode;
+  afterContent?: ReactNode;
+  blocks?: DocsBlockOptions;
 }): JSX.Element {
   // STATES
   const navigationState = { open: useAtom($sidebar), leafTitle: useAtom($leafTitle) };
@@ -758,11 +910,25 @@ export default function Scaffold({
   useEffect(() => {
     const url = new URL(window.location.href);
     const cCurrPath = currDoc.pathname?.split('?')[0];
-    const nPath = cCurrPath ? keepDeepPath(url.pathname, cCurrPath) : '';
+    if (!cCurrPath) return;
+
+    // Local repository adapters can address pages by #id while sharing `/`.
+    // Keep the id in the hash instead of encoding `#` into the URL pathname.
+    const routeUrl = new URL(cCurrPath, url.origin);
+    if (routeUrl.hash) {
+      if (url.pathname !== routeUrl.pathname || url.hash !== routeUrl.hash) {
+        url.pathname = routeUrl.pathname;
+        url.hash = routeUrl.hash;
+        window.history.replaceState(null, '', url.toString());
+      }
+      return;
+    }
+
+    const nPath = keepDeepPath(url.pathname, routeUrl.pathname);
     if (nPath && url.pathname !== nPath) {
       console.info('[Docs:url-sync]', {
         current: url.pathname,
-        next: cCurrPath,
+        next: routeUrl.pathname,
         path: currDoc.path,
         resolved: nPath,
       });
@@ -836,7 +1002,7 @@ export default function Scaffold({
   }
   return (
     <SidebarProvider
-      className="terra-docs-workspace font-sans"
+      className="terra-docs-workspace font-docs"
       open={hydrated ? navigationState.open : true}
       onOpenChange={(n) => {
         $sidebar.set(n);
@@ -903,8 +1069,10 @@ export default function Scaffold({
                     >
                       {/* root; must be relative and fill height to constrain absolute overlay */}
                       <div data-docs-body className="relative h-full min-h-[50vh] text-primary-12">
-                        {/* Keep the document mode and formatting controls in one shared toolbar in every mode. */}
-                        <Toolbar toolbar={toolbar} activeMode={a} editable={writable} />
+                        {/* View and attachment modes use the document toolbar; Edit owns its original in-editor toolbar. */}
+                        {a !== 'edit' && (
+                          <Toolbar toolbar={toolbar} activeMode={a} editable={writable} />
+                        )}
                         {/* content */}
                         <div
                           className={cn(
@@ -928,14 +1096,18 @@ export default function Scaffold({
                           >
                             {hydrated &&
                               (a === 'view' ? (
-                                (viewContent ?? (
-                                  <View
-                                    body={isDocBody(currDoc.content) ? currDoc.content : []}
-                                    resetKey={currDoc.path ?? currDoc.pathname}
-                                  />
-                                ))
+                                <>
+                                  {viewContent ?? (
+                                    <View
+                                      body={isDocBody(currDoc.content) ? currDoc.content : []}
+                                      blocks={docsBlocks}
+                                      resetKey={currDoc.path ?? currDoc.pathname}
+                                    />
+                                  )}
+                                  {afterContent}
+                                </>
                               ) : a === 'edit' ? (
-                                <EditorSurfaces.Edit />
+                                <EditorSurfaces.Edit blocks={docsBlocks} editable={writable} />
                               ) : a === 'attachments' ? (
                                 <Attachments dPath={currDoc.path ?? ''} tree={tree} />
                               ) : null)}

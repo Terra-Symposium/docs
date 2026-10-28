@@ -1,6 +1,7 @@
 import { defineBlockObject, defineInlineObject, useEditor } from '@portabletext/editor';
 import { useState } from 'react';
 import katex from 'katex';
+import { docsValueToMarkdown } from '../lib/markdown-model.js';
 import { renderMarkdown } from '../lib/markdown.js';
 import type { JSX } from 'react';
 import type { Path } from '@portabletext/editor';
@@ -128,8 +129,16 @@ function safeUrl(value: unknown): string | undefined {
     return undefined;
   }
 }
-function nestedMarkdown(item: Record<string, unknown>): string {
-  return typeof item.markdown === 'string' ? item.markdown : text(item.content);
+function nestedMarkdown(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return docsValueToMarkdown(value as never).trimEnd();
+  if (value && typeof value === 'object') {
+    const item = value as Record<string, unknown>;
+    if (typeof item.markdown === 'string' && item.markdown) return item.markdown;
+    if (Array.isArray(item.content)) return docsValueToMarkdown(item.content as never).trimEnd();
+    return text(item);
+  }
+  return '';
 }
 function Diagram({ block }: { block: RichBlock }): JSX.Element {
   const nodes = (Array.isArray(block.nodes) ? block.nodes : []).filter(
@@ -246,7 +255,10 @@ export function DocsRichBlock({ block }: { block: RichBlock }): JSX.Element {
                     ? ((row as Record<string, unknown>).cells as unknown[])
                     : []
                   ).map((cell, j) => (
-                    <td key={j}>{text(cell)}</td>
+                    <td
+                      key={j}
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(nestedMarkdown(cell)) }}
+                    />
                   ))}
                 </tr>
               ))}
@@ -349,6 +361,13 @@ function BlockEditor({
   const fields = DOCS_BLOCK_FIELDS[type] ?? [];
   const set = (props: Record<string, unknown>) =>
     editor.send({ type: 'block.set', at: path, props });
+  const update = (field: string, next: unknown) =>
+    set({
+      [field]: next,
+      ...(type === 'callout' && (field === 'title' || field === 'kind')
+        ? {}
+        : { markdown: field === 'markdown' ? next : '' }),
+    });
   const items = Array.isArray(block.items) ? (block.items as Record<string, unknown>[]) : [];
   const rows = Array.isArray(block.rows) ? (block.rows as Record<string, unknown>[]) : [];
   const nodes = Array.isArray(block.nodes) ? (block.nodes as Record<string, unknown>[]) : [];
@@ -365,8 +384,6 @@ function BlockEditor({
             <div className="terra-docs-rich-fields">
               {fields.map((field) => {
                 const value = block[field.name];
-                const update = (next: unknown) =>
-                  set({ [field.name]: next, markdown: field.name === 'markdown' ? next : '' });
                 if (field.name === 'items')
                   return (
                     <fieldset key="items">
@@ -665,13 +682,14 @@ function BlockEditor({
                       <input
                         type="checkbox"
                         checked={Boolean(value)}
-                        onChange={(event) => update(event.currentTarget.checked)}
+                        onChange={(event) => update(field.name, event.currentTarget.checked)}
                       />
                     ) : (
                       <textarea
                         value={String(value ?? '')}
                         onChange={(event) =>
                           update(
+                            field.name,
                             field.type === 'number'
                               ? Number(event.currentTarget.value)
                               : event.currentTarget.value,

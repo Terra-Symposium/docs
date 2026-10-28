@@ -2,12 +2,18 @@ import { useState } from 'react';
 import { TerraContentEditor } from './terra/editor/TerraContentEditor.js';
 import { configureDocsHost } from '../lib/host-runtime.js';
 import type { DocsHostAdapter, DocsActionOperation } from '../lib/host.js';
+import type { DocsBlockOptions } from './blocks.js';
+import type { DocsHostAttachment } from '../lib/host.js';
 import type { JSX } from 'react';
 
 declare global {
   interface Window {
     __terraContentFixture?: unknown[];
-    __terraContentOptions?: { readOnly?: boolean };
+    __terraContentOptions?: {
+      attachments?: DocsHostAttachment[];
+      blocks?: DocsBlockOptions;
+      readOnly?: boolean;
+    };
     __terraDocsMockResponses?: Record<
       string,
       { data?: unknown; dataByInput?: Record<string, unknown>; error?: string }
@@ -56,6 +62,9 @@ export default function EditorHarness(): JSX.Element {
   const [readOnly] = useState(() =>
     typeof window === 'undefined' ? false : (window.__terraContentOptions?.readOnly ?? false),
   );
+  const [options] = useState(() =>
+    typeof window === 'undefined' ? {} : (window.__terraContentOptions ?? {}),
+  );
   const [content, setContent] = useState(
     () =>
       (mapContent(
@@ -66,6 +75,8 @@ export default function EditorHarness(): JSX.Element {
     <main className="terra-docs-workspace mx-auto min-h-svh max-w-5xl p-6">
       <TerraContentEditor
         content={content}
+        {...(options.attachments ? { docsAttachments: options.attachments } : {})}
+        {...(options.blocks ? { blocks: options.blocks } : {})}
         readOnly={readOnly}
         onChange={(value) => setContent(value)}
       />

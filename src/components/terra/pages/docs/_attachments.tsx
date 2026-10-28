@@ -324,6 +324,7 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
           s.id === tempId
             ? {
                 ...s,
+                ...(finalAsset.id ? { id: finalAsset.id } : {}),
                 path: finalAsset.path || finalAsset.src || tempId,
                 name: finalAsset.name || file.name,
                 isMd: isMdFile,
@@ -957,6 +958,7 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
                                     s.id === tmpId
                                       ? {
                                           ...s,
+                                          ...(finalAsset.id ? { id: finalAsset.id } : {}),
                                           path: fPath,
                                           name: fPath.split('/').pop() || mergedFile.name,
                                         }

@@ -315,7 +315,7 @@ function Mode({
         onModeChange(n);
       }}
     >
-      <SelectTrigger className="w-[150px]" aria-label="Mode">
+      <SelectTrigger aria-label="Mode" width={mode === 'attachments' ? 'fit' : 'full'}>
         <SelectValue placeholder="Mode" />
       </SelectTrigger>
       {/* prettier-ignore */}
@@ -337,6 +337,200 @@ function Mode({
  * @return The mode, history, save, or version actions supported by the active Docs editor toolbar.
  */
 const TOOLBAR_COMPONENTS = {
+  DocsToolbarActions({
+    activeMode,
+    editable,
+    size = 'xs',
+    toolbar,
+  }: {
+    activeMode: ToolbarMode;
+    editable: boolean;
+    size?: 'sm' | 'xs';
+    toolbar: ToolbarState | null;
+  }): JSX.Element | null {
+    const edit = useContext(EditStateCtx);
+    const [versions, setVersions] = useState<DocVer[]>([]);
+    const [historyOpen, setHistoryOpen] = useState(false);
+    const [selectedVersionId, setSelectedVersionId] = useState('');
+    const historyEnabled = getDocsHostAdapter()?.capabilities.history !== false;
+    const selectedVersion = versions.find((version) => version.savedAt === selectedVersionId);
+    const preview = useMemo(() => parseVerBody(selectedVersion), [selectedVersion]);
+
+    useEffect(() => {
+      let live = true;
+      if (!editable || !historyEnabled || !toolbar?.path || !historyOpen) {
+        setVersions([]);
+        return;
+      }
+      const path = toolbar.path;
+      const id = path.split('/').pop()?.replace(TerraQualityRegex.REGEX_MDX_I_REGEX(), '') || path;
+      void (async () => {
+        try {
+          const result = await actions.write.doc.versions.get({ path });
+          if (result.error) throw result.error;
+          let data = result.data;
+          if (Array.isArray(data) && data.length === 0 && path !== id) {
+            const fallback = await actions.write.doc.versions.get({ path: id });
+            if (fallback.error) throw fallback.error;
+            if (Array.isArray(fallback.data) && fallback.data.length > 0) data = fallback.data;
+          }
+          if (live && Array.isArray(data)) setVersions(data as DocVer[]);
+        } catch (error) {
+          console.error('[Toolbar:versions] load-failed', { path, error });
+          toast.error(error instanceof Error ? error.message : 'Failed to load doc versions.');
+        }
+      })();
+      return () => {
+        live = false;
+      };
+    }, [editable, historyEnabled, historyOpen, toolbar?.path]);
+
+    useEffect(() => {
+      if (historyOpen && !selectedVersionId && versions[0])
+        setSelectedVersionId(versions[0].savedAt);
+    }, [historyOpen, selectedVersionId, versions]);
+
+    const save = async (event: { preventDefault: () => void }): Promise<void> => {
+      event.preventDefault();
+      if (!toolbar?.save) return;
+      try {
+        await Promise.resolve(toolbar.save());
+      } catch (error) {
+        console.error('[Docs:save] failed', error);
+        toast.error(error instanceof Error ? error.message : 'Unable to save document.');
+      }
+    };
+
+    useEffect(() => {
+      if (activeMode === 'view') return;
+      const onKeyDown = (event: KeyboardEvent): void => {
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') void save(event);
+      };
+      document.addEventListener('keydown', onKeyDown);
+      return () => document.removeEventListener('keydown', onKeyDown);
+    }, [activeMode, toolbar]);
+
+    if (!editable) return null;
+    return (
+      <TooltipProvider>
+        <div className="flex items-center gap-1" data-docs-toolbar-actions>
+          <Mode
+            editable={editable}
+            mode={activeMode}
+            size={size}
+            disabled={!toolbar}
+            onModeChange={(mode) => {
+              if (!toolbar) return;
+              void toolbar.setMode(mode).catch((error) => {
+                console.error('[Toolbar:mode] change-failed', { mode, error });
+                toast.error(error instanceof Error ? error.message : 'Failed to change mode.');
+                clearTransition();
+              });
+            }}
+          />
+          {activeMode === 'edit' && (
+            <ButtonGroup>
+              <TextTooltip content="Save (⌘S)" side="top" align="center" delayDuration={400}>
+                <UiButton
+                  size={size}
+                  disabled={!toolbar || !toolbar.dirty}
+                  loading={toolbar?.busy === 'saving'}
+                  onMouseDown={preserveSel}
+                  onClick={(event) => void save(event)}
+                >
+                  Save
+                </UiButton>
+              </TextTooltip>
+              {historyEnabled && (
+                <TextTooltip
+                  content="Version History"
+                  side="top"
+                  align="center"
+                  delayDuration={400}
+                >
+                  <UiButton
+                    size={size}
+                    className="px-0.5"
+                    disabled={!toolbar}
+                    aria-label="Version History"
+                    onMouseDown={preserveSel}
+                    onClick={() => {
+                      if (versions.length > 0 && !selectedVersionId)
+                        setSelectedVersionId(versions[0].savedAt);
+                      setHistoryOpen(true);
+                    }}
+                  >
+                    <CaretDownIcon />
+                  </UiButton>
+                </TextTooltip>
+              )}
+              <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Version History</DialogTitle>
+                    <DialogDescription className="sr-only">
+                      Select a version to preview and restore.
+                    </DialogDescription>
+                    <Select value={selectedVersionId} onValueChange={setSelectedVersionId}>
+                      <SelectTrigger className="h-14" aria-label="Select a version">
+                        <SelectValue placeholder="Select a version" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {versions.map((version) => (
+                          <SelectItem key={version.savedAt} value={version.savedAt}>
+                            <span className="flex flex-col text-left">
+                              <span>
+                                {version.title} ({new Date(version.savedAt).toLocaleString()})
+                              </span>
+                              <span className={SECONDARY_TEXT_CLASS}>{version.description}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </DialogHeader>
+                  <div className="min-h-0 flex-1 overflow-y-auto">
+                    <CodeBlock
+                      tone="view"
+                      language="mdx"
+                      docsSource
+                      code={preview.markdown.trim() || ' '}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <UiButton variant="ghost" onClick={() => setHistoryOpen(false)}>
+                      Cancel
+                    </UiButton>
+                    <UiButton
+                      disabled={!selectedVersion}
+                      onClick={() => {
+                        if (!edit || !selectedVersionId) return;
+                        edit.update({
+                          content: preview.body,
+                          description: selectedVersion?.description || '',
+                          source: preview.markdown,
+                          title: selectedVersion?.title || '',
+                        });
+                        (edit.setCode ?? edit.setSrc)?.(preview.markdown);
+                        setHistoryOpen(false);
+                        notify({
+                          error: null,
+                          fallback: 'Restored version to local draft. Save to apply.',
+                        });
+                      }}
+                    >
+                      Restore
+                    </UiButton>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </ButtonGroup>
+          )}
+        </div>
+      </TooltipProvider>
+    );
+  },
+
   /**
    * Undo and Redo control group dynamically checking CodeMirror depth levels.
    *
@@ -2141,4 +2335,4 @@ const TOOLBAR_COMPONENTS = {
   },
 };
 
-export const { Toolbar } = TOOLBAR_COMPONENTS;
+export const { DocsToolbarActions, Toolbar } = TOOLBAR_COMPONENTS;

@@ -1,5 +1,6 @@
 import { openEditor } from '../support/editor.js';
 import { expect, test } from '@playwright/test';
+import { markdownToDocsValue } from '../../../lib-dist/lib/markdown-model.js';
 import type { TerraContent } from '../support/editor.js';
 
 const textCell = (key: string, text: string) => ({
@@ -56,6 +57,27 @@ test('table.spec: Render cells and emit structure edits', async ({ page }) => {
   });
 });
 
+test('table.spec: Import a Markdown table into the visual editor', async ({ page }) => {
+  const value = markdownToDocsValue(
+    '| Name | Value |\n| --- | --- |\n| Terra | **Shared Docs** |\n',
+  );
+  await openEditor(page, value);
+
+  const table = page.locator('[data-terra-block="table"]');
+  await expect(table).toBeVisible();
+  await expect(table.getByRole('textbox', { name: 'Table cell 1, 1' })).toHaveValue('Name');
+  const valueCell = table.getByRole('textbox', { name: 'Table cell 2, 1' });
+  await expect(valueCell).toHaveValue('Terra');
+  await valueCell.fill('Terra Symposium');
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.rows?.[1]
+          ?.cells?.[0]?.content?.[0]?.children?.[0]?.text,
+    )
+    .toBe('Terra Symposium');
+});
+
 test('table.spec: Edit heading, rows and columns', async ({ page }) => {
   await openEditor(page, tableFixture);
   const table = page.locator('[data-terra-block="table"]');
@@ -96,4 +118,18 @@ test('table.spec: Edit heading, rows and columns', async ({ page }) => {
           ?.length,
     )
     .toBe(1);
+});
+
+test('table.spec: Insert from toolbar', async ({ page }) => {
+  await openEditor(page, []);
+  await page.getByRole('button', { name: 'Insert content' }).click();
+  await page.getByRole('option', { name: 'Table', exact: true }).click();
+  await expect(page.locator('[data-terra-block="table"]')).toBeVisible();
+  await expect
+    .poll(async () =>
+      JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]').some(
+        (block: { _type?: string }) => block._type === 'table',
+      ),
+    )
+    .toBe(true);
 });

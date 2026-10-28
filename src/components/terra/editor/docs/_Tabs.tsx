@@ -127,19 +127,23 @@ function SectionsEditor({
     editor.send({
       type: 'block.set',
       at: path,
-      props: { items: items.map((i, c) => (c === idx ? { ...i, title } : i)) },
+      props: {
+        items: items.map((i, c) => (c === idx ? { ...i, title } : i)),
+        markdown: '',
+      },
     });
   const remove = (idx: number): void =>
     editor.send({
       type: 'block.set',
       at: path,
-      props: { items: items.filter((_item, c) => c !== idx) },
+      props: { items: items.filter((_item, c) => c !== idx), markdown: '' },
     });
   const add = (): void =>
     editor.send({
       type: 'block.set',
       at: path,
       props: {
+        markdown: '',
         items: [
           ...items,
           {
@@ -165,7 +169,10 @@ function SectionsEditor({
             type: 'block.set',
             at: path,
             props: {
-              items: items.map((i, c) => (c === v ? { ...i, content: x as DocsNestedContent } : i)),
+              items: items.map((i, c) =>
+                c === v ? { ...i, content: x as DocsNestedContent, markdown: '' } : i,
+              ),
+              markdown: '',
             },
           })
         }

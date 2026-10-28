@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { colors } from '@terra-symposium/styling';
 import { markdownToDocsValue } from '../lib/markdown-model.js';
+import { docsHueTheme } from '../lib/docs-theme.js';
 import { TerraDocsWorkspace } from './terra/Workspace.js';
+import type { DocsBlockOptions } from './blocks.js';
 import type {
   DocsActionOperation,
   DocsActionResult,
@@ -10,7 +11,7 @@ import type {
   DocsHostTreeNode,
   DocsCustomBlock,
 } from '../lib/host.js';
-import type { CSSProperties, JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 /** A local page supplied by a repository or static site build. */
 export type DocsLocalPage = {
@@ -34,13 +35,16 @@ export type DocsLocalWorkspaceProps = {
   hue?: number | null;
   rootPath?: string;
   homePath?: string;
+  afterContent?: ReactNode;
   customBlocks?: DocsCustomBlock[];
+  blocks?: DocsBlockOptions;
 };
 
 function normalized(value: string, base = 'http://docs.local'): string {
   try {
     const url = new URL(value, base);
-    return `${url.pathname}${url.search}${url.hash}`;
+    // Mode and other host query parameters describe the surface, not the page.
+    return `${url.pathname}${url.hash}`;
   } catch {
     return value;
   }
@@ -55,19 +59,33 @@ function routeId(value: string): string {
   }
 }
 
-function findPage(pages: DocsLocalPage[], value: unknown): DocsLocalPage | undefined {
+export function findDocsLocalPage(
+  pages: DocsLocalPage[],
+  value: unknown,
+): DocsLocalPage | undefined {
   if (typeof value !== 'string' || !value) return undefined;
   const route = normalized(value);
-  const pathOnly = normalized(value).split(/[?#]/, 1)[0];
+  const pathOnly = route.split('#', 1)[0];
   const id = routeId(value);
-  return pages.find(
-    (page) =>
-      page.id === value ||
-      page.id === id ||
-      page.path === value ||
-      normalized(page.pathname) === route ||
-      normalized(page.pathname).split(/[?#]/, 1)[0] === pathOnly,
-  );
+
+  // Hash-addressed pages must win before a shared pathname such as `/`.
+  if (id) {
+    const byId = pages.find((page) => page.id === id);
+    if (byId) return byId;
+  }
+
+  const exactRoute = pages.find((page) => normalized(page.pathname) === route);
+  if (exactRoute) return exactRoute;
+
+  const direct = pages.find((page) => page.id === value || page.path === value);
+  if (direct) return direct;
+
+  // A root page is the fallback for `/` only. It must not shadow `/` + #leaf.
+  if (pathOnly === '/' && !id) {
+    return pages.find((page) => normalized(page.pathname) === '/');
+  }
+
+  return pages.find((page) => normalized(page.pathname).split('#', 1)[0] === pathOnly);
 }
 
 function findTreeNode(
@@ -107,24 +125,21 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
     hue = 145,
     rootPath = '/',
     homePath,
+    afterContent,
     customBlocks,
+    blocks,
   } = props;
-  const page = findPage(pages, pathname) ?? pages[0];
-  const content = useMemo(() => (page ? markdownToDocsValue(page.markdown) : []), [page]);
-  const [primary, secondary] = colors(hue);
-  const theme = {
-    ...Object.fromEntries(primary.light.map((value, index) => ['--primary-' + (index + 1), value])),
-    ...Object.fromEntries(
-      secondary.light.map((value, index) => ['--secondary-' + (index + 1), value]),
-    ),
-    '--background': primary.light[0],
-    '--ring': primary.light[7],
-  } as CSSProperties;
+  const page = findDocsLocalPage(pages, pathname) ?? pages[0];
+  const content = useMemo(
+    () => (page ? markdownToDocsValue(page.markdown, blocks) : []),
+    [blocks, page],
+  );
+  const theme = docsHueTheme(hue);
   const host = useMemo<DocsHostAdapter>(() => {
     const activePage = (): DocsLocalPage | undefined =>
       typeof window === 'undefined'
         ? page
-        : (findPage(
+        : (findDocsLocalPage(
             pages,
             `${window.location.pathname}${window.location.search}${window.location.hash}`,
           ) ?? page);
@@ -132,7 +147,9 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
       if (!input || typeof input !== 'object') return undefined;
       const value = input as Record<string, unknown>;
       const direct =
-        findPage(pages, value.path) ?? findPage(pages, value.pathname) ?? findPage(pages, value.id);
+        findDocsLocalPage(pages, value.path) ??
+        findDocsLocalPage(pages, value.pathname) ??
+        findDocsLocalPage(pages, value.id);
       if (direct) return direct;
       const requested = [value.path, value.pathname, value.id].find(
         (candidate) => typeof candidate === 'string' && candidate.length > 0,
@@ -162,7 +179,7 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
       ...(description ? { siteDescription: description } : {}),
       assetUrl: () => undefined,
       resolveRoute(value) {
-        const resolved = findPage(pages, value) ?? pages[0];
+        const resolved = findDocsLocalPage(pages, value) ?? pages[0];
         const match = resolved ? findTreeNode(tree, resolved.id) : undefined;
         const branches = match?.ancestors.filter((node) => node.type === 'branch') ?? [];
         return {
@@ -181,7 +198,7 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
         return firstLeaf(group?.children ?? section?.children ?? tree)?.url ?? rootPath;
       },
       routePath(path) {
-        return findPage(pages, path)?.pathname ?? rootPath;
+        return findDocsLocalPage(pages, path)?.pathname ?? rootPath;
       },
       async invoke<T = unknown>(
         operation: DocsActionOperation,
@@ -236,7 +253,7 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
   }, [description, homePath, pages, pathname, rootPath, title, tree]);
 
   return (
-    <div style={theme}>
+    <div className="docs-theme-scope" style={theme}>
       <TerraDocsWorkspace
         host={host}
         tree={tree}
@@ -248,7 +265,9 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
         {...(page?.contributors ? { contributors: page.contributors } : {})}
         {...(page?.updatedAt ? { updatedAt: page.updatedAt } : {})}
         {...(page ? { source: page.markdown, content } : { content })}
+        {...(afterContent !== undefined ? { afterContent } : {})}
         {...(customBlocks ? { customBlocks } : {})}
+        {...(blocks ? { blocks } : {})}
       />
     </div>
   );

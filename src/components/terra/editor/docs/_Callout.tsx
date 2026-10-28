@@ -80,7 +80,11 @@ function CalloutEditor({
           memberProfile="docs"
           nested
           onChange={(c) =>
-            editor.send({ type: 'block.set', at: path, props: { content: c as DocsNestedContent } })
+            editor.send({
+              type: 'block.set',
+              at: path,
+              props: { content: c as DocsNestedContent, markdown: '' },
+            })
           }
         />
         {children}

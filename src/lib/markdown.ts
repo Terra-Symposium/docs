@@ -29,12 +29,35 @@ export function renderMarkdown(markdown: string, options: DocsBlockOptions = {})
       }
     },
   );
-  const withMath = portable.replace(/^\$\$\s*\n([\s\S]*?)^\$\$\s*$/gm, (_source, code: string) =>
-    options.math === false
-      ? _source
-      : placeholder(
-          renderToStaticMarkup(createElement(DocsRichBlock, { block: { _type: 'math', code } })),
+  const withCallouts = portable.replace(
+    /^:::(?!terra-docs(?:\s|$))([A-Za-z][\w-]*)(?:\[([^\]\n]*)\])?[ \t]*\n([\s\S]*?)^:::[ \t]*$/gm,
+    (source, kind: string, title: string | undefined, markdown: string) => {
+      if (!enabledDocsBlocks(options).includes('callout'))
+        return placeholder(
+          `<pre>${sanitizeHtml(source, { allowedTags: [], allowedAttributes: {} })}</pre>`,
+        );
+      return placeholder(
+        renderToStaticMarkup(
+          createElement(DocsRichBlock, {
+            block: {
+              _type: 'callout',
+              kind,
+              title: title?.trim() || kind,
+              markdown,
+            },
+          }),
         ),
+      );
+    },
+  );
+  const withMath = withCallouts.replace(
+    /^\$\$\s*\n([\s\S]*?)^\$\$\s*$/gm,
+    (_source, code: string) =>
+      options.math === false
+        ? _source
+        : placeholder(
+            renderToStaticMarkup(createElement(DocsRichBlock, { block: { _type: 'math', code } })),
+          ),
   );
   const parser = new Marked({ gfm: true });
   if (options.inlineMath !== false && options.math !== false)
