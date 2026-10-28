@@ -659,6 +659,17 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
           data = { _id: groupId, title };
           changed = true;
         }
+      } else if (
+        operation === 'write.doc.editor' &&
+        typeof request.path === 'string' &&
+        findNode(state.tree, request.path)?.node.type === 'branch'
+      ) {
+        const branch = findNode(state.tree, String(request.path))?.node;
+        if (branch) {
+          branch.title = String(request.title ?? branch.title ?? branch.origName);
+          data = { _id: branch.origName, title: branch.title };
+          changed = true;
+        }
       } else if (operation === 'write.doc.editor' || operation === 'write.doc.save') {
         const path = String(request.path ?? 'overview/start-here/untitled.mdx');
         const existing = findDocument(state, path);
@@ -737,7 +748,13 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
           }
           removeNodeById(state.tree, document.id);
         } else {
-          const found = findNode(state.tree, path);
+          let found = findNode(state.tree, path);
+          if (!found && path.includes('?')) {
+            const route = new URL(path, 'http://localhost');
+            const routeNodeId =
+              route.searchParams.get('group') ?? route.searchParams.get('section');
+            if (routeNodeId) found = findNode(state.tree, routeNodeId);
+          }
           if (found) {
             removeDocumentsForNode(state, found.node);
             removeNodeById(state.tree, found.node.origName);

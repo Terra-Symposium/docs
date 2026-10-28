@@ -2,6 +2,13 @@ import { expect, test, type Page } from '@playwright/test';
 
 const browserErrors = new WeakMap<Page, string[]>();
 
+async function waitForWorkspaceReady(page: Page): Promise<void> {
+  await expect(page.locator('[data-docs-shell]')).toHaveAttribute('data-loading', 'false', {
+    timeout: 30_000,
+  });
+  await expect(page.getByRole('combobox', { name: 'Section' })).toBeVisible();
+}
+
 test.beforeEach(async ({ page }) => {
   const errors: string[] = [];
   browserErrors.set(page, errors);
@@ -66,7 +73,7 @@ test('shared workspace keeps the Terra header, toolbar position, section navigat
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto('/workspace-demo/');
+  await page.goto('/workspace-demo/?section=overview&group=start-here&leaf=salesphere');
   await expect(page.getByRole('textbox', { name: 'Title' })).toHaveValue('Salesphere');
   await expect(page.getByRole('link', { name: 'Salesphere Docs' })).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Section' })).toBeVisible();
@@ -188,6 +195,67 @@ test('shared workspace keeps the Terra header, toolbar position, section navigat
   await page.screenshot({ path: '/tmp/terra-docs-shared-desktop.png', fullPage: true });
 });
 
+test('view headings keep hover permalinks and the sidebar table of contents behavior', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/workspace-demo/?section=overview&group=start-here&leaf=salesphere');
+  await waitForWorkspaceReady(page);
+
+  const heading = page
+    .locator('[data-docs-view-root] h2')
+    .filter({ hasText: /^Start with the product$/ });
+  await expect(heading).toBeVisible();
+  const copy = heading.getByRole('button', { name: 'Copy link to Start with the product' });
+  await expect(copy).toHaveCount(1);
+  await heading.hover();
+  await expect(copy.locator('.heading-anchor-icon')).toBeVisible();
+
+  const origin = new URL(page.url()).origin;
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
+  await copy.click();
+  await expect
+    .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+    .toBe(`${origin}/workspace-demo/#start-with-the-product`);
+
+  await page.evaluate(() => {
+    const key = 'terra-docs-workspace-demo-v1';
+    const state = JSON.parse(localStorage.getItem(key) ?? '{}');
+    state.documents.salesphere.content.push({
+      _key: 'heading-navigation-tail',
+      _type: 'block',
+      style: 'normal',
+      markDefs: [],
+      children: [
+        {
+          _key: 'heading-navigation-tail-text',
+          _type: 'span',
+          marks: [],
+          text: 'Trailing content keeps enough page height to verify heading navigation. '.repeat(
+            80,
+          ),
+        },
+      ],
+    });
+    localStorage.setItem(key, JSON.stringify(state));
+  });
+  await page.reload();
+  await waitForWorkspaceReady(page);
+
+  const toc = page.getByRole('navigation', { name: 'Table of contents' });
+  await expect(toc).toBeVisible();
+  const target = toc.getByRole('link', { name: 'Jump to Find the implementation' });
+  await expect(target).toBeVisible();
+  await target.click();
+  await expect(page).toHaveURL(/#find-the-implementation$/);
+  const targetHeading = page
+    .locator('[data-docs-view-root] h2')
+    .filter({ hasText: /^Find the implementation$/ });
+  await expect
+    .poll(async () => (await targetHeading.boundingBox())?.y ?? Number.POSITIVE_INFINITY)
+    .toBeLessThan(180);
+});
+
 test('shared workspace performs deletion and opens attachment management from its original controls', async ({
   page,
 }) => {
@@ -293,6 +361,110 @@ test('tree create, rename, duplicate, download, and delete persist through the h
   );
 });
 
+test('group create, rename, reorder, and delete use the shared sidebar actions', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/workspace-demo/');
+  await page.getByRole('combobox', { name: 'Mode' }).click();
+  await page.getByRole('option', { name: 'Edit' }).click();
+
+  const sectionPicker = page.getByRole('combobox', { name: 'Section' });
+  await sectionPicker.click();
+  await page.getByRole('option', { name: 'Add section', exact: true }).click();
+  const sectionDialog = page.getByRole('dialog', { name: 'Add Section' });
+  await sectionDialog.getByRole('textbox', { name: 'Section name' }).fill('Group lifecycle');
+  await sectionDialog.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+        return state.tree.some((node: { title?: string }) => node.title === 'Group lifecycle');
+      }),
+    )
+    .toBe(true);
+  await page.reload();
+  await page.getByRole('combobox', { name: 'Section' }).click();
+  await page.getByRole('option', { name: 'Group lifecycle', exact: true }).click();
+
+  const sidebarContent = page.locator('[data-sidebar="content"]').filter({ visible: true }).last();
+  await expect(sidebarContent).toBeVisible();
+  await sidebarContent.dispatchEvent('contextmenu', { button: 2, clientX: 16, clientY: 160 });
+  const addGroup = page.getByRole('menuitem', { name: 'Add group', exact: true });
+  await expect(addGroup).toBeVisible();
+  await addGroup.click();
+  const createDialog = page.getByRole('dialog', { name: 'Add Group' });
+  await createDialog.getByRole('textbox', { name: 'Group name' }).fill('Regression group');
+  await createDialog.getByRole('button', { name: 'Save', exact: true }).click();
+
+  const sectionId = await page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+    return state.tree.find((node: { title?: string }) => node.title === 'Group lifecycle').origName;
+  });
+  const group = page
+    .locator(`[data-docs-drop^="branch:${sectionId}/"]`)
+    .filter({ hasText: 'Regression group' });
+  await expect(group).toBeVisible();
+  await expect(
+    page.locator('[data-docs-drop^="leaf:"]').filter({ hasText: 'Untitled' }),
+  ).toBeVisible();
+
+  await group.click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Rename group', exact: true }).click();
+  const renameDialog = page.getByRole('dialog', { name: 'Rename Group' });
+  await renameDialog.getByRole('textbox', { name: 'Group name' }).fill('Regression renamed');
+  await renameDialog.getByRole('button', { name: 'Save', exact: true }).click();
+  const renamedGroup = page
+    .locator(`[data-docs-drop^="branch:${sectionId}/"]`)
+    .filter({ hasText: 'Regression renamed' });
+  await expect(renamedGroup).toBeVisible();
+
+  const generalGroupId = await page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+    return state.tree
+      .find((node: { title?: string }) => node.title === 'Group lifecycle')
+      .children.find((node: { title?: string }) => node.title === 'General').origName;
+  });
+
+  await renamedGroup
+    .getByRole('button', { name: 'Reorder item' })
+    .dragTo(page.locator(`[data-docs-drop="branch:${sectionId}/${generalGroupId}"]`), {
+      targetPosition: { x: 8, y: 1 },
+    });
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const value = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+        return value.tree
+          .find((node: { title?: string }) => node.title === 'Group lifecycle')
+          .children.map((node: { title?: string }) => node.title);
+      }),
+    )
+    .toEqual(['Regression renamed', 'General']);
+  await expect(renamedGroup).toBeVisible();
+
+  const persistedGroup = page
+    .locator(`[data-docs-drop^="branch:${sectionId}/"]`)
+    .filter({ hasText: 'Regression renamed' });
+  await persistedGroup.click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Delete group', exact: true }).click();
+  const deleteDialog = page.getByRole('dialog', { name: /Delete group\?/i });
+  await deleteDialog.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(
+    page
+      .locator(`[data-docs-drop^="branch:${sectionId}/"]`)
+      .filter({ hasText: 'Regression renamed' }),
+  ).toHaveCount(0);
+  const remainingGroups = await page.evaluate((id) => {
+    const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+    return state.tree.find((node: { origName?: string }) => node.origName === id).children;
+  }, sectionId);
+  expect(remainingGroups.map((node: { title?: string }) => node.title)).toEqual(['General']);
+  expect(remainingGroups[0].children.map((node: { title?: string }) => node.title)).toEqual([
+    'Untitled',
+  ]);
+});
+
 test('leaf reorder is stored and appears in the same order after reload', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/workspace-demo/');
@@ -307,10 +479,11 @@ test('leaf reorder is stored and appears in the same order after reload', async 
   expect(orderedIds).toEqual(['runtime-map', 'salesphere']);
 
   await page.reload();
-  const labels = await page.locator('[data-docs-drop]').allTextContents();
-  expect(labels.findIndex((label) => label.includes('Runtime map'))).toBeLessThan(
-    labels.findIndex((label) => label.includes('Salesphere')),
-  );
+  await expect
+    .poll(async () => page.locator('[data-docs-drop^="leaf:"] a').allTextContents(), {
+      timeout: 10_000,
+    })
+    .toEqual(['Runtime map', 'Salesphere']);
 });
 
 test('attachment upload, open, download, and deletion persist across reloads', async ({ page }) => {
@@ -320,11 +493,12 @@ test('attachment upload, open, download, and deletion persist across reloads', a
   await page.getByRole('option', { name: 'Attachments' }).click();
   const attachments = page.locator('[data-docs-attachments]');
   await expect(attachments).toHaveAttribute('data-loading', 'false');
+  await expect(page.locator('[data-docs-shell]')).toHaveAttribute('data-loading', 'false');
 
-  const filename = 'workspace-fixture-attachment.txt';
+  const filename = 'workspace-fixture-attachment.bin';
   await page.getByTestId('docs-attachment-upload').setInputFiles({
     name: filename,
-    mimeType: 'text/plain',
+    mimeType: 'application/octet-stream',
     buffer: Buffer.from('Persistent attachment fixture content.'),
   });
   await expect
@@ -348,6 +522,14 @@ test('attachment upload, open, download, and deletion persist across reloads', a
   await attachmentCard.click({ button: 'right' });
   const attachmentMenu = page.locator('[data-docs-attachment-menu]');
   await expect(attachmentMenu.getByRole('menuitem', { name: 'Delete', exact: true })).toBeVisible();
+  const menuBounds = await attachmentMenu.boundingBox();
+  const viewport = page.viewportSize();
+  expect(menuBounds).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(menuBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(menuBounds!.y).toBeGreaterThanOrEqual(0);
+  expect(menuBounds!.x + menuBounds!.width).toBeLessThanOrEqual(viewport!.width);
+  expect(menuBounds!.y + menuBounds!.height).toBeLessThanOrEqual(viewport!.height);
   page.once('dialog', (dialog) => dialog.accept());
   await attachmentMenu.getByRole('menuitem', { name: 'Delete', exact: true }).click();
   await expect(page.getByText(filename, { exact: true })).toHaveCount(0);
@@ -417,7 +599,9 @@ test('deleting the active leaf switches to the next available page', async ({ pa
   await expect(page.getByRole('textbox', { name: 'Title', exact: true })).toHaveValue(
     'Runtime map',
   );
-  await expect(page.getByRole('heading', { name: 'Runtime map', exact: true })).toBeVisible();
+  await expect(
+    page.locator('[data-docs-view-root] h2').filter({ hasText: 'Runtime map' }),
+  ).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Mode' })).toBeVisible();
 });
 
@@ -464,6 +648,81 @@ test('section creation is retained, and menus remain keyboard accessible and por
   await expect(page.getByRole('combobox', { name: 'Section' })).toBeVisible();
   await page.getByRole('combobox', { name: 'Section' }).click();
   await expect(page.getByRole('option', { name: 'Created from browser' })).toBeVisible();
+});
+
+test('section rename, hue, and deletion actions persist through the host adapter', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/workspace-demo/');
+  await waitForWorkspaceReady(page);
+
+  const sectionPicker = page.getByRole('combobox', { name: 'Section' });
+  await sectionPicker.click();
+  await page.getByRole('option', { name: 'Add section', exact: true }).click();
+  const createDialog = page.getByRole('dialog', { name: 'Add Section' });
+  await createDialog.getByRole('textbox', { name: 'Section name' }).fill('Section lifecycle');
+  await createDialog.getByRole('button', { name: 'Save', exact: true }).click();
+
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+        return state.tree.some((node: { title?: string }) => node.title === 'Section lifecycle');
+      }),
+    )
+    .toBe(true);
+  await page.reload();
+  await page.getByRole('combobox', { name: 'Section' }).click();
+  await page.getByRole('option', { name: 'Section lifecycle', exact: true }).click();
+
+  let sectionActions = page.getByRole('button', { name: 'Actions for section Section lifecycle' });
+  await expect(sectionActions).toBeVisible();
+  await sectionActions.click();
+  await page.getByRole('menuitem', { name: 'Rename section', exact: true }).click();
+  const renameDialog = page.getByRole('dialog', { name: 'Rename Section' });
+  await renameDialog
+    .getByRole('textbox', { name: 'Section name' })
+    .fill('Section lifecycle renamed');
+  await renameDialog.getByRole('button', { name: 'Save', exact: true }).click();
+
+  sectionActions = page.getByRole('button', {
+    name: 'Actions for section Section lifecycle renamed',
+  });
+  await expect(sectionActions).toBeVisible();
+  await sectionActions.click();
+  await page.getByRole('menuitem', { name: 'Change color', exact: true }).click();
+  const colorDialog = page.getByRole('dialog', { name: 'Section Color' });
+  const hue = colorDialog.getByRole('slider');
+  await hue.focus();
+  await page.keyboard.press('ArrowRight');
+  const hueValue = Number(await hue.getAttribute('aria-valuenow'));
+  await colorDialog.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect
+    .poll(async () => {
+      const state = await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}'),
+      );
+      return state.tree.find(
+        (node: { title?: string }) => node.title === 'Section lifecycle renamed',
+      )?.hue;
+    })
+    .toBe(hueValue);
+
+  await sectionActions.click();
+  await page.getByRole('menuitem', { name: 'Delete section', exact: true }).click();
+  const deleteDialog = page.getByRole('dialog', { name: /Delete section\?/i });
+  await deleteDialog.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(sectionActions).toHaveCount(0);
+  const stateAfterDelete = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}'),
+  );
+  expect(stateAfterDelete.tree.map((node: { title?: string }) => node.title)).not.toContain(
+    'Section lifecycle renamed',
+  );
+  expect(
+    Object.values(stateAfterDelete.documents).map((document: { title: string }) => document.title),
+  ).not.toContain('Untitled');
 });
 
 test('remote editors get visual authoring controls while Code remains document content, not a mode', async ({
@@ -514,5 +773,9 @@ test('host branding stays in the sidebar while leaf metadata stays in the docume
   await expect(header).toContainText('Salesphere');
   await expect(header).toContainText('A page level description for the Salesphere overview.');
   await expect(header).not.toContainText('Product and engineering documentation.');
+  const description = page.getByRole('textbox', { name: 'Description' });
+  await expect(description).toBeDisabled();
+  await expect(description).toHaveValue('A page level description for the Salesphere overview.');
+  await expect(description).not.toHaveAttribute('class', /min-h-6/);
   await expect(page.getByRole('textbox', { name: 'Search pages' })).toHaveCount(0);
 });

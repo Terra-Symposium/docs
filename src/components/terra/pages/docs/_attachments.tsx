@@ -32,6 +32,7 @@ import {
   createElement as __terraQualityCreateElement,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -164,6 +165,7 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
   const [ctxAttachment, setCtxAttachment] = useState<{ item: Sister; x: number; y: number } | null>(
     null,
   );
+  const ctxMenuRef = useRef<HTMLDivElement | null>(null);
   const sistersMap = useMemo(() => {
     const map = new Map<string, Sister>();
     sisters.forEach((s) => {
@@ -656,6 +658,19 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, [ctxAttachment]);
+  useLayoutEffect(() => {
+    const menu = ctxMenuRef.current;
+    if (!ctxAttachment || !menu) return;
+    const { width, height } = menu.getBoundingClientRect();
+    const inset = 8;
+    const x = Math.max(inset, Math.min(ctxAttachment.x, window.innerWidth - width - inset));
+    const y = Math.max(inset, Math.min(ctxAttachment.y, window.innerHeight - height - inset));
+    if (x !== ctxAttachment.x || y !== ctxAttachment.y) {
+      setCtxAttachment((current) =>
+        current?.item.path === ctxAttachment.item.path ? { ...current, x, y } : current,
+      );
+    }
+  }, [ctxAttachment]);
   useEffect(() => {
     /**
      * Opens the attachment context menu for the item under the pointer.
@@ -827,9 +842,10 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
       </div>
       {ctxAttachment && (
         <div
+          ref={ctxMenuRef}
           role="menu"
           data-docs-attachment-menu
-          className="fixed z-[120] min-w-32 rounded-md border border-primary-6 bg-white p-1 text-primary-12 shadow-lg dark:bg-black"
+          className="fixed z-[120] max-h-[calc(100dvh-1rem)] min-w-32 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md border border-primary-6 bg-white p-1 text-primary-12 shadow-lg dark:bg-black"
           style={{ left: ctxAttachment.x, top: ctxAttachment.y }}
           onContextMenu={(e) => e.preventDefault()}
         >
