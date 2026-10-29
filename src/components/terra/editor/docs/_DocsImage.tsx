@@ -12,13 +12,10 @@ IMPORTS
 import { useEditor } from '@portabletext/editor';
 
 // COMPONENTS
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { AlertError, Button, Input } from '@terra-symposium/styling/ui/terra-original';
 import { ErrorBoundary } from '../../ui.js';
 import { Empty } from '../../ui.js';
 import { Image as ImageIcon, TrashCan as TrashIcon } from '@carbon/icons-react';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-
 // TYPES
 import type {
   DocsBlock,

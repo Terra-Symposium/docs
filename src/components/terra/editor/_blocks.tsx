@@ -20,13 +20,16 @@ import {
   AccordionContent,
   AccordionItem as AccordionPrimitiveItem,
   AccordionTrigger,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Input,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { Card, CardContent, CardHeader } from '@terra-symposium/styling/ui/terra-original';
 import { ErrorBoundary } from '../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Tabs, TabsList, TabsTrigger } from '@terra-symposium/styling/ui/terra-original';
-
 // TYPES
 import type { ReactElement, ReactNode } from 'react';
 import * as TerraQualityRegex from '../../../lib/terra/regex.mjs';

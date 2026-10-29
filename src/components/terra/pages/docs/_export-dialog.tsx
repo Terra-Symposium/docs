@@ -11,20 +11,19 @@ IMPORTS
 import { useState } from 'react';
 
 // COMPONENTS
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { Checkbox } from '@terra-symposium/styling/ui/terra-original';
 import {
+  Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Label,
+  Progress,
 } from '@terra-symposium/styling/ui/terra-original';
 import { ErrorBoundary } from '../../ui.js';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
-import { Progress } from '@terra-symposium/styling/ui/terra-original';
-
 // TYPES
 import type {
   DocsExportOpts as ExportOptions,

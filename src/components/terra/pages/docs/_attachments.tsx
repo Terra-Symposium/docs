@@ -58,34 +58,30 @@ import {
   TrashCan as TrashIcon,
   Upload as UploadIcon,
 } from '@carbon/icons-react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
 import {
+  Button,
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@terra-symposium/styling/ui/terra-original';
-import { CodeBlock } from '../../editor/docs/_CodeBlock.js';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../ui.js';
-import { Empty } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
-import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Textarea,
 } from '@terra-symposium/styling/ui/terra-original';
-import { Textarea } from '@terra-symposium/styling/ui/terra-original';
+import { CodeBlock } from '../../editor/docs/_CodeBlock.js';
+import { ErrorBoundary } from '../../ui.js';
+import { Empty } from '../../ui.js';
 import { TsDocsSelect } from './_blocks.js';
 
 // DATA

@@ -59,8 +59,8 @@ import {
   OverflowMenuVertical as OverflowMenuIcon,
   TrashCan as TrashIcon,
 } from '@carbon/icons-react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
 import {
+  Button,
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
@@ -69,16 +69,11 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../ui.js';
-import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -86,7 +81,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@terra-symposium/styling/ui/terra-original';
-
+import { ErrorBoundary } from '../../ui.js';
 // DATA
 import { REORDER } from '../../../../lib/terra/runtime/shared.js';
 

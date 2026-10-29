@@ -67,9 +67,9 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from '@xyflow/react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { ButtonGroup } from '@terra-symposium/styling/ui/terra-original';
 import {
+  Button,
+  ButtonGroup,
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,

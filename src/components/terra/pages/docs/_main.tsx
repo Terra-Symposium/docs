@@ -49,39 +49,35 @@ import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import EditProvider, { Loader, TransitionShell } from './_editable.js';
 import Nav from './_sidebar.js';
 import { Suspense } from 'react';
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { Attachments } from './_attachments.js';
-import { Badge } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
 import {
+  AlertError,
+  Badge,
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Toolbar } from './_toolbar.js';
-import { useBlockNav } from './use-block-nav.js';
-import { useMediaPaste } from './use-media-paste.js';
-import { EditStateCtx, EditorSurfaceCtx, TransitionCtx } from '../../../../lib/terra/docs/state.js';
-import { ErrorBoundary } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
-import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
-import {
+  Separator,
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
+  Textarea,
 } from '@terra-symposium/styling/ui/terra-original';
-import { Separator } from '@terra-symposium/styling/ui/terra-original';
-import { Textarea } from '@terra-symposium/styling/ui/terra-original';
+import { Attachments } from './_attachments.js';
+import { Toolbar } from './_toolbar.js';
+import { useBlockNav } from './use-block-nav.js';
+import { useMediaPaste } from './use-media-paste.js';
+import { EditStateCtx, EditorSurfaceCtx, TransitionCtx } from '../../../../lib/terra/docs/state.js';
+import { ErrorBoundary } from '../../ui.js';
 import { Toaster } from 'sonner';
 const TerraContentEditor = lazy(() =>
   import('../../editor/TerraContentEditor.js').then((module) => ({

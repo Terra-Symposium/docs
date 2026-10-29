@@ -32,7 +32,42 @@ import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import React from 'react';
-import { TextTooltip, TooltipProvider } from '@terra-symposium/styling/ui/terra-original';
+import {
+  ButtonGroup,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+  Input,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  SearchEmpty,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+  TextTooltip,
+  ToggleGroup,
+  ToggleGroupItem,
+  TooltipProvider,
+  Button as UiButton,
+} from '@terra-symposium/styling/ui/terra-original';
 import {
   ArrowUpRight as PopOutIcon,
   CaretDown as CaretDownIcon,
@@ -53,49 +88,9 @@ import {
   TextUnderline as UnderlineIcon,
   Undo as UndoIcon,
 } from '@carbon/icons-react';
-import { Button as UiButton } from '@terra-symposium/styling/ui/terra-original';
-import { ButtonGroup } from '@terra-symposium/styling/ui/terra-original';
 import { CodeBlock } from '../../editor/docs/_CodeBlock.js';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
 import { EditStateCtx } from '../../../../lib/terra/docs/state.js';
 import { ErrorBoundary } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import { SearchEmpty } from '@terra-symposium/styling/ui/terra-original';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
-import { ToggleGroup, ToggleGroupItem } from '@terra-symposium/styling/ui/terra-original';
-
 // DATA
 import { ATTCH_TYPES } from '../../../../lib/terra/docs/attachments.js';
 import { DOCS_BLOCK_ICONS } from './_icons.js';

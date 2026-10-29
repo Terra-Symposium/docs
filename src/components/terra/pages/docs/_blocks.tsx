@@ -16,7 +16,20 @@ import { useEffect, useMemo, useState } from 'react';
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import React from 'react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  SearchEmpty,
+} from '@terra-symposium/styling/ui/terra-original';
 import {
   Checkmark as CheckmarkIcon,
   ChevronDown as ChevronDownIcon,
@@ -26,24 +39,8 @@ import {
   Folder as FolderIcon,
   Search as SearchIcon,
 } from '@carbon/icons-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
 import { ErrorBoundary } from '../../ui.js';
 import { Empty } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import { SearchEmpty } from '@terra-symposium/styling/ui/terra-original';
-
 /*//////////////////////////////////////////////////
 CONFIG
 //////////////////////////////////////////////////*/

@@ -22,12 +22,14 @@ import { useEditor } from '@portabletext/editor';
 
 // COMPONENTS
 import * as PopoverPrimitive from '@radix-ui/react-popover';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import {
+  Button,
+  Popover,
+  PopoverContent,
+  Textarea,
+} from '@terra-symposium/styling/ui/terra-original';
 import { Edit as EditIcon, FunctionMath as MathIcon } from '@carbon/icons-react';
 import { ErrorBoundary } from '../../ui.js';
-import { Popover, PopoverContent } from '@terra-symposium/styling/ui/terra-original';
-import { Textarea } from '@terra-symposium/styling/ui/terra-original';
-
 // TYPES
 import type { BlockTgt } from '../../../../lib/terra/runtime/types.js';
 import type {

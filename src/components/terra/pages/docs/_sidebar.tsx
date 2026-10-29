@@ -66,49 +66,40 @@ import {
   OverflowMenuVertical as OverflowMenuIcon,
   TrashCan as TrashIcon,
 } from '@carbon/icons-react';
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
 import {
+  AlertError,
+  Button,
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../ui.js';
-import { ExportDialog as SharedExportDialog } from './_export-dialog.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
-import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Separator } from '@terra-symposium/styling/ui/terra-original';
-import {
+  Separator,
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarRail,
+  Slider,
 } from '@terra-symposium/styling/ui/terra-original';
-import { Slider } from '@terra-symposium/styling/ui/terra-original';
-
+import { ErrorBoundary } from '../../ui.js';
+import { ExportDialog as SharedExportDialog } from './_export-dialog.js';
 // TYPES
 import type { ActionRes, Md } from '../../../../lib/terra/runtime/types.js';
 import type { AttchTgt, DelTgt, PromptState } from '../../../../lib/terra/runtime/types.js';

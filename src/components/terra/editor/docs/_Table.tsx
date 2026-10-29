@@ -5,8 +5,7 @@ import { useEditor } from '@portabletext/editor';
 import { Add as AddIcon, TrashCan as TrashIcon } from '@carbon/icons-react';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 import { ErrorBoundary } from '../../ui.js';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
+import { Button, Input } from '@terra-symposium/styling/ui/terra-original';
 import { isRec } from '../../../../lib/terra/runtime/runtime.js';
 
 import type { DocTableCell } from '../../../../lib/terra/runtime/types.js';

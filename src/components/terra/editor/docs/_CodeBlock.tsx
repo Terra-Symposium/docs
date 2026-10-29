@@ -42,19 +42,18 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { Checkmark as CheckIcon, Copy as CopyIcon } from '@carbon/icons-react';
-import { Compartment, EditorSelection, EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
-import { ErrorBoundary } from '../../ui.js';
 import {
+  AlertError,
+  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
 } from '@terra-symposium/styling/ui/terra-original';
-
+import { Checkmark as CheckIcon, Copy as CopyIcon } from '@carbon/icons-react';
+import { Compartment, EditorSelection, EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
+import { ErrorBoundary } from '../../ui.js';
 // TYPES
 import type { Extension } from '@codemirror/state';
 import type { JSX } from 'react';
