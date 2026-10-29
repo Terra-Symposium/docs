@@ -94,8 +94,8 @@ importers:
         specifier: ^1.64.1
         version: 1.64.1
       '@terra-symposium/standards-reporting':
-        specifier: 0.6.0
-        version: 0.6.0(@playwright/test@1.64.1)(@types/node@24.19.2)
+        specifier: 0.6.2
+        version: 0.6.2(@playwright/test@1.64.1)(@types/node@24.19.2)
       '@terra-symposium/styling':
         specifier: file:vendor/terra-symposium-styling-0.1.16.tgz
         version: file:vendor/terra-symposium-styling-0.1.16.tgz(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(yaml@2.9.1)
@@ -1677,8 +1677,8 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.0.0 || >=4.0.0 || insiders'
 
-  '@terra-symposium/standards-reporting@0.6.0':
-    resolution: {integrity: sha512-PN5LqhfxBPRiXG3I65FBS1pCB0H6q4hSkhw4GF/8PkPq7aHVcZGTwO1MJMRW6M2KpL4nobTfLytWpkX3S9cdfw==}
+  '@terra-symposium/standards-reporting@0.6.2':
+    resolution: {integrity: sha512-MhRei/GXKOlxTQGn2NiMuEQ8jDxeL/FnkKcjHhC1//F2w+8IXaB+k2I+771wmEx+hPW37fYcah5Vp4I+hToWJg==}
     engines: {node: '>=18.18'}
     peerDependencies:
       '@playwright/test': '>=1.52.0 <2'
@@ -5822,7 +5822,7 @@ snapshots:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.4.19(yaml@2.9.1)
 
-  '@terra-symposium/standards-reporting@0.6.0(@playwright/test@1.64.1)(@types/node@24.19.2)':
+  '@terra-symposium/standards-reporting@0.6.2(@playwright/test@1.64.1)(@types/node@24.19.2)':
     dependencies:
       '@playwright/test': 1.64.1
       exceljs: 4.4.0
