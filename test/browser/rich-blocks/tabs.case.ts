@@ -47,27 +47,25 @@ test('tabs.spec: Switch tabs and emit structure edits', XL_VIEWPORT_TEST, async 
   await expect(tabs.getByText('First explanation')).toBeHidden();
 
   await tabs.getByRole('button', { name: 'Add tab' }).click();
-  await expect
-    .poll(
-      async () =>
-        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items
-          ?.length,
-    )
-    .toBe(3);
   await tabs.getByRole('textbox', { name: 'Tab title' }).last().fill('Third topic');
   await expect
     .poll(
       async () =>
-        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items?.[2]
-          ?.title,
+        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items,
+      { intervals: [25, 75, 150], timeout: 1500 },
     )
-    .toBe('Third topic');
+    .toEqual([
+      expect.objectContaining({ title: 'First topic' }),
+      expect.objectContaining({ title: 'Second topic' }),
+      expect.objectContaining({ title: 'Third topic' }),
+    ]);
   await tabs.getByRole('button', { name: 'Delete tab Third topic' }).click();
   await expect
     .poll(
       async () =>
         JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items
           ?.length,
+      { intervals: [25, 75, 150], timeout: 1500 },
     )
     .toBe(2);
 });

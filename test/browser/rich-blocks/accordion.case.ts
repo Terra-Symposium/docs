@@ -50,27 +50,24 @@ test(
     await expect(accordion.getByText('Nested accordion explanation')).toBeVisible();
 
     await accordion.getByRole('button', { name: 'Add section' }).click();
-    await expect
-      .poll(
-        async () =>
-          JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items
-            ?.length,
-      )
-      .toBe(2);
     await accordion.getByRole('textbox', { name: 'Accordion title' }).last().fill('Second section');
     await expect
       .poll(
         async () =>
-          JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items?.[1]
-            ?.title,
+          JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items,
+        { intervals: [25, 75, 150], timeout: 1500 },
       )
-      .toBe('Second section');
+      .toEqual([
+        expect.objectContaining({ title: 'First section' }),
+        expect.objectContaining({ title: 'Second section' }),
+      ]);
     await accordion.getByRole('button', { name: 'Delete accordion section' }).last().click();
     await expect
       .poll(
         async () =>
           JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items
             ?.length,
+        { intervals: [25, 75, 150], timeout: 1500 },
       )
       .toBe(1);
   },

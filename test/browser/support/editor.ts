@@ -23,6 +23,6 @@ export async function openEditor(
     },
     { fixture: content, settings: options },
   );
-  await page.goto('/editor-harness/');
-  await page.locator('[data-terra-content-editor]').first().waitFor();
+  await page.goto('/editor-harness/', { waitUntil: 'domcontentloaded' });
+  await page.locator('[data-terra-content-editor]').first().waitFor({ state: 'visible' });
 }
