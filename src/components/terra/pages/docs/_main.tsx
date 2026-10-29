@@ -28,7 +28,7 @@ import { document } from '../../../../lib/terra/docs/editor-dom.js';
 import { isDocBody } from '../../../../lib/terra/runtime/types.js';
 import { cn, setDocumentTitle } from '../../../../lib/terra/runtime/runtime.js';
 import { toPortableBody } from '../../../../lib/terra/runtime/leaf.js';
-import { dirname } from '../../../../lib/terra/runtime/shared.js';
+import { dirname, docsRootPath } from '../../../../lib/terra/runtime/shared.js';
 import {
   lazy,
   useCallback,
@@ -42,7 +42,6 @@ import {
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
-import { docsRootPath } from '../../../../lib/terra/runtime/shared.js';
 
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
@@ -86,17 +85,18 @@ const TerraContentEditor = lazy(() =>
 );
 
 // TYPES
-import type { DocBody, DocVer } from '../../../../lib/terra/runtime/types.js';
 import type {
+  DocBody,
+  DocVer,
   DocsPermissionLevel as Permission,
   Draft,
   EditorRefs,
   EditorSurface,
   Mode,
+  TerraContent as TerraContentData,
   Tree as TreeType,
+  User,
 } from '../../../../lib/terra/runtime/types.js';
-import type { User } from '../../../../lib/terra/runtime/types.js';
-import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
 /*//////////////////////////////////////////////////
 HOOKS
 //////////////////////////////////////////////////*/

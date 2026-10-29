@@ -21,12 +21,13 @@ import { toast } from 'sonner';
 import * as TerraQualityRegex from '../../regex.mjs';
 
 // TYPES
-import type { AttchType, Transition } from '../../runtime/types.js';
-import type { DocBody } from '../../runtime/types.js';
 import type {
+  AttchType,
+  DocBody,
   EditorSel,
   EditorSurface,
   Mode,
+  Transition,
   ToolbarState,
   Tree as TreeType,
 } from '../../runtime/types.js';

@@ -16,8 +16,7 @@ import { parse as fromYaml } from 'yaml';
 import * as TerraQualityRegex from '../regex.mjs';
 
 // TYPES
-import type { DocsNodesDraft as Draft, Field } from './types.js';
-import type { Md } from './types.js';
+import type { DocsNodesDraft as Draft, Field, Md } from './types.js';
 
 /*//////////////////////////////////////////////////
 CONFIG

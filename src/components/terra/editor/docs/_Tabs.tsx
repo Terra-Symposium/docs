@@ -8,14 +8,16 @@ import { ErrorBoundary } from '../../ui.js';
 import { Button } from '@terra-symposium/styling/ui/terra-original';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 
-import type { DocBody } from '../../../../lib/terra/runtime/types.js';
-import type { DocsNestedContent } from '../../../../lib/terra/runtime/types.js';
+import type {
+  DocBody,
+  DocsNestedContent,
+  TerraContent as TerraContentData,
+} from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsBlock,
   PortableTextBlockEditorProps,
   PortableTextBlockRendererProps,
 } from '../types.js';
-import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
 
 /** Union of the docs tabs and accordion block shapes. */
 type SectionsBlock = DocsBlock<'tabs'> | DocsBlock<'accordion'>;

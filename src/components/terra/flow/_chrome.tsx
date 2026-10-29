@@ -87,9 +87,10 @@ import type {
   FlowSize,
   FlowSkin,
   FlowTone,
+  GroupNodeData,
   Pos,
+  Problem,
 } from '../../../lib/terra/runtime/types.js';
-import type { GroupNodeData } from '../../../lib/terra/runtime/types.js';
 import type {
   ComponentPropsWithoutRef,
   ComponentType,
@@ -112,7 +113,6 @@ import type {
   ReactFlowInstance,
   XYPosition,
 } from '@xyflow/react';
-import type { Problem } from '../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 CONFIG

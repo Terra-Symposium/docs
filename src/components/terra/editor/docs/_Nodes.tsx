@@ -17,8 +17,7 @@ import { ErrorBoundary } from '../../ui.js';
 
 // TYPES
 import type { DocsBlock } from '../types.js';
-import type { Edge, FlowNode } from '../../../../lib/terra/runtime/types.js';
-import type { NodesProps } from '../../../../lib/terra/runtime/types.js';
+import type { Edge, FlowNode, NodesProps } from '../../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 HELPERS

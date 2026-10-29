@@ -14,14 +14,12 @@ import { useEffect, useState } from 'react';
 
 // COMPONENTS
 import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../ui.js';
-import { Empty } from '../../ui.js';
+import { Empty, ErrorBoundary } from '../../ui.js';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 
 // TYPES
 import type { DocsBlock } from '../types.js';
-import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
-import type { TsDocsItem } from '../../../../lib/terra/runtime/types.js';
+import type { TerraContent as TerraContentData, TsDocsItem } from '../../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 HELPERS

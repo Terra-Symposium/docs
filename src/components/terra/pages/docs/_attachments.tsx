@@ -80,17 +80,21 @@ import {
   Textarea,
 } from '@terra-symposium/styling/ui/terra-original';
 import { CodeBlock } from '../../editor/docs/_CodeBlock.js';
-import { ErrorBoundary } from '../../ui.js';
-import { Empty } from '../../ui.js';
+import { Empty, ErrorBoundary } from '../../ui.js';
 import { TsDocsSelect } from './_blocks.js';
 
 // DATA
 import { ATTCH_TYPES } from '../../../../lib/terra/docs/attachments.js';
 
 // TYPES
-import type { AttchType, DocsTreeMenuAction, Sister } from '../../../../lib/terra/runtime/types.js';
-import type { Leaf as LeafNode, Tree as TreeType } from '../../../../lib/terra/runtime/types.js';
-import type { Md } from '../../../../lib/terra/runtime/types.js';
+import type {
+  AttchType,
+  DocsTreeMenuAction,
+  Leaf as LeafNode,
+  Md,
+  Sister,
+  Tree as TreeType,
+} from '../../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 HELPERS

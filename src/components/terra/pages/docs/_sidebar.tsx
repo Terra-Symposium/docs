@@ -43,8 +43,7 @@ import {
   toNodeLabel,
   toPaths,
 } from '../../../../lib/terra/runtime/shared.js';
-import { cn, createTrace, notify } from '../../../../lib/terra/runtime/runtime.js';
-import { isDevOrigin } from '../../../../lib/terra/runtime/runtime.js';
+import { cn, createTrace, isDevOrigin, notify } from '../../../../lib/terra/runtime/runtime.js';
 import { components as repoComponents } from '../../../../lib/terra/custom-components.js';
 import { currLeafSrc } from '../../../../lib/terra/runtime/leaf.js';
 import { toast } from 'sonner';
@@ -101,16 +100,19 @@ import {
 import { ErrorBoundary } from '../../ui.js';
 import { ExportDialog as SharedExportDialog } from './_export-dialog.js';
 // TYPES
-import type { ActionRes, Md } from '../../../../lib/terra/runtime/types.js';
-import type { AttchTgt, DelTgt, PromptState } from '../../../../lib/terra/runtime/types.js';
-import type { DocsTreeMenuAction as MenuAction } from '../../../../lib/terra/runtime/types.js';
 import type {
+  ActionRes,
+  AttchTgt,
   Branch,
+  DelTgt,
+  DocsTreeMenuAction as MenuAction,
+  DragState,
   Leaf as LeafNode,
+  Md,
+  PromptState,
+  ReorderDropState,
   Tree as TreeType,
 } from '../../../../lib/terra/runtime/types.js';
-import type { DragState } from '../../../../lib/terra/runtime/types.js';
-import type { ReorderDropState } from '../../../../lib/terra/runtime/types.js';
 
 // prettier-ignore
 

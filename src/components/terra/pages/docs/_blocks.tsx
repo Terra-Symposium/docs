@@ -39,8 +39,7 @@ import {
   Folder as FolderIcon,
   Search as SearchIcon,
 } from '@carbon/icons-react';
-import { ErrorBoundary } from '../../ui.js';
-import { Empty } from '../../ui.js';
+import { Empty, ErrorBoundary } from '../../ui.js';
 /*//////////////////////////////////////////////////
 CONFIG
 //////////////////////////////////////////////////*/

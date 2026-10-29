@@ -13,8 +13,7 @@ import { useEditor } from '@portabletext/editor';
 
 // COMPONENTS
 import { AlertError, Button, Input } from '@terra-symposium/styling/ui/terra-original';
-import { ErrorBoundary } from '../../ui.js';
-import { Empty } from '../../ui.js';
+import { Empty, ErrorBoundary } from '../../ui.js';
 import { Image as ImageIcon, TrashCan as TrashIcon } from '@carbon/icons-react';
 // TYPES
 import type {

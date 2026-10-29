@@ -39,9 +39,9 @@ import { Progress } from '@terra-symposium/styling/ui/terra-original';
 import { IMG_RESPONSIVE } from '../../ui.js';
 
 // TYPES
-import type { DocBody } from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsPermissionLevel as Permission,
+  DocBody,
   Draft,
   EditorRefs,
   EditorSel,

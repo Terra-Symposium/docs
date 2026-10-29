@@ -20,8 +20,13 @@ import {
   toCodeJsx,
 } from './markdown.js';
 import { PROBLEM_BLOCK_TYPES } from '../types.js';
-import type { DocBlock, DocBody, DocTableCell } from '../types.js';
-import type { DocsContentPtMarkDef as PtMarkDef, DocsContentPtSpan as PtSpan } from '../types.js';
+import type {
+  DocBlock,
+  DocBody,
+  DocTableCell,
+  DocsContentPtMarkDef as PtMarkDef,
+  DocsContentPtSpan as PtSpan,
+} from '../types.js';
 
 const isRec = (val: unknown): val is Record<string, unknown> =>
   Boolean(val && typeof val === 'object' && !Array.isArray(val));

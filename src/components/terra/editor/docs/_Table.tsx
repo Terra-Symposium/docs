@@ -8,14 +8,16 @@ import { ErrorBoundary } from '../../ui.js';
 import { Button, Input } from '@terra-symposium/styling/ui/terra-original';
 import { isRec } from '../../../../lib/terra/runtime/runtime.js';
 
-import type { DocTableCell } from '../../../../lib/terra/runtime/types.js';
-import type { TableRow } from '../../../../lib/terra/runtime/types.js';
+import type {
+  DocTableCell,
+  TableRow,
+  TerraContent as TerraContentData,
+} from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsBlock,
   PortableTextBlockEditorProps,
   PortableTextBlockRendererProps,
 } from '../types.js';
-import type { TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
 
 /** Sanity Portable Text table rows and headers. */
 type TableBlock = DocsBlock<'table'>;
