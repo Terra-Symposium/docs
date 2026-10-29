@@ -6,6 +6,8 @@ import {
 } from '@portabletext/editor';
 import { EventListenerPlugin, NodePlugin } from '@portabletext/editor/plugins';
 import { createDocsSchema, safeLink } from '../../../lib/schema.js';
+import type { DocsBlockOptions } from '../../blocks.js';
+import { Toolbar } from '../../_Toolbar.js';
 import { Embed } from './docs/_Embed.js';
 import { renderCallout } from './docs/_Callout.js';
 import { renderCode } from './docs/_DocsCode.js';
@@ -71,18 +73,27 @@ export function TerraContentEditor({
   onChange,
   readOnly = false,
   resetKey,
+  nested = false,
+  toolbar = false,
 }: {
   content?: any[];
   onChange?: (content: any[]) => void;
   readOnly?: boolean;
   resetKey?: string;
+  nested?: boolean;
+  toolbar?: boolean;
   [key: string]: any;
 }): JSX.Element {
+  const nestedBlocks: DocsBlockOptions = { accordion: false, callout: false, tabs: false };
   return (
     <div data-terra-content-editor>
       <EditorProvider
         key={resetKey}
-        initialConfig={{ schemaDefinition: createDocsSchema(), initialValue: content, readOnly }}
+        initialConfig={{
+          schemaDefinition: createDocsSchema(nested ? nestedBlocks : undefined),
+          initialValue: content,
+          readOnly,
+        }}
       >
         <EventListenerPlugin
           on={(event) => {
@@ -90,6 +101,7 @@ export function TerraContentEditor({
           }}
         />
         <NodePlugin nodes={docsNodes()} />
+        {toolbar && <Toolbar blocks={nested ? nestedBlocks : undefined} />}
         <PortableTextEditable
           aria-label={readOnly ? 'Document viewer' : 'Document editor'}
           contentEditable={!readOnly}

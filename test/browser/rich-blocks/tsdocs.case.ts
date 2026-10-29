@@ -2,6 +2,14 @@ import { expect, test } from '@playwright/test';
 import { openEditor } from '../support/editor.js';
 import type { TerraContent } from '../support/editor.js';
 
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
+
 const emptyScopeFixture = [
   { _key: 'tsdocs-under-test', _type: 'tsDocs', scope: '' },
 ] satisfies TerraContent;
@@ -18,13 +26,13 @@ const paragraph = (text: string): TerraContent => [
   },
 ];
 
-test('tsdocs.spec: Hide remote panel without a scope', async ({ page }) => {
+test('tsdocs.spec: Hide remote panel without a scope', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, emptyScopeFixture);
   await expect(page.locator('[data-docs-block-skeleton]')).toHaveCount(0);
   await expect(page.getByTestId('editor-output')).toContainText('tsDocs');
 });
 
-test('tsdocs.spec: Render generated pages for a scope', async ({ page }) => {
+test('tsdocs.spec: Render generated pages for a scope', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, scopedFixture, {
     mockResponses: {
       'read.tsdocs': {
@@ -56,9 +64,13 @@ test('tsdocs.spec: Render generated pages for a scope', async ({ page }) => {
   await expect(page.locator('#lib-local-beta')).toContainText('Beta returns nothing.');
 });
 
-test('tsdocs.spec: Show an error when the scope cannot load', async ({ page }) => {
-  await openEditor(page, scopedFixture, {
-    mockResponses: { 'read.tsdocs': { data: { docs: null } } },
-  });
-  await expect(page.getByText('TsDocs Error')).toBeVisible();
-});
+test(
+  'tsdocs.spec: Show an error when the scope cannot load',
+  XL_VIEWPORT_TEST,
+  async ({ page }) => {
+    await openEditor(page, scopedFixture, {
+      mockResponses: { 'read.tsdocs': { data: { docs: null } } },
+    });
+    await expect(page.getByText('TsDocs Error')).toBeVisible();
+  },
+);

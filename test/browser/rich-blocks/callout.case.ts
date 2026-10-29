@@ -2,6 +2,14 @@ import { openEditor } from '../support/editor.js';
 import { expect, test } from '@playwright/test';
 import type { TerraContent } from '../support/editor.js';
 
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
+
 const calloutFixture = [
   {
     _key: 'callout-under-test',
@@ -20,7 +28,7 @@ const calloutFixture = [
   },
 ] satisfies TerraContent;
 
-test('callout.spec: Render content and emit title edits', async ({ page }) => {
+test('callout.spec: Render content and emit title edits', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, calloutFixture);
   const callout = page.locator('[data-terra-block="callout"]');
   await expect(callout).toHaveAttribute('data-docs-aside', 'example');
@@ -35,7 +43,7 @@ test('callout.spec: Render content and emit title edits', async ({ page }) => {
   await expect(callout).toContainText('Nested explanation');
 });
 
-test('callout.spec: Emit nested content edits', async ({ page }) => {
+test('callout.spec: Emit nested content edits', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, calloutFixture);
   const nested = page
     .locator('[data-terra-block="callout"]')

@@ -2,6 +2,14 @@ import { openEditor } from '../support/editor.js';
 import { expect, test } from '@playwright/test';
 import type { TerraContent } from '../support/editor.js';
 
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
+
 const paragraph = (key: string, text: string) => ({
   _key: key,
   _type: 'terraBlock' as const,
@@ -30,7 +38,7 @@ const tabsFixture = [
   },
 ] satisfies TerraContent;
 
-test('tabs.spec: Switch tabs and emit structure edits', async ({ page }) => {
+test('tabs.spec: Switch tabs and emit structure edits', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, tabsFixture);
   const tabs = page.locator('[data-terra-block="tabs"]');
   await expect(tabs.getByText('First explanation')).toBeVisible();
@@ -64,7 +72,7 @@ test('tabs.spec: Switch tabs and emit structure edits', async ({ page }) => {
     .toBe(2);
 });
 
-test('tabs.spec: Emit active tab edits', async ({ page }) => {
+test('tabs.spec: Emit active tab edits', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, tabsFixture);
   const nested = page
     .locator('[data-terra-block="tabs"]')
