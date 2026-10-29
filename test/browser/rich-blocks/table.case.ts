@@ -2,6 +2,14 @@ import { openEditor } from '../support/editor.js';
 import { expect, test } from '@playwright/test';
 import type { TerraContent } from '../support/editor.js';
 
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
+
 const textCell = (key: string, text: string) => ({
   _key: key,
   _type: 'cell' as const,
@@ -28,7 +36,7 @@ const tableFixture = [
   },
 ] satisfies TerraContent;
 
-test('table.spec: Render cells and emit structure edits', async ({ page }) => {
+test('table.spec: Render cells and emit structure edits', XL_VIEWPORT_TEST, async ({ page }) => {
   const cell = page.getByRole('textbox', { name: 'Table cell 2, 1' });
   await test.step('Inject Table and verify it renders', async () => {
     await openEditor(page, tableFixture);
@@ -56,7 +64,7 @@ test('table.spec: Render cells and emit structure edits', async ({ page }) => {
   });
 });
 
-test('table.spec: Edit heading, rows and columns', async ({ page }) => {
+test('table.spec: Edit heading, rows and columns', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, tableFixture);
   const table = page.locator('[data-terra-block="table"]');
   await table.getByRole('textbox', { name: 'Table heading' }).fill('Updated heading');

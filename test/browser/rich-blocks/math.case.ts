@@ -2,6 +2,14 @@ import { openEditor } from '../support/editor.js';
 import { expect, test } from '@playwright/test';
 import type { TerraContent } from '../support/editor.js';
 
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
+
 const blockFixture = [
   { _key: 'math-under-test', _type: 'math', code: 'x^2', inline: false },
 ] satisfies TerraContent;
@@ -19,7 +27,7 @@ const inlineFixture = [
   },
 ] satisfies TerraContent;
 
-test('math.spec: Render block and emit formula edits', async ({ page }) => {
+test('math.spec: Render block and emit formula edits', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, blockFixture);
   const math = page.locator('[data-docs-editor-block="math"]');
   await expect(math).toHaveAttribute('data-math-code', 'x^2');
@@ -54,7 +62,7 @@ test('math.spec: Render block and emit formula edits', async ({ page }) => {
   await expect(math).toHaveAttribute('data-math-code', 'y^3');
 });
 
-test('math.spec: Render inline within a paragraph', async ({ page }) => {
+test('math.spec: Render inline within a paragraph', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, inlineFixture);
   const inline = page.locator('[data-terra-inline="math"]');
   await expect(inline.locator('.katex')).toBeVisible();

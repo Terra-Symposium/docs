@@ -2,6 +2,14 @@ import { openEditor } from '../support/editor.js';
 import { expect, test } from '@playwright/test';
 import type { TerraContent } from '../support/editor.js';
 
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
+
 const nodesFixture = [
   {
     _key: 'nodes-under-test',
@@ -36,12 +44,12 @@ const nodesFixture = [
   },
 ] satisfies TerraContent;
 
-test('nodes.spec: Preserve canvas height', async ({ page }) => {
+test('nodes.spec: Preserve canvas height', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, nodesFixture);
   await expect(page.locator('[data-docs-editor-block="Nodes"]')).toHaveCSS('height', '240px');
 });
 
-test('nodes.spec: Render nodes and edges', async ({ page }) => {
+test('nodes.spec: Render nodes and edges', XL_VIEWPORT_TEST, async ({ page }) => {
   test.fail(
     true,
     'Pinned pre-abstraction Docs also omits Nodes entries without saved positions; retained as a baseline exclusion.',

@@ -2,6 +2,14 @@ import { openEditor } from '../support/editor.js';
 import { expect, test } from '@playwright/test';
 import type { TerraContent } from '../support/editor.js';
 
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
+
 const imageFixture = [
   {
     _key: 'image-under-test',
@@ -14,7 +22,7 @@ const imageFixture = [
   },
 ] satisfies TerraContent;
 
-test('image.spec: Render metadata and emit field edits', async ({ page }) => {
+test('image.spec: Render metadata and emit field edits', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, imageFixture);
   const image = page.locator('[data-terra-block="docImage"]');
   await expect(image.getByRole('img', { name: 'A one-pixel Terra image' })).toBeVisible();
@@ -42,7 +50,7 @@ test('image.spec: Render metadata and emit field edits', async ({ page }) => {
     .toEqual([updatedURL, 'Updated Terra image', 'Updated caption', '240', '160']);
 });
 
-test('image.spec: Delete only the selected block', async ({ page }) => {
+test('image.spec: Delete only the selected block', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, imageFixture);
   await page
     .locator('[data-terra-block="docImage"]')

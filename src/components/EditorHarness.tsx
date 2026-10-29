@@ -7,7 +7,12 @@ import type { JSX } from 'react';
 declare global {
   interface Window {
     __terraContentFixture?: unknown[];
-    __terraContentOptions?: { readOnly?: boolean };
+    __terraContentOptions?: {
+      nested?: boolean;
+      persistKey?: string;
+      readOnly?: boolean;
+      toolbar?: boolean;
+    };
     __terraDocsMockResponses?: Record<
       string,
       { data?: unknown; dataByInput?: Record<string, unknown>; error?: string }
@@ -56,18 +61,29 @@ export default function EditorHarness(): JSX.Element {
   const [readOnly] = useState(() =>
     typeof window === 'undefined' ? false : (window.__terraContentOptions?.readOnly ?? false),
   );
-  const [content, setContent] = useState(
-    () =>
+  const [options] = useState(() =>
+    typeof window === 'undefined' ? {} : (window.__terraContentOptions ?? {}),
+  );
+  const [content, setContent] = useState(() => {
+    const saved = options.persistKey ? sessionStorage.getItem(options.persistKey) : null;
+    if (saved) return JSON.parse(saved) as unknown[];
+    return (
       (mapContent(
         typeof window === 'undefined' ? [] : (window.__terraContentFixture ?? []),
-      ) as unknown[]) ?? [],
-  );
+      ) as unknown[]) ?? []
+    );
+  });
   return (
     <main className="terra-docs-workspace mx-auto min-h-svh max-w-5xl p-6">
       <TerraContentEditor
         content={content}
+        nested={options.nested ?? false}
         readOnly={readOnly}
-        onChange={(value) => setContent(value)}
+        toolbar={options.toolbar ?? false}
+        onChange={(value) => {
+          setContent(value);
+          if (options.persistKey) sessionStorage.setItem(options.persistKey, JSON.stringify(value));
+        }}
       />
       <pre data-testid="editor-output" className="sr-only">
         {JSON.stringify(content)}
