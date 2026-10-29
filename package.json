@@ -60,7 +60,7 @@
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "10.0.1",
     "@playwright/test": "^1.64.1",
-    "@terra-symposium/standards-reporting": "0.6.0",
+    "@terra-symposium/standards-reporting": "0.6.2",
     "@terra-symposium/styling": "file:vendor/terra-symposium-styling-0.1.16.tgz",
     "@types/katex": "^0.16.8",
     "@types/node": "^24.19.2",
