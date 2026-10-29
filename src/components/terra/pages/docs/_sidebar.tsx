@@ -1791,7 +1791,7 @@ export default (function Nav({
               SECTION
             </Label>
             <div className="flex items-center gap-1">
-              <div className={cn('block min-w-0 flex-1 rounded-md transition-opacity')}>
+              <div className="block min-w-0 flex-1 rounded-md transition-opacity">
                 <Select
                   disabled={transitioning}
                   open={sectionOpen}

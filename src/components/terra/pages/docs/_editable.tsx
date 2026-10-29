@@ -267,7 +267,7 @@ export function TransitionShell({
         >
           <div
             aria-hidden={loading ? 'true' : 'false'}
-            className={cn(loading ? 'hidden' : 'block')}
+            className={loading ? 'hidden' : 'block'}
             data-docs-transition-content
           >
             {children}
