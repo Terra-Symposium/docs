@@ -697,7 +697,7 @@ test(
   'section rename, hue, and deletion actions persist through the host adapter',
   XL_VIEWPORT_TEST,
   async ({ page }) => {
-    await page.goto('/workspace-demo/');
+    await page.goto('/workspace-demo/', { waitUntil: 'domcontentloaded' });
     await waitForWorkspaceReady(page);
 
     const sectionPicker = page.getByRole('combobox', { name: 'Section' });
@@ -706,16 +706,8 @@ test(
     const createDialog = page.getByRole('dialog', { name: 'Add Section' });
     await createDialog.getByRole('textbox', { name: 'Section name' }).fill('Section lifecycle');
     await createDialog.getByRole('button', { name: 'Save', exact: true }).click();
-
-    await expect
-      .poll(async () =>
-        page.evaluate(() => {
-          const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
-          return state.tree.some((node: { title?: string }) => node.title === 'Section lifecycle');
-        }),
-      )
-      .toBe(true);
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await waitForWorkspaceReady(page);
     await page.getByRole('combobox', { name: 'Section' }).click();
     await page.getByRole('option', { name: 'Section lifecycle', exact: true }).click();
 
@@ -742,16 +734,21 @@ test(
     await hue.focus();
     await page.keyboard.press('ArrowRight');
     const hueValue = Number(await hue.getAttribute('aria-valuenow'));
+    await page.clock.install();
     await colorDialog.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.clock.runFor(2500);
     await expect
-      .poll(async () => {
-        const state = await page.evaluate(() =>
-          JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}'),
-        );
-        return state.tree.find(
-          (node: { title?: string }) => node.title === 'Section lifecycle renamed',
-        )?.hue;
-      })
+      .poll(
+        async () => {
+          const state = await page.evaluate(() =>
+            JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}'),
+          );
+          return state.tree.find(
+            (node: { title?: string }) => node.title === 'Section lifecycle renamed',
+          )?.hue;
+        },
+        { intervals: [25, 75, 150], timeout: 1500 },
+      )
       .toBe(hueValue);
 
     await sectionActions.click();
@@ -759,17 +756,23 @@ test(
     const deleteDialog = page.getByRole('dialog', { name: /Delete section\?/i });
     await deleteDialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(sectionActions).toHaveCount(0);
-    const stateAfterDelete = await page.evaluate(() =>
-      JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}'),
-    );
-    expect(stateAfterDelete.tree.map((node: { title?: string }) => node.title)).not.toContain(
-      'Section lifecycle renamed',
-    );
-    expect(
-      Object.values(stateAfterDelete.documents).map(
-        (document: { title: string }) => document.title,
-      ),
-    ).not.toContain('Untitled');
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+            return {
+              sectionExists: state.tree.some(
+                (node: { title?: string }) => node.title === 'Section lifecycle renamed',
+              ),
+              untitledDocuments: Object.values(state.documents).filter(
+                (document: { title: string }) => document.title === 'Untitled',
+              ).length,
+            };
+          }),
+        { intervals: [25, 75, 150], timeout: 1500 },
+      )
+      .toEqual({ sectionExists: false, untitledDocuments: 0 });
   },
 );
 

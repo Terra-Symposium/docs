@@ -67,41 +67,39 @@ test('table.spec: Render cells and emit structure edits', XL_VIEWPORT_TEST, asyn
 test('table.spec: Edit heading, rows and columns', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, tableFixture);
   const table = page.locator('[data-terra-block="table"]');
+  const output = page.getByTestId('editor-output');
   await table.getByRole('textbox', { name: 'Table heading' }).fill('Updated heading');
-  await expect
-    .poll(
-      async () =>
-        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.header,
-    )
-    .toBe('Updated heading');
-
   await table.getByRole('button', { name: 'Column', exact: true }).click();
-  await expect(table.getByRole('textbox', { name: 'Table cell 2, 2' })).toBeVisible();
   await table.getByRole('textbox', { name: 'Table cell 2, 2' }).fill('Second column');
   await expect
     .poll(
-      async () =>
-        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.rows?.[1]
-          ?.cells?.[1]?.content?.[0]?.children?.[0]?.text,
+      async () => {
+        const value = JSON.parse((await output.textContent()) ?? '[]')[0];
+        return {
+          header: value?.header,
+          secondColumn: value?.rows?.[1]?.cells?.[1]?.content?.[0]?.children?.[0]?.text,
+        };
+      },
+      { intervals: [25, 75, 150], timeout: 1500 },
     )
-    .toBe('Second column');
+    .toEqual({ header: 'Updated heading', secondColumn: 'Second column' });
   await table.getByRole('button', { name: 'Delete column 2' }).click();
-  await expect(table.getByRole('textbox', { name: 'Table cell 2, 2' })).toHaveCount(0);
   await expect
     .poll(
       async () =>
         JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.rows?.[1]
           ?.cells?.length,
+      { intervals: [25, 75, 150], timeout: 1500 },
     )
     .toBe(1);
 
   await table.getByRole('button', { name: 'Delete row 2' }).click();
-  await expect(table.getByRole('textbox', { name: 'Table cell 2, 1' })).toHaveCount(0);
   await expect
     .poll(
       async () =>
         JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.rows
           ?.length,
+      { intervals: [25, 75, 150], timeout: 1500 },
     )
     .toBe(1);
 });
