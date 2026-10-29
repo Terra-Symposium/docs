@@ -19,18 +19,17 @@ const readOnlyUrls = new Set(
     .filter(Boolean),
 );
 
-const targetUrls = consumerUrls.length ? consumerUrls : [''];
+const targetUrls = consumerUrls.length ? consumerUrls : ['http://127.0.0.1:4336/workspace-demo/'];
 
 for (const targetUrl of targetUrls) {
-  const label = targetUrl
-    ? new URL(targetUrl).host + new URL(targetUrl).pathname
-    : 'no URL supplied';
+  const label =
+    targetUrl === 'http://127.0.0.1:4336/workspace-demo/'
+      ? 'local packaged workspace'
+      : new URL(targetUrl).host + new URL(targetUrl).pathname;
   test(
-    `installed Docs consumer preserves the shared workspace contract: ${label}`,
+    `packaged Docs consumer preserves the shared workspace contract: ${label}`,
     XL_VIEWPORT_TEST,
     async ({ page }) => {
-      test.skip(!targetUrl, 'Set DOCS_CONSUMER_URLS to one or more installed Docs host URLs.');
-
       const browserErrors: string[] = [];
       page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
       page.on('console', (message) => {

@@ -22,6 +22,7 @@ const nodesFixture = [
         _type: 'node',
         id: 'start',
         type: 'terminator',
+        position: { x: 0, y: 0 },
         data: { title: 'Start step' },
       },
       {
@@ -29,6 +30,7 @@ const nodesFixture = [
         _type: 'node',
         id: 'finish',
         type: 'terminator',
+        position: { x: 240, y: 0 },
         data: { title: 'Finish step' },
       },
     ],
@@ -50,10 +52,6 @@ test('nodes.spec: Preserve canvas height', XL_VIEWPORT_TEST, async ({ page }) =>
 });
 
 test('nodes.spec: Render nodes and edges', XL_VIEWPORT_TEST, async ({ page }) => {
-  test.fail(
-    true,
-    'Pinned pre-abstraction Docs also omits Nodes entries without saved positions; retained as a baseline exclusion.',
-  );
   await openEditor(page, nodesFixture);
   const flowchart = page.locator('[data-docs-editor-block="Nodes"]');
   await expect(flowchart).toBeVisible();

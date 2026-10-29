@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { colors } from '@terra-symposium/styling';
-import { DocsLocalWorkspace, TerraDocsWorkspace } from '../lib/index.js';
+import { DocsLocalWorkspace, TerraDocsWorkspace } from '@terra-symposium/docs';
 import {
   createWorkspaceDemoHost,
   createWorkspaceDemoSeed,
