@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { StrictMode, useState } from 'react';
 import { TerraContentEditor } from './terra/editor/TerraContentEditor.js';
 import { configureDocsHost } from '../lib/host-runtime.js';
 import type { DocsHostAdapter, DocsActionOperation } from '../lib/host.js';
@@ -72,17 +72,19 @@ export default function EditorHarness(): JSX.Element {
       ) as unknown[]) ?? [],
   );
   return (
-    <main className="terra-docs-workspace mx-auto min-h-svh max-w-5xl p-6">
-      <TerraContentEditor
-        content={content}
-        {...(options.attachments ? { docsAttachments: options.attachments } : {})}
-        {...(options.blocks ? { blocks: options.blocks } : {})}
-        readOnly={readOnly}
-        onChange={(value) => setContent(value)}
-      />
-      <pre data-testid="editor-output" className="sr-only">
-        {JSON.stringify(content)}
-      </pre>
-    </main>
+    <StrictMode>
+      <main className="terra-docs-workspace mx-auto min-h-svh max-w-5xl p-6">
+        <TerraContentEditor
+          content={content}
+          {...(options.attachments ? { docsAttachments: options.attachments } : {})}
+          {...(options.blocks ? { blocks: options.blocks } : {})}
+          readOnly={readOnly}
+          onChange={(value) => setContent(value)}
+        />
+        <pre data-testid="editor-output" className="sr-only">
+          {JSON.stringify(content)}
+        </pre>
+      </main>
+    </StrictMode>
   );
 }

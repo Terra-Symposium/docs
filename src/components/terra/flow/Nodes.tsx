@@ -289,6 +289,11 @@ export function NoteNode({
           selected && NODE_CLASS.selected,
         )}
       >
+        <Handles
+          editable={data.editable === true}
+          sources={data.requiredHandles?.sources ?? []}
+          tgts={data.requiredHandles?.tgts ?? []}
+        />
         <svg width="0" height="0" className="absolute">
           <defs>
             <clipPath id={`sticky-${id}`} clipPathUnits="objectBoundingBox">

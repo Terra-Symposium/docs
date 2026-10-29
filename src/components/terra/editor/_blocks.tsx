@@ -25,11 +25,15 @@ import { Button } from '@terra-symposium/styling/ui/terra-original';
 import { Card, CardContent, CardHeader } from '@terra-symposium/styling/ui/terra-original';
 import { ErrorBoundary } from '../ui.js';
 import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Tabs, TabsList, TabsTrigger } from '@terra-symposium/styling/ui/terra-original';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@terra-symposium/styling/ui/terra-original';
 
 // TYPES
 import type { ReactElement, ReactNode } from 'react';
-import * as TerraQualityRegex from '../../../lib/terra/regex.mjs';
 
 /*//////////////////////////////////////////////////
 CONFIG
@@ -77,42 +81,55 @@ export const TabsGroup = ({
   return (
     <ErrorBoundary name="TabsGroup">
       <div className={cn('rounded-sm', FOCUS_RING.block)}>
-        <Card className="!my-0 !rounded-sm bg-transparent">
-          {items.length > 0 && (
-            <CardHeader className={TABS.head}>
-              <EditorTabsList
-                tabs={items.map((i, v) => ({
-                  value: `${v}`,
-                  title: i.props.title || `Tab ${v + 1}`,
-                }))}
-                value={a}
-                onValueChange={setActive}
-                {...(onAdd ? { onAdd } : {})}
-                {...(onDelete
-                  ? {
-                      onDelete: (val) => {
-                        onDelete(Number(val));
-                      },
-                    }
-                  : {})}
-                {...(onRename
-                  ? {
-                      onRename: (val, title) => {
-                        onRename(Number(val), title);
-                      },
-                    }
-                  : {})}
-              />
-            </CardHeader>
-          )}
-          <CardContent className={TABS.body}>
-            {items.map((i, v) => (
-              <div key={v} className={cn(a === `${v}` ? 'block' : 'hidden', 'editor-block-copy')}>
-                {i.props.children}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <Tabs value={a} onValueChange={setActive}>
+          <Card className="!my-0 !rounded-sm bg-transparent">
+            {items.length > 0 && (
+              <CardHeader className={TABS.head}>
+                <EditorTabsList
+                  tabs={items.map((i, v) => ({
+                    value: `${v}`,
+                    title: i.props.title || `Tab ${v + 1}`,
+                  }))}
+                  value={a}
+                  {...(onAdd ? { onAdd } : {})}
+                  {...(onDelete
+                    ? {
+                        onDelete: (val) => {
+                          const deletedIndex = Number(val);
+                          const activeIndex = Number(a);
+                          const nextLength = items.length - 1;
+                          onDelete(deletedIndex);
+                          if (deletedIndex < activeIndex) setActive(String(activeIndex - 1));
+                          else if (deletedIndex === activeIndex && nextLength > 0) {
+                            setActive(String(Math.min(deletedIndex, nextLength - 1)));
+                          }
+                        },
+                      }
+                    : {})}
+                  {...(onRename
+                    ? {
+                        onRename: (val, title) => {
+                          onRename(Number(val), title);
+                        },
+                      }
+                    : {})}
+                />
+              </CardHeader>
+            )}
+            <CardContent className={TABS.body}>
+              {items.map((i, v) => (
+                <TabsContent
+                  forceMount
+                  key={v}
+                  value={`${v}`}
+                  className="!m-0 data-[state=inactive]:hidden editor-block-copy"
+                >
+                  {i.props.children}
+                </TabsContent>
+              ))}
+            </CardContent>
+          </Card>
+        </Tabs>
       </div>
     </ErrorBoundary>
   );
@@ -168,10 +185,7 @@ export const AccordionItem = ({
   const id = useId();
   return (
     <ErrorBoundary name="AccordionItem">
-      <AccordionPrimitiveItem
-        value={title.replace(TerraQualityRegex.REGEX_S_G_REGEX(), '-').toLowerCase() || id}
-        className="first:border-0 [&>*]:!my-0"
-      >
+      <AccordionPrimitiveItem value={id} className="first:border-0 [&>*]:!my-0">
         {onRename || onDelete ? (
           <div className="flex w-full items-center gap-1.5 px-4 py-1">
             {onRename ? (
@@ -231,7 +245,6 @@ COMPONENTS
 export function EditorTabsList({
   tabs,
   value: a,
-  onValueChange: onValChange,
   onRename,
   onDelete,
   onAdd,
@@ -239,7 +252,6 @@ export function EditorTabsList({
   onAdd?: () => void;
   onDelete?: (val: string) => void;
   onRename?: (val: string, title: string) => void;
-  onValueChange: (val: string) => void;
   tabs: {
     fallback?: string;
     title: string;
@@ -249,64 +261,56 @@ export function EditorTabsList({
 }): React.JSX.Element {
   return (
     <ErrorBoundary name="EditorTabsList">
-      <Tabs value={a} onValueChange={onValChange}>
-        <TabsList className="mb-0 inline-flex w-full items-center justify-start gap-0 overflow-x-auto">
-          {tabs.map((t) => (
-            <TabsTrigger key={t.value} value={t.value} asChild>
-              {/* intermediate level necessary because <button> cannot be a descendant of <button> */}
-              <div
-                className={cn(
-                  'group flex min-w-32 items-center gap-1 border-none px-2 py-1 font-bold',
-                  t.value === a && 'bg-primary-3',
-                )}
-              >
-                {onRename ? (
-                  <Input
-                    value={t.title || t.fallback || 'Untitled'}
-                    onChange={(e) => {
-                      onRename(t.value, e.target.value);
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="h-7 border-0 bg-transparent px-1 text-sm font-bold shadow-none focus-visible:ring-0"
-                    aria-label="Tab title"
-                  />
-                ) : (
-                  <strong className="px-1 text-sm font-bold">
-                    {t.title || t.fallback || 'Untitled'}
-                  </strong>
-                )}
-                {onDelete && tabs.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-6 opacity-60 hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(t.value);
-                    }}
-                    aria-label={`Delete tab ${t.title || t.fallback || 'Untitled'}`}
-                  >
-                    <CloseIcon className="size-3" aria-hidden="true" />
-                  </Button>
-                )}
-              </div>
-            </TabsTrigger>
-          ))}
-          {onAdd && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onAdd}
-              aria-label="Add tab"
-              className="h-7"
+      <TabsList className="mb-0 inline-flex w-full items-center justify-start gap-0 overflow-x-auto">
+        {tabs.map((t) => (
+          <TabsTrigger key={t.value} value={t.value} asChild>
+            {/* intermediate level necessary because <button> cannot be a descendant of <button> */}
+            <div
+              className={cn(
+                'group flex min-w-32 items-center gap-1 border-none px-2 py-1 font-bold',
+                t.value === a && 'bg-primary-3',
+              )}
             >
-              <AddIcon className="size-4" aria-hidden="true" />
-            </Button>
-          )}
-        </TabsList>
-      </Tabs>
+              {onRename ? (
+                <Input
+                  value={t.title || t.fallback || 'Untitled'}
+                  onChange={(e) => {
+                    onRename(t.value, e.target.value);
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  className="h-7 border-0 bg-transparent px-1 text-sm font-bold shadow-none focus-visible:ring-0"
+                  aria-label="Tab title"
+                />
+              ) : (
+                <strong className="px-1 text-sm font-bold">
+                  {t.title || t.fallback || 'Untitled'}
+                </strong>
+              )}
+              {onDelete && tabs.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 opacity-60 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(t.value);
+                  }}
+                  aria-label={`Delete tab ${t.title || t.fallback || 'Untitled'}`}
+                >
+                  <CloseIcon className="size-3" aria-hidden="true" />
+                </Button>
+              )}
+            </div>
+          </TabsTrigger>
+        ))}
+        {onAdd && (
+          <Button variant="ghost" size="icon" onClick={onAdd} aria-label="Add tab" className="h-7">
+            <AddIcon className="size-4" aria-hidden="true" />
+          </Button>
+        )}
+      </TabsList>
     </ErrorBoundary>
   );
 }

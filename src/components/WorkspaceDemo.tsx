@@ -137,7 +137,11 @@ export default function WorkspaceDemo({
     <TerraDocsWorkspace
       tree={routedWorkspaceTree(state, false)}
       host={host}
-      pathname={routeForWorkspaceDocument(state, selectedDocument.id)}
+      pathname={
+        location !== WORKSPACE_DEMO_PATH
+          ? location
+          : routeForWorkspaceDocument(state, selectedDocument.id)
+      }
       permission="write"
       path={selectedDocument.path}
       title={selectedDocument.title}

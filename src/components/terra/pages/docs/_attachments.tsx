@@ -118,8 +118,18 @@ const latestContent = (content: unknown): string => {
  *
  * @param sis - Attachment records to normalize for the Docs editor.
  */
-const textAsset = (sis: Sister): boolean =>
-  /\.(?:csv|json|log|md|mdx|text|txt|xml|ya?ml)$/i.test(sis.name || sis.path.split('?')[0] || '');
+const textAsset = (sis: Sister): boolean => {
+  const extension = /\.(?:csv|json|log|md|mdx|text|txt|xml|ya?ml)(?:[?#].*)?$/i;
+  return [sis.name, sis.title, sis.path].some(
+    (candidate) => typeof candidate === 'string' && extension.test(candidate.trim()),
+  );
+};
+
+const attachmentUrl = (attachmentPath: string, documentPath: string): string => {
+  if (!/^(?:\.\.?(?:\/|$))/.test(attachmentPath)) return attachmentPath;
+  const basePath = documentPath.startsWith('/') ? documentPath : `/${documentPath}`;
+  return new URL(attachmentPath, new URL(basePath, window.location.origin)).toString();
+};
 
 /*//////////////////////////////////////////////////
 COMPONENTS
@@ -282,12 +292,12 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
    * @param sis - Attachment records being filtered for the active document.
    */
   const viewAsset = async (sis: Sister): Promise<void> => {
-    if (!textAsset(sis) || !sis.path.startsWith('http')) {
+    if (!textAsset(sis) || !sis.path || sis.path.startsWith('temp-')) {
       setViewDlg(sis);
       return;
     }
     try {
-      const res = await fetch(sis.path);
+      const res = await fetch(attachmentUrl(sis.path, dPath));
       if (!res.ok) throw new Error(`Attachment preview failed (${res.status}).`);
       setViewDlg({ ...sis, content: await res.text() });
     } catch (err) {

@@ -442,10 +442,15 @@ export default (function Nav({
     delTargetPresent: !!delTgt,
   });
 
-  // Sync viewed section with URL on navigation
+  // Keep both the active tree route and section selector aligned with host
+  // navigation. Repository adapters can route every page through `/#id`, so
+  // parsing the cached cPathname can temporarily resolve the previous section.
+  // Resolve the incoming pathname itself before updating both pieces of state.
   useEffect(() => {
-    if (urlIds.sectionId) setViewedSecId(urlIds.sectionId);
-  }, [urlIds.sectionId]);
+    const currentRoute = route(pathname || '');
+    setCPathname(currentRoute.pathname);
+    if (currentRoute.sectionId) setViewedSecId(currentRoute.sectionId);
+  }, [pathname]);
   const sects = useMemo(() => {
     let s = Array.isArray(tree) ? tree.filter((d): d is Branch => d.type === 'branch') : [];
     // 1. Deduplicate by origName to prevent React key collisions and redundant entries
@@ -510,9 +515,6 @@ export default (function Nav({
       prevTree.current = items;
     }
   }, [items]);
-  useEffect(() => {
-    setCPathname(route(pathname).pathname);
-  }, [pathname]);
   const refreshTree = useCallback(async (): Promise<void> => {
     try {
       const { data, error: err } = (await actions.read.doc.list({

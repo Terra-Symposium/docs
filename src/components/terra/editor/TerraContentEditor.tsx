@@ -7,6 +7,7 @@ import {
   useEditor,
   useEditorSelector,
 } from '@portabletext/editor';
+import * as selectors from '@portabletext/editor/selectors';
 import { createElement, useEffect, useRef, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import type { PortableTextBlock } from '@portabletext/editor';
@@ -258,6 +259,40 @@ function renderTextStyle(style: unknown, children: ReactNode, readOnly: boolean)
   return <p>{children}</p>;
 }
 
+function OrderedListItem({
+  block,
+  children,
+  level,
+}: {
+  block: PortableTextBlock;
+  children: ReactNode;
+  level: number;
+}): JSX.Element {
+  const editor = useEditor();
+  const value = useEditorSelector(editor, selectors.getValue);
+  const index = value.findIndex((candidate) => candidate._key === block._key);
+  let start = 1;
+  if (index >= 0) {
+    for (let cursor = index - 1; cursor >= 0; cursor--) {
+      const previous = value[cursor];
+      if (!previous?.listItem) break;
+      const previousLevel = Number(previous.level ?? 1);
+      if (previousLevel < level) break;
+      if (previousLevel > level) continue;
+      if (previous.listItem !== 'number') break;
+      start++;
+    }
+  }
+
+  return (
+    <ol className="list-decimal" start={start}>
+      <li data-level={level} data-list-item="number">
+        {children}
+      </li>
+    </ol>
+  );
+}
+
 function TerraTextBlock({ attributes, children, node, readOnly }: any): JSX.Element {
   const content = renderTextStyle(node.style, children, readOnly);
   if (!node.listItem)
@@ -266,17 +301,18 @@ function TerraTextBlock({ attributes, children, node, readOnly }: any): JSX.Elem
         {content}
       </div>
     );
-  const item = (
-    <li data-level={node.level ?? 1} data-list-item={node.listItem}>
-      {content}
-    </li>
-  );
   return (
     <div {...attributes} data-level={node.level ?? 1} data-list-item={node.listItem}>
       {node.listItem === 'number' ? (
-        <ol className="list-decimal">{item}</ol>
+        <OrderedListItem block={node} level={node.level ?? 1}>
+          {content}
+        </OrderedListItem>
       ) : (
-        <ul className="list-disc">{item}</ul>
+        <ul className="list-disc">
+          <li data-level={node.level ?? 1} data-list-item={node.listItem}>
+            {content}
+          </li>
+        </ul>
       )}
     </div>
   );
@@ -422,14 +458,16 @@ export function TerraContentEditor({
                 aria-readonly={readOnly || undefined}
                 className={`terra-docs-content ${TERRA_CONTENT_PROSE_CLASS} outline-none`}
                 contentEditable={!readOnly}
-                renderListItem={({ children, level, value }) => {
+                renderListItem={({ block, children, level, value }) => {
                   const item = (
                     <li data-level={level} data-list-item={value}>
                       {children}
                     </li>
                   );
                   return value === 'number' ? (
-                    <ol className="list-decimal">{item}</ol>
+                    <OrderedListItem block={block} level={level}>
+                      {children}
+                    </OrderedListItem>
                   ) : (
                     <ul className="list-disc">{item}</ul>
                   );

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 const expectedDocsVersion = (
   JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
@@ -641,6 +642,59 @@ test('Uni hash routes preserve each leaf title and do not rename other index pag
   await expect(page.getByRole('link', { name: 'Java', exact: true }).first()).toBeVisible();
   expect(new URL(page.url()).pathname).toBe('/');
   expect(new URL(page.url()).hash).toBe(`#${pythonId}`);
+
+  // Choosing a different TOC section is a view filter; the current page route
+  // remains in Programming. When host navigation then changes to another
+  // Programming leaf, both the active leaf and the section selector must
+  // follow the incoming hash instead of retaining the temporary filter.
+  const section = page.getByRole('combobox', { name: 'Section' });
+  await section.click();
+  await page.getByRole('option', { name: 'Professional', exact: true }).click();
+  await expect(section).toContainText('Professional');
+  await page.evaluate((id) => {
+    window.location.hash = `#${id}`;
+  }, javaId);
+  await expect(page.locator('#docs-title')).toHaveValue('Java');
+  await expect(section).toContainText('Programming');
+  await expect(page.getByRole('link', { name: 'Languages', exact: true })).toBeVisible();
+});
+
+test('Uni local text attachments open with the adjacent file content', async ({ page }) => {
+  test.skip(!uniUrl || !uniTocPath, 'Set the Uni consumer URL and TOC path.');
+  const sections = JSON.parse(readFileSync(uniTocPath, 'utf8')) as Array<{
+    groups?: Array<{
+      leaves?: Array<{
+        id: string;
+        path: string;
+        title: string;
+        attachments?: Array<{ name: string; path: string }>;
+      }>;
+    }>;
+  }>;
+  const leaf = sections
+    .flatMap((section) => section.groups ?? [])
+    .flatMap((group) => group.leaves ?? [])
+    .find(
+      (candidate) =>
+        candidate.title === 'C++ Basics' &&
+        candidate.attachments?.some((item) => item.name.endsWith('.txt')),
+    );
+  expect(leaf, 'C++ Basics should retain its local lecture-note attachments').toBeTruthy();
+  const attachment = leaf!.attachments!.find((item) => item.name.endsWith('.txt'))!;
+  const repoRoot = resolve(dirname(uniTocPath), '..');
+  const filePath = resolve(dirname(resolve(repoRoot, leaf!.path)), attachment.path);
+  const source = readFileSync(filePath, 'utf8');
+  expect(source.trim().length).toBeGreaterThan(20);
+
+  const url = new URL(`/?mode=attachments#${encodeURIComponent(leaf!.id)}`, uniUrl);
+  await page.goto(url.toString(), { waitUntil: 'networkidle' });
+  await expect(page.locator('[data-docs-attachments]')).toHaveAttribute('data-loading', 'false');
+  const card = page.getByRole('button', { name: `Attachment ${attachment.name}`, exact: true });
+  await expect(card).toBeVisible();
+  await card.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText(attachment.name);
+  await expect(dialog.locator('.docs-code-block')).toContainText(source.trim().slice(0, 120));
 });
 
 for (const targetUrl of protectedUrls) {

@@ -66,11 +66,7 @@ function NodesRenderer(props: NodesProps & { className?: string }): JSX.Element 
           nodes={decodeNodesPayload(rawNodes).filter((n): n is FlowNode => {
             if (!n || typeof n !== 'object') return false;
             const val = n as Record<string, unknown>;
-            return (
-              typeof val.id === 'string' &&
-              Boolean(val.data && typeof val.data === 'object') &&
-              Boolean(val.position && typeof val.position === 'object')
-            );
+            return typeof val.id === 'string' && Boolean(val.data && typeof val.data === 'object');
           })}
           edges={decodeNodesPayload(rawEdges).filter((e): e is Edge => {
             if (!e || typeof e !== 'object') return false;

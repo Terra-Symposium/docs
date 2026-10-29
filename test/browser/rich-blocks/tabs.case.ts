@@ -33,10 +33,23 @@ const tabsFixture = [
 test('tabs.spec: Switch tabs and emit structure edits', async ({ page }) => {
   await openEditor(page, tabsFixture);
   const tabs = page.locator('[data-terra-block="tabs"]');
-  await expect(tabs.getByText('First explanation')).toBeVisible();
-  await tabs.getByRole('tab', { name: 'Second topic' }).click();
-  await expect(tabs.getByText('Second explanation')).toBeVisible();
-  await expect(tabs.getByText('First explanation')).toBeHidden();
+  const firstTab = tabs.getByRole('tab', { name: 'First topic' });
+  const firstPanelId = await firstTab.getAttribute('aria-controls');
+  expect(firstPanelId).toBeTruthy();
+  const firstPanel = tabs.locator(`[role="tabpanel"][id="${firstPanelId}"]`);
+  await expect(firstPanel).toBeVisible();
+  await expect(firstPanel.getByText('First explanation')).toBeVisible();
+
+  const secondTab = tabs.getByRole('tab', { name: 'Second topic' });
+  const secondPanelId = await secondTab.getAttribute('aria-controls');
+  expect(secondPanelId).toBeTruthy();
+  const secondPanel = tabs.locator(`[role="tabpanel"][id="${secondPanelId}"]`);
+  await secondTab.click();
+  await expect(secondPanel).toBeVisible();
+  await expect(secondPanel.getByText('Second explanation')).toBeVisible();
+  await expect(firstPanel).toBeHidden();
+  await expect(firstTab).toHaveAttribute('aria-selected', 'false');
+  await expect(secondTab).toHaveAttribute('aria-selected', 'true');
 
   await tabs.getByRole('button', { name: 'Add tab' }).click();
   await expect
@@ -62,6 +75,20 @@ test('tabs.spec: Switch tabs and emit structure edits', async ({ page }) => {
           ?.length,
     )
     .toBe(2);
+
+  await tabs.getByRole('button', { name: 'Delete tab Second topic' }).click();
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items
+          ?.length,
+    )
+    .toBe(1);
+  await expect(tabs.getByRole('tab', { name: 'First topic' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(tabs.getByText('First explanation')).toBeVisible();
 });
 
 test('tabs.spec: Emit active tab edits', async ({ page }) => {

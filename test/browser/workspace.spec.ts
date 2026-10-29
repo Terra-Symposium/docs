@@ -69,6 +69,132 @@ test('standalone Astro pages mount the extracted read-only workspace with their 
   await expect(page.getByRole('textbox', { name: 'Title' })).toHaveValue('Storage providers');
 });
 
+test('local Markdown thematic breaks render as visible dividers in the Docs workspace', async ({
+  page,
+}) => {
+  await page.addInitScript(
+    (fixture) => {
+      Object.assign(window, { __terraDocsLocalWorkspaceFixture: fixture });
+    },
+    {
+      tree: [
+        {
+          type: 'branch',
+          origName: 'programming',
+          title: 'Programming',
+          path: 'programming',
+          children: [
+            {
+              type: 'leaf',
+              origName: 'divider-page',
+              title: 'Divider page',
+              path: 'programming/divider-page/index.md',
+              url: '/docs/divider-page/',
+            },
+          ],
+        },
+      ],
+      pages: [
+        {
+          id: 'divider-page',
+          path: 'content/programming/divider-page/index.md',
+          pathname: '/docs/divider-page/',
+          title: 'Divider page',
+          markdown: 'Before the rule.\n\n---\n\nAfter the rule.',
+        },
+      ],
+      pathname: '/docs/divider-page/',
+      title: 'Fixture Docs',
+      hue: 145,
+      rootPath: '/docs/',
+      homePath: '/docs/divider-page/',
+    },
+  );
+  await page.goto('/strict-local-workspace-harness/');
+  await waitForWorkspaceReady(page);
+
+  const content = page.locator('[data-docs-view-root]');
+  const divider = content.locator('hr[data-docs-raw-divider]');
+  await expect(divider).toHaveCount(1);
+  await expect(divider).toBeVisible();
+  await expect(content).toContainText('Before the rule.');
+  await expect(content).toContainText('After the rule.');
+  await expect(content.locator('[data-docs-code-block="view"]')).toHaveCount(0);
+});
+
+test('Markdown ordered lists keep consecutive numbering and restart after a paragraph', async ({
+  page,
+}) => {
+  await page.addInitScript(
+    (fixture) => {
+      Object.assign(window, { __terraDocsLocalWorkspaceFixture: fixture });
+    },
+    {
+      tree: [
+        {
+          type: 'branch',
+          origName: 'programming',
+          title: 'Programming',
+          path: 'programming',
+          children: [
+            {
+              type: 'leaf',
+              origName: 'numbered-page',
+              title: 'Numbered page',
+              path: 'programming/numbered-page/index.md',
+              url: '/docs/numbered-page/',
+            },
+          ],
+        },
+      ],
+      pages: [
+        {
+          id: 'numbered-page',
+          path: 'content/programming/numbered-page/index.md',
+          pathname: '/docs/numbered-page/',
+          title: 'Numbered page',
+          markdown: [
+            '## Ordered steps',
+            '',
+            '1. First step',
+            '2. Second step',
+            '3. Third step',
+            '',
+            'A separate paragraph ends the list.',
+            '',
+            '1. A new list starts at one.',
+          ].join('\n'),
+        },
+      ],
+      pathname: '/docs/numbered-page/',
+      title: 'Fixture Docs',
+      hue: 145,
+      rootPath: '/docs/',
+      homePath: '/docs/numbered-page/',
+    },
+  );
+  await page.goto('/strict-local-workspace-harness/');
+  await waitForWorkspaceReady(page);
+
+  const content = page.locator('[data-docs-view-root]');
+  await expect(content.getByText('First step')).toBeVisible();
+  const orderedLists = content.locator('ol');
+  await expect(orderedLists).toHaveCount(4);
+  await expect
+    .poll(() =>
+      orderedLists.evaluateAll((lists) =>
+        lists.map((list) => Number(list.getAttribute('start') ?? 1)),
+      ),
+    )
+    .toEqual([1, 2, 3, 1]);
+  await expect(content.locator('ol li')).toHaveText([
+    'First step',
+    'Second step',
+    'Third step',
+    'A new list starts at one.',
+  ]);
+});
+
 test('shared workspace keeps the Terra header, toolbar position, section navigation, and nested leaf actions', async ({
   page,
 }) => {

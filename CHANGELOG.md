@@ -1,5 +1,105 @@
 # @terra-symposium/docs
 
+## 0.1.58
+
+### Patch Changes
+
+- Preserve ordered-list numbering across Markdown conversion and render thematic breaks as visible dividers in repository-backed pages.
+
+## 0.1.57
+
+### Patch Changes
+
+- Render nested rich blocks inside grouped Markdown with independent parser scopes, and skip YAML parsing for grouped Markdown payloads.
+
+## 0.1.56
+
+### Patch Changes
+
+- Serialize nested callouts with safe deeper Markdown fences, render nested rich blocks recursively, and ignore visually empty Portable Text paragraphs during semantic round-trip checks.
+
+## 0.1.55
+
+### Patch Changes
+
+- Serialize Sanity tables with readable Markdown cells, preserving rich cell content without Portable Text source dumps.
+
+## 0.1.54
+
+### Patch Changes
+
+- Render raw Markdown thematic breaks as visible document dividers instead of source code.
+
+## 0.1.53
+
+### Patch Changes
+
+- Keep the active section and selected leaf synchronized when host navigation changes between repository-backed routes.
+
+## 0.1.52
+
+### Patch Changes
+
+- Preserve Markdown and HTML images as structured content inside table cells while keeping readable table Markdown.
+
+## 0.1.51
+
+### Patch Changes
+
+- Preview local text attachments by recognizing their display names and resolving adjacent file paths from the owning document.
+
+## 0.1.50
+
+### Patch Changes
+
+- Preserve multiline inline-code marks in readable Markdown tables.
+
+## 0.1.49
+
+### Patch Changes
+
+- Keep nested grouped content readable in Markdown when its blocks round-trip faithfully, preserve plain emails and URLs in table cells without auto-linking them, and serialize multi-paragraph plain-text cells as readable tables.
+
+## 0.1.48
+
+### Patch Changes
+
+- Keep nested accordion and tab content readable as Markdown when its rich blocks can be represented faithfully, and prevent plain table-cell emails and URLs from becoming unintended links.
+
+## 0.1.47
+
+### Patch Changes
+
+- Serialize structured Docs content as readable YAML directives when ordinary Markdown would lose source fields, and render Portable Text fallback blocks as document content.
+
+## 0.1.46
+
+### Patch Changes
+
+- Preserve table cells with nested Portable Text as rich table blocks when plain GFM would lose their structure, and keep overlapping inline marks lossless when Markdown delimiters are ambiguous.
+
+## 0.1.45
+
+### Patch Changes
+
+- Associate tab panels with their triggers, hide inactive panels, and keep duplicate-title accordion items independent.
+
+## 0.1.44
+
+### Patch Changes
+
+- Skip compound-group and self-loop edges in Dagre's position-only graph so authored diagram edges and nodes continue to render.
+- Convert YouTube watch URLs into player URLs that can render in an iframe, preserving any requested start time.
+
+## 0.1.43
+
+### Patch Changes
+
+- Import canonical Terra Docs JSX blocks from exported Markdown and preserve adjacent legacy code blocks.
+- 37dcac9: Add a host content slot to the local workspace for interactive page content.
+- 37dcac9: Apply the shared hue palette to standalone remote Docs hosts so system and explicit dark themes work consistently.
+- 37dcac9: Fit long document titles to the available header width.
+
 ## 0.1.37
 
 ### Patch Changes

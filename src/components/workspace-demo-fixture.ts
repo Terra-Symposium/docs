@@ -495,11 +495,11 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
       const requestedSection = url.searchParams.get('section');
       const requestedGroup = url.searchParams.get('group');
       const requestedDocument = requestedLeaf ? findDocument(state, requestedLeaf) : undefined;
-      const requestedBranch = requestedGroup
-        ? findNode(state.tree, requestedGroup)?.node
-        : requestedSection
-          ? findNode(state.tree, requestedSection)?.node
-          : undefined;
+      const requestedSectionMatch = requestedSection
+        ? findNode(state.tree, requestedSection)
+        : undefined;
+      const requestedGroupMatch = requestedGroup ? findNode(state.tree, requestedGroup) : undefined;
+      const requestedBranch = requestedGroupMatch?.node ?? requestedSectionMatch?.node;
       const firstLeaf = (node: DocsHostTreeNode | undefined): WorkspaceDemoDocument | undefined => {
         if (!node) return undefined;
         if (node.type === 'leaf') return state.documents[node.origName];
@@ -515,8 +515,19 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
         state.documents.salesphere ??
         Object.values(state.documents)[0];
       const position = document ? sectionForLeaf(state, document.id) : { sectionId: 'overview' };
-      const sectionId = position.sectionId;
-      const groupId = position.groupId;
+      const requestedGroupAncestors = (requestedGroupMatch?.ancestors ?? []).filter(
+        (node) => node.type === 'branch',
+      );
+      const sectionId = requestedDocument
+        ? position.sectionId
+        : requestedSectionMatch?.node.type === 'branch'
+          ? requestedSectionMatch.node.origName
+          : (requestedGroupAncestors[0]?.origName ?? position.sectionId);
+      const groupId = requestedDocument
+        ? position.groupId
+        : requestedGroupMatch?.node.type === 'branch' && requestedGroupAncestors.length > 0
+          ? requestedGroupMatch.node.origName
+          : undefined;
       const leafId = document?.id;
       return {
         sectionId,

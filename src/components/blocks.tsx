@@ -3,7 +3,7 @@ import { useState } from 'react';
 import katex from 'katex';
 import { docsValueToMarkdown } from '../lib/markdown-model.js';
 import { renderMarkdown } from '../lib/markdown.js';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import type { Path } from '@portabletext/editor';
 
 /** The portable Docs members. A host can disable any member without changing stored data. */
@@ -129,6 +129,76 @@ function safeUrl(value: unknown): string | undefined {
     return undefined;
   }
 }
+
+function renderPortableTextChild(
+  child: unknown,
+  markDefinitions: Map<string, Record<string, unknown>>,
+  key: string,
+): JSX.Element | string | null {
+  if (!child || typeof child !== 'object') return null;
+  const member = child as Record<string, unknown>;
+  if (member._type === 'math') return <DocsRichBlock key={key} block={member as RichBlock} />;
+  if (member._type !== 'span') return null;
+
+  const textValue = typeof member.text === 'string' ? member.text : '';
+  let node: ReactNode = textValue
+    .split('\n')
+    .flatMap((line, index) => (index ? [<br key={`${key}-br-${index}`} />, line] : [line]));
+  const marks = Array.isArray(member.marks) ? member.marks : [];
+  for (const mark of marks) {
+    if (typeof mark !== 'string') continue;
+    if (mark === 'strong') node = <strong key={`${key}-strong`}>{node}</strong>;
+    else if (mark === 'em') node = <em key={`${key}-em`}>{node}</em>;
+    else if (mark === 'underline') node = <u key={`${key}-underline`}>{node}</u>;
+    else if (mark === 'strike-through') node = <del key={`${key}-strike`}>{node}</del>;
+    else if (mark === 'code') node = <code key={`${key}-code`}>{node}</code>;
+    else {
+      const definition = markDefinitions.get(mark);
+      const href = safeUrl(definition?.href);
+      if (href)
+        node = (
+          <a key={`${key}-link`} href={href}>
+            {node}
+          </a>
+        );
+    }
+  }
+  return <span key={key}>{node}</span>;
+}
+
+function PortableTextBlockView({ block }: { block: RichBlock }): JSX.Element {
+  const style = typeof block.style === 'string' ? block.style : 'normal';
+  const Tag = /^h[2-6]$/.test(style)
+    ? (style as 'h2' | 'h3' | 'h4' | 'h5' | 'h6')
+    : style === 'blockquote'
+      ? 'blockquote'
+      : 'p';
+  const definitions = Array.isArray(block.markDefs) ? block.markDefs : [];
+  const markDefinitions = new Map(
+    definitions.flatMap((item) =>
+      item && typeof item === 'object' && typeof item._key === 'string'
+        ? [[item._key, item as Record<string, unknown>] as const]
+        : [],
+    ),
+  );
+  const children = Array.isArray(block.children) ? block.children : [];
+  const rendered = children.map((child, index) =>
+    renderPortableTextChild(child, markDefinitions, `portable-${index}`),
+  );
+  if (block.listItem === 'bullet')
+    return (
+      <ul>
+        <li>{rendered}</li>
+      </ul>
+    );
+  if (block.listItem === 'number')
+    return (
+      <ol>
+        <li>{rendered}</li>
+      </ol>
+    );
+  return <Tag>{rendered}</Tag>;
+}
 function nestedMarkdown(value: unknown): string {
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return docsValueToMarkdown(value as never).trimEnd();
@@ -221,6 +291,9 @@ function Diagram({ block }: { block: RichBlock }): JSX.Element {
 export function DocsRichBlock({ block }: { block: RichBlock }): JSX.Element {
   const items = Array.isArray(block.items) ? (block.items as Record<string, unknown>[]) : [];
   switch (block._type) {
+    case 'block':
+    case 'terraBlock':
+      return <PortableTextBlockView block={block} />;
     case 'accordion':
       return (
         <div className="terra-docs-accordions">

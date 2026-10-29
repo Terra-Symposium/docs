@@ -57,3 +57,15 @@ test('code.spec: Preserve entered newlines', async ({ page }) => {
     )
     .toBe('const answer = 1;\nconst answer = 2;');
 });
+
+test('code.spec: Preserve literal backslash-n in read-only source', async ({ page }) => {
+  const value = 'std::cout << "Hello World\\n";\nstd::cout << "second line";';
+  await openEditor(page, [{ _key: 'literal-newline', _type: 'code', language: 'cpp', value }], {
+    readOnly: true,
+  });
+
+  const lines = page.locator('[data-docs-code-block="view"] .docs-code-block-fallback-line > span');
+  await expect(lines).toHaveCount(2);
+  await expect(lines.nth(0)).toHaveText('std::cout << "Hello World\\n";');
+  await expect(lines.nth(1)).toHaveText('std::cout << "second line";');
+});

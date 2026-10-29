@@ -32,6 +32,56 @@ const accordionFixture = [
     ],
   },
 ] satisfies TerraContent;
+const repeatedTitleAccordionFixture = [
+  {
+    _key: 'repeated-title-accordion',
+    _type: 'accordion',
+    items: [
+      {
+        _key: 'first-challenges',
+        _type: 'item',
+        title: 'Challenges',
+        content: [
+          {
+            _key: 'first-challenge-body',
+            _type: 'terraBlock',
+            style: 'normal',
+            markDefs: [],
+            children: [
+              {
+                _key: 'first-challenge-span',
+                _type: 'span',
+                marks: [],
+                text: 'First challenge body',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        _key: 'second-challenges',
+        _type: 'item',
+        title: 'Challenges',
+        content: [
+          {
+            _key: 'second-challenge-body',
+            _type: 'terraBlock',
+            style: 'normal',
+            markDefs: [],
+            children: [
+              {
+                _key: 'second-challenge-span',
+                _type: 'span',
+                marks: [],
+                text: 'Second challenge body',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+] satisfies TerraContent;
 
 test('accordion.spec: Expand sections and emit structure edits', async ({ page }) => {
   await openEditor(page, accordionFixture);
@@ -63,6 +113,39 @@ test('accordion.spec: Expand sections and emit structure edits', async ({ page }
           ?.length,
     )
     .toBe(1);
+});
+
+test('accordion.spec: Repeated titles keep independent panels', async ({ page }) => {
+  await openEditor(page, repeatedTitleAccordionFixture);
+  const accordion = page.locator('[data-terra-block="accordion"]');
+  const triggers = accordion.getByRole('button', { name: 'Toggle Challenges' });
+  await expect(triggers).toHaveCount(2);
+
+  const first = triggers.nth(0);
+  const second = triggers.nth(1);
+  const firstId = await first.getAttribute('id');
+  const secondId = await second.getAttribute('id');
+  expect(firstId).toBeTruthy();
+  expect(secondId).toBeTruthy();
+  expect(firstId).not.toBe(secondId);
+  const firstPanel = accordion.locator(`[role="region"][aria-labelledby="${firstId}"]`);
+  const secondPanel = accordion.locator(`[role="region"][aria-labelledby="${secondId}"]`);
+  await expect(firstPanel).toHaveCount(1);
+  await expect(secondPanel).toHaveCount(1);
+
+  await first.click();
+  await expect(first).toHaveAttribute('aria-expanded', 'true');
+  await expect(second).toHaveAttribute('aria-expanded', 'false');
+  await expect(firstPanel).toHaveAttribute('data-state', 'open');
+  await expect(secondPanel).toHaveAttribute('data-state', 'closed');
+  await expect(firstPanel.getByText('First challenge body')).toBeVisible();
+
+  await second.click();
+  await expect(first).toHaveAttribute('aria-expanded', 'false');
+  await expect(second).toHaveAttribute('aria-expanded', 'true');
+  await expect(firstPanel).toHaveAttribute('data-state', 'closed');
+  await expect(secondPanel).toHaveAttribute('data-state', 'open');
+  await expect(secondPanel.getByText('Second challenge body')).toBeVisible();
 });
 
 test('accordion.spec: Emit nested content edits', async ({ page }) => {
