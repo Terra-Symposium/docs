@@ -19,7 +19,10 @@ import { TerraContentEditor } from '../TerraContentEditor.js';
 
 // TYPES
 import type { DocsBlock } from '../types.js';
-import type { TerraContent as TerraContentData, TsDocsItem } from '../../../../lib/terra/runtime/types.js';
+import type {
+  TerraContent as TerraContentData,
+  TsDocsItem,
+} from '../../../../lib/terra/runtime/types.js';
 
 /*//////////////////////////////////////////////////
 HELPERS

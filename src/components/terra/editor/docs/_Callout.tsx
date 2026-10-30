@@ -6,7 +6,10 @@ import { TerraContentEditor } from '../TerraContentEditor.js';
 import { ErrorBoundary } from '../../ui.js';
 import { Input } from '@terra-symposium/styling/ui/terra-original';
 
-import type { DocsNestedContent, TerraContent as TerraContentData } from '../../../../lib/terra/runtime/types.js';
+import type {
+  DocsNestedContent,
+  TerraContent as TerraContentData,
+} from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsBlock,
   PortableTextBlockEditorProps,
