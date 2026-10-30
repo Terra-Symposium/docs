@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { openEditor } from '../support/editor.js';
-import type { TerraContent } from '../support/editor.js';
+import { openEditor } from '../../../../support/editor.js';
+import type { TerraContent } from '../../../../support/editor.js';
 
 const XL_VIEWPORT_TEST = {
   tag: '@viewport:xl',

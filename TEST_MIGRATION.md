@@ -1,6 +1,6 @@
 # Test ownership
 
-Terra Docs owns the reusable editor, document workspace, rich blocks, and the deterministic browser host used to exercise document behavior. `test/browser` follows the package source boundaries: workspace journeys live in `workspace.spec.ts`, while rich-block scenarios live beside their block modules. Browser tests use Playwright controls and assert the rendered result and persisted state; they do not substitute source-text checks for UI behavior.
+Terra Docs owns the reusable editor, document workspace, rich blocks, and the deterministic browser host used to exercise document behavior. `test/browser` mirrors the package source boundaries: workspace journeys live in `workspace.spec.ts`, while rich-block specs live under `components/terra/editor/docs/` to match `src/components/terra/editor/docs/`. Playwright discovers each `*.spec.ts` directly; there is no import-only aggregator. Browser tests use Playwright controls and assert the rendered result and persisted state; they do not substitute source-text checks for UI behavior.
 
 `test/consumer-browser` has one narrow responsibility: verify that a separately installed package works through its public exports in a consumer app. It checks the consumer integration boundary and does not repeat the package's editor or rich-block behavior cases.
 
