@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-const XL_VIEWPORT_TEST = {
-  tag: '@viewport:xl',
+const CONSUMER_VIEWPORT_TEST = {
+  tag: '@viewport:consumer',
   annotation: {
     type: 'viewport-reason',
-    description: 'The installed consumer contract uses the standard desktop workspace layout.',
+    description: 'The installed consumer contract uses its declared 1987×1248 desktop viewport.',
   },
 } as const;
 
@@ -21,8 +21,9 @@ for (const targetUrl of targetUrls) {
       : new URL(targetUrl).host + new URL(targetUrl).pathname;
   test(
     `packaged Docs consumer mounts the public workspace with host-provided document data: ${label}`,
-    XL_VIEWPORT_TEST,
+    CONSUMER_VIEWPORT_TEST,
     async ({ page }) => {
+      expect(page.viewportSize()).toEqual({ width: 1987, height: 1248 });
       const browserErrors: string[] = [];
       page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
       page.on('console', (message) => {
