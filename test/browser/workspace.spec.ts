@@ -581,7 +581,7 @@ test(
   'visual edits save, reload, and restore a prior revision through history',
   XL_VIEWPORT_TEST,
   async ({ page }) => {
-    await page.goto('/workspace-demo/');
+    await page.goto('/workspace-demo/', { waitUntil: 'domcontentloaded' });
     const mode = page.getByRole('combobox', { name: 'Mode' });
     await mode.click();
     await page.getByRole('option', { name: 'Edit' }).click();
@@ -596,7 +596,7 @@ test(
     expect(saved.documents.salesphere.title).toBe('Salesphere saved title');
     expect(saved.documents.salesphere.versions).toHaveLength(1);
 
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('textbox', { name: 'Title', exact: true })).toHaveValue(
       'Salesphere saved title',
     );
@@ -613,7 +613,7 @@ test(
       'Salesphere',
     );
     await page.getByRole('button', { name: 'Save', exact: true }).click();
-    await page.reload();
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('textbox', { name: 'Title', exact: true })).toHaveValue(
       'Salesphere',
     );
@@ -736,7 +736,7 @@ test(
     const hueValue = Number(await hue.getAttribute('aria-valuenow'));
     await page.clock.install();
     await colorDialog.getByRole('button', { name: 'Save', exact: true }).click();
-    await page.clock.runFor(2500);
+    await page.clock.fastForward(2500);
     await expect
       .poll(
         async () => {
