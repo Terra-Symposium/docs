@@ -1,5 +1,6 @@
 import { openEditor } from '../support/editor.js';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { loadTest as test } from '@terra-symposium/standards-reporting/playwright';
 import type { TerraContent } from '../support/editor.js';
 
 const textCell = (key: string, text: string) => ({
@@ -28,7 +29,8 @@ const tableFixture = [
   },
 ] satisfies TerraContent;
 
-test('table.spec: Render cells and emit structure edits', async ({ page }) => {
+test('table.spec: Render cells and emit structure edits', async ({ page, load }) => {
+  load.setTestBudget({ warnMs: 6_000, failMs: 8_000 });
   const cell = page.getByRole('textbox', { name: 'Table cell 2, 1' });
   await test.step('Inject Table and verify it renders', async () => {
     await openEditor(page, tableFixture);
@@ -56,7 +58,8 @@ test('table.spec: Render cells and emit structure edits', async ({ page }) => {
   });
 });
 
-test('table.spec: Edit heading, rows and columns', async ({ page }) => {
+test('table.spec: Edit heading, rows and columns', async ({ page, load }) => {
+  load.setTestBudget({ warnMs: 9_000, failMs: 12_000 });
   await openEditor(page, tableFixture);
   const table = page.locator('[data-terra-block="table"]');
   await table.getByRole('textbox', { name: 'Table heading' }).fill('Updated heading');

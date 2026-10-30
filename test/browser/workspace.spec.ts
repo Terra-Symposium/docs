@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { visualTest as test } from '@terra-symposium/standards-reporting/playwright';
 
 const browserErrors = new WeakMap<Page, string[]>();
 
@@ -35,7 +36,13 @@ test.afterEach(async ({ page }) => {
 
 test('standalone Astro pages mount the extracted read-only workspace with their nested navigation', async ({
   page,
+  visuals,
 }) => {
+  test.info().annotations.push({
+    type: 'viewport-reason',
+    description:
+      'The mobile header switches at 768 px; verify and capture above, at, and below the boundary.',
+  });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/');
   await expect(page.getByRole('link', { name: 'Terra Docs', exact: true }).first()).toBeVisible();
@@ -44,7 +51,10 @@ test('standalone Astro pages mount the extracted read-only workspace with their 
   await expect(page.getByRole('combobox', { name: 'Mode' })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Search pages' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Install an instance' })).toBeVisible();
-  await page.screenshot({ path: '/tmp/terra-docs-static-desktop.png', fullPage: true });
+  await visuals.capture('docs.workspace.static.desktop', {
+    title: 'Docs workspace at 1440 px',
+    screenshot: { fullPage: true },
+  });
   const mobileHeader = page.locator('.terra-docs-workspace header.md\\:hidden');
   await expect
     .poll(() => mobileHeader.evaluate((element) => getComputedStyle(element).display))
@@ -53,12 +63,18 @@ test('standalone Astro pages mount the extracted read-only workspace with their 
   await expect
     .poll(() => mobileHeader.evaluate((element) => getComputedStyle(element).display))
     .toBe('none');
-  await page.screenshot({ path: '/tmp/terra-docs-static-breakpoint.png', fullPage: true });
+  await visuals.capture('docs.workspace.static.breakpoint', {
+    title: 'Docs workspace at the 768 px transition',
+    screenshot: { fullPage: true },
+  });
   await page.setViewportSize({ width: 767, height: 900 });
   await expect
     .poll(() => mobileHeader.evaluate((element) => getComputedStyle(element).display))
     .toBe('flex');
-  await page.screenshot({ path: '/tmp/terra-docs-static-mobile.png', fullPage: true });
+  await visuals.capture('docs.workspace.static.mobile', {
+    title: 'Docs workspace below the 768 px transition',
+    screenshot: { fullPage: true },
+  });
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.getByRole('combobox', { name: 'Section' }).click();
@@ -71,6 +87,7 @@ test('standalone Astro pages mount the extracted read-only workspace with their 
 
 test('shared workspace keeps the Terra header, toolbar position, section navigation, and nested leaf actions', async ({
   page,
+  visuals,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/workspace-demo/?section=overview&group=start-here&leaf=salesphere');
@@ -174,8 +191,10 @@ test('shared workspace keeps the Terra header, toolbar position, section navigat
   await expect(page.getByRole('menuitem', { name: 'Rename page' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Delete page' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Duplicate page' })).toBeVisible();
-  await page.waitForTimeout(250);
-  await page.screenshot({ path: '/tmp/terra-docs-leaf-context-menu.png', fullPage: true });
+  await visuals.capture('docs.workspace.navigation.context-menu', {
+    title: 'Leaf context menu',
+    screenshot: { fullPage: true },
+  });
   await page.keyboard.press('Escape');
   await leaf.hover();
   await expect(page.getByRole('button', { name: 'Reorder item' }).last()).toBeVisible();
@@ -192,7 +211,10 @@ test('shared workspace keeps the Terra header, toolbar position, section navigat
     )
     .toBe(true);
 
-  await page.screenshot({ path: '/tmp/terra-docs-shared-desktop.png', fullPage: true });
+  await visuals.capture('docs.workspace.navigation.reorder', {
+    title: 'Reordered Docs navigation at desktop width',
+    screenshot: { fullPage: true },
+  });
 });
 
 test('view headings keep hover permalinks and the sidebar table of contents behavior', async ({
@@ -552,7 +574,9 @@ test('attachment upload, open, download, and deletion persist across reloads', a
 
 test('visual edits save, reload, and restore a prior revision through history', async ({
   page,
+  load,
 }) => {
+  load.setTestBudget({ warnMs: 9_000, failMs: 12_000 });
   await page.goto('/workspace-demo/');
   const mode = page.getByRole('combobox', { name: 'Mode' });
   await mode.click();
@@ -652,7 +676,9 @@ test('section creation is retained, and menus remain keyboard accessible and por
 
 test('section rename, hue, and deletion actions persist through the host adapter', async ({
   page,
+  load,
 }) => {
+  load.setTestBudget({ warnMs: 9_000, failMs: 12_000 });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/workspace-demo/');
   await waitForWorkspaceReady(page);
@@ -727,6 +753,7 @@ test('section rename, hue, and deletion actions persist through the host adapter
 
 test('remote editors get visual authoring controls while Code remains document content, not a mode', async ({
   page,
+  visuals,
 }) => {
   await page.goto('/workspace-demo/');
   const mode = page.getByRole('combobox', { name: 'Mode' });
@@ -738,7 +765,10 @@ test('remote editors get visual authoring controls while Code remains document c
   await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Block type' })).toBeVisible();
   await expect(page.getByText('e.replace is not a function')).toHaveCount(0);
-  await page.screenshot({ path: '/tmp/terra-docs-edit-desktop.png', fullPage: true });
+  await visuals.capture('docs.workspace.editor.edit', {
+    title: 'Remote Docs editor controls',
+    screenshot: { fullPage: true },
+  });
   await page.getByRole('combobox', { name: 'Block type' }).click();
   await expect(page.getByRole('option', { name: 'Insert accordion' })).toBeVisible();
   await expect(page.getByRole('option', { name: 'Insert tabs' })).toBeVisible();
@@ -747,7 +777,13 @@ test('remote editors get visual authoring controls while Code remains document c
 
 test('local read-only workspaces expose View and Attachments, with leaf files in the Attachments mode', async ({
   page,
+  visuals,
 }) => {
+  test.info().annotations.push({
+    type: 'viewport-reason',
+    description:
+      'The attachment sidebar is a narrow-screen layout, so exercise and capture it at 390 px.',
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/workspace-readonly/');
   const mode = page.getByRole('combobox', { name: 'Mode' });
@@ -760,7 +796,10 @@ test('local read-only workspaces expose View and Attachments, with leaf files in
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  await page.screenshot({ path: '/tmp/terra-docs-shared-mobile.png', fullPage: true });
+  await visuals.capture('docs.workspace.readonly.attachments.mobile', {
+    title: 'Read-only attachments at mobile width',
+    screenshot: { fullPage: true },
+  });
 });
 
 test('host branding stays in the sidebar while leaf metadata stays in the document header', async ({

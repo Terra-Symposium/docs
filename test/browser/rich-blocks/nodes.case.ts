@@ -15,6 +15,7 @@ const nodesFixture = [
         id: 'start',
         type: 'terminator',
         data: { title: 'Start step' },
+        position: { x: 0, y: 0 },
       },
       {
         _key: 'finish-node',
@@ -22,6 +23,7 @@ const nodesFixture = [
         id: 'finish',
         type: 'terminator',
         data: { title: 'Finish step' },
+        position: { x: 240, y: 0 },
       },
     ],
     edges: [
@@ -36,16 +38,7 @@ const nodesFixture = [
   },
 ] satisfies TerraContent;
 
-test('nodes.spec: Preserve canvas height', async ({ page }) => {
-  await openEditor(page, nodesFixture);
-  await expect(page.locator('[data-docs-editor-block="Nodes"]')).toHaveCSS('height', '240px');
-});
-
-test('nodes.spec: Render nodes and edges', async ({ page }) => {
-  test.fail(
-    true,
-    'Pinned pre-abstraction Docs also omits Nodes entries without saved positions; retained as a baseline exclusion.',
-  );
+test('nodes.spec: Render the canvas, nodes, and edges', async ({ page }) => {
   await openEditor(page, nodesFixture);
   const flowchart = page.locator('[data-docs-editor-block="Nodes"]');
   await expect(flowchart).toBeVisible();

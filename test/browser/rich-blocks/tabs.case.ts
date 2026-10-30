@@ -1,5 +1,6 @@
 import { openEditor } from '../support/editor.js';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { loadTest as test } from '@terra-symposium/standards-reporting/playwright';
 import type { TerraContent } from '../support/editor.js';
 
 const paragraph = (key: string, text: string) => ({
@@ -30,7 +31,8 @@ const tabsFixture = [
   },
 ] satisfies TerraContent;
 
-test('tabs.spec: Switch tabs and emit structure edits', async ({ page }) => {
+test('tabs.spec: Switch tabs and emit structure edits', async ({ page, load }) => {
+  load.setTestBudget({ warnMs: 9_000, failMs: 12_000 });
   await openEditor(page, tabsFixture);
   const tabs = page.locator('[data-terra-block="tabs"]');
   await expect(tabs.getByText('First explanation')).toBeVisible();

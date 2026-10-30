@@ -1,5 +1,6 @@
 import { openEditor } from '../support/editor.js';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { loadTest as test } from '@terra-symposium/standards-reporting/playwright';
 import type { TerraContent } from '../support/editor.js';
 
 const accordionFixture = [
@@ -32,11 +33,24 @@ const accordionFixture = [
   },
 ] satisfies TerraContent;
 
-test('accordion.spec: Expand sections and emit structure edits', async ({ page }) => {
+test('accordion.spec: Expand, edit, add, and delete sections', async ({ page, load }) => {
+  load.setTestBudget({ warnMs: 9_000, failMs: 12_000 });
   await openEditor(page, accordionFixture);
   const accordion = page.locator('[data-terra-block="accordion"]');
   await accordion.getByRole('button', { name: 'Toggle First section' }).click();
   await expect(accordion.getByText('Nested accordion explanation')).toBeVisible();
+
+  const nested = accordion.getByRole('textbox', { name: 'Document editor' });
+  await nested.click();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' updated');
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items?.[0]
+          ?.content?.[0]?.children?.[0]?.text,
+    )
+    .toBe('Nested accordion explanation updated');
 
   await accordion.getByRole('button', { name: 'Add section' }).click();
   await expect
@@ -62,21 +76,4 @@ test('accordion.spec: Expand sections and emit structure edits', async ({ page }
           ?.length,
     )
     .toBe(1);
-});
-
-test('accordion.spec: Emit nested content edits', async ({ page }) => {
-  await openEditor(page, accordionFixture);
-  const accordion = page.locator('[data-terra-block="accordion"]');
-  await accordion.getByRole('button', { name: 'Toggle First section' }).click();
-  const nested = accordion.getByRole('textbox', { name: 'Document editor' });
-  await nested.click();
-  await page.keyboard.press('End');
-  await page.keyboard.type(' updated');
-  await expect
-    .poll(
-      async () =>
-        JSON.parse((await page.getByTestId('editor-output').textContent()) ?? '[]')[0]?.items?.[0]
-          ?.content?.[0]?.children?.[0]?.text,
-    )
-    .toBe('Nested accordion explanation updated');
 });
