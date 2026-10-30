@@ -22,7 +22,7 @@ export default withResponsivePlaywright(
   {
     viewportPolicy: 'declared',
     viewportCatalog: { xl: { width: 1280, height: 720 } },
-    screenshotsDirectory: 'test-results/visual/screenshots',
+    screenshotsDirectory: 'test-results/visual/consumer/screenshots',
     screenshotOnlySlideshow: true,
   },
 );
