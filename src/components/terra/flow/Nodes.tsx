@@ -97,10 +97,11 @@ import type {
   Edge,
   FlowEdgeData,
   FlowNode,
+  GroupNodeData,
   NodeData,
+  NodesProps,
   Pos,
 } from '../../../lib/terra/runtime/types.js';
-import type { GroupNodeData, NodesProps } from '../../../lib/terra/runtime/types.js';
 import type { FlowMenuContext } from './menuContext.js';
 
 /*//////////////////////////////////////////////////

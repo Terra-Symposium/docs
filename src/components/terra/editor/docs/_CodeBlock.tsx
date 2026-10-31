@@ -11,7 +11,7 @@ IMPORTS
 // API
 import { $hydrating, $transition } from '../../../../lib/terra/docs/state.js';
 import { htmlToMd } from '../../../../lib/terra/docs/editor-dom.js';
-import { cn, errorLog } from '../../../../lib/terra/runtime/runtime.js';
+import { cn, errorLog, isDarkMode } from '../../../../lib/terra/runtime/runtime.js';
 import {
   copyLineDown,
   copyLineUp,
@@ -29,7 +29,6 @@ import {
 import { drawSelection, keymap, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import { indentUnit } from '@codemirror/language';
-import { isDarkMode } from '../../../../lib/terra/runtime/runtime.js';
 import { isEndpointVal } from '../../../../lib/terra/runtime/shared.js';
 import { languages } from '@codemirror/language-data';
 import { markdown } from '@codemirror/lang-markdown';

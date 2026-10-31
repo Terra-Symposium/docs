@@ -8,8 +8,7 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // TYPES
-import type { PowerSrcGraph } from '../runtime/types.js';
-import type { StructureQuestion } from '../runtime/types.js';
+import type { PowerSrcGraph, StructureQuestion } from '../runtime/types.js';
 
 /*//////////////////////////////////////////////////
 CONFIG

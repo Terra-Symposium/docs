@@ -39,9 +39,9 @@ import { Progress } from '@terra-symposium/styling/ui';
 import { IMG_RESPONSIVE } from '../../ui.js';
 
 // TYPES
-import type { DocBody } from '../../../../lib/terra/runtime/types.js';
 import type {
   DocsPermissionLevel as Permission,
+  DocBody,
   Draft,
   EditorRefs,
   EditorSel,
@@ -267,7 +267,7 @@ export function TransitionShell({
         >
           <div
             aria-hidden={loading ? 'true' : 'false'}
-            className={cn(loading ? 'hidden' : 'block')}
+            className={loading ? 'hidden' : 'block'}
             data-docs-transition-content
           >
             {children}

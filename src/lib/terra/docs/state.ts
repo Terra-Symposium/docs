@@ -190,7 +190,6 @@ export function setTransition(transition: Transition): void {
 /**
  * Clears the active docs transition state.
  *
- *
  * @remarks Idle is the only state that leaves the transition flag unset.
  */
 export function clearTransition(): void {

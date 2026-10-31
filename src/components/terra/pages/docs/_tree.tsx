@@ -83,16 +83,17 @@ import {
 import { REORDER } from '../../../../lib/terra/runtime/shared.js';
 
 // TYPES
-import type { ActionRes, Md } from '../../../../lib/terra/runtime/types.js';
-import type { DocsTreeMenuAction as MenuAction } from '../../../../lib/terra/runtime/types.js';
-import type { DragState } from '../../../../lib/terra/runtime/types.js';
 import type {
+  ActionRes,
+  DocsTreeMenuAction as MenuAction,
+  DragState,
   Leaf as LeafNode,
+  Md,
   Mode,
+  ReorderDropState,
   Tree as ITree,
   Tree as TreeType,
 } from '../../../../lib/terra/runtime/types.js';
-import type { ReorderDropState } from '../../../../lib/terra/runtime/types.js';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 
 /*//////////////////////////////////////////////////

@@ -20,8 +20,13 @@ import * as TerraQualityRegex from '../regex.mjs';
 import { TESTIMONIALS_EXPORT } from './shared.js';
 
 // TYPES
-import type { DocBlock, DocBody, DocTableCell } from './types.js';
-import type { DocsContentPtMarkDef as PtMarkDef, DocsContentPtSpan as PtSpan } from './types.js';
+import type {
+  DocBlock,
+  DocBody,
+  DocTableCell,
+  DocsContentPtMarkDef as PtMarkDef,
+  DocsContentPtSpan as PtSpan,
+} from './types.js';
 
 /*//////////////////////////////////////////////////
 CONFIG

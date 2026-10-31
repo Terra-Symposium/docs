@@ -19,10 +19,9 @@ import { isDocBody } from '../../../../lib/terra/runtime/types.js';
 import { $createHeadingNode } from '@lexical/rich-text';
 import { $createParagraphNode, $getNearestNodeFromDOMNode, $isElementNode } from 'lexical';
 import { actions } from '../../../../lib/terra/runtime/action-proxy.js';
-import { docsRootPath } from '../../../../lib/terra/runtime/shared.js';
+import { dirname, docsRootPath, toPascal } from '../../../../lib/terra/runtime/shared.js';
 import { cn, notify } from '../../../../lib/terra/runtime/runtime.js';
 import { components as repoComponents } from '../../../../lib/terra/custom-components.js';
-import { dirname, toPascal } from '../../../../lib/terra/runtime/shared.js';
 import { redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
 import { stringifyDocBody } from '../../../../lib/terra/runtime/content/document-markdown.js';
 import { toast } from 'sonner';
@@ -101,20 +100,18 @@ import { EMPTY_NODES } from '../../../../lib/terra/runtime/nodes.js';
 import type {
   AttchType,
   BlockOpt,
-  MenuTree,
-  RepoComponentWithLabel,
-} from '../../../../lib/terra/runtime/types.js';
-import type { DocBody, DocVer, Md } from '../../../../lib/terra/runtime/types.js';
-import type {
+  DocsAttachment,
+  DocBody,
+  DocVer,
   EditorToolbarAdapter,
-  PortableEditorBlock,
-} from '../../../../lib/terra/runtime/types.js';
-import type {
+  Md,
+  MenuTree,
   Mode as ToolbarMode,
+  PortableEditorBlock,
+  RepoComponentWithLabel,
   ToolbarState,
   Tree,
 } from '../../../../lib/terra/runtime/types.js';
-import type { DocsAttachment } from '../../../../lib/terra/runtime/types.js';
 import type { LexicalEditor, LexicalNode } from 'lexical';
 import type { MouseEvent, ReactNode } from 'react';
 

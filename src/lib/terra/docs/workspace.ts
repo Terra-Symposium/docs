@@ -21,13 +21,13 @@ import { toast } from 'sonner';
 import * as TerraQualityRegex from '../../regex.mjs';
 
 // TYPES
-// TYPES
-import type { AttchType, Transition } from '../../runtime/types.js';
-import type { DocBody } from '../../runtime/types.js';
 import type {
+  AttchType,
+  DocBody,
   EditorSel,
   EditorSurface,
   Mode,
+  Transition,
   ToolbarState,
   Tree as TreeType,
 } from '../../runtime/types.js';
@@ -801,7 +801,6 @@ export function setTransition(transition: Transition): void {
 
 /**
  * Clears the active docs transition state.
- *
  *
  * @remarks Idle is the only state that leaves the transition flag unset.
  */
