@@ -2,6 +2,16 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
+const CONSUMER_VIEWPORT_REASON = {
+  type: 'viewport-reason',
+  description: 'The installed consumer contract uses its declared 1987×1248 desktop viewport.',
+};
+
+const XL_VIEWPORT_REASON = {
+  type: 'viewport-reason',
+  description: 'The Docs consumer workspace uses the standard 1280×720 desktop viewport.',
+};
+
 const expectedDocsVersion = (
   JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
     version: string;
@@ -252,10 +262,12 @@ for (const targetUrl of targetUrls) {
   const label = targetUrl
     ? new URL(targetUrl).host + new URL(targetUrl).pathname
     : 'no URL supplied';
-  test(`installed Docs consumer preserves the shared workspace contract: ${label}`, async ({
+  test(`installed Docs consumer preserves the shared workspace contract: ${label} @viewport:consumer`, async ({
     page,
   }) => {
     test.skip(!targetUrl, 'Set DOCS_CONSUMER_URLS to one or more installed Docs host URLs.');
+    test.info().annotations.push(CONSUMER_VIEWPORT_REASON);
+    expect(page.viewportSize()).toEqual({ width: 1987, height: 1248 });
 
     const browserErrors: string[] = [];
     const astroDevToolbarOptimizerErrors: string[] = [];
@@ -649,9 +661,10 @@ for (const targetUrl of targetUrls) {
 
 const uniUrl = process.env.DOCS_UNI_URL?.trim() ?? '';
 const uniTocPath = process.env.DOCS_UNI_TOC_PATH?.trim() ?? '';
-test('Uni hash routes preserve each leaf title and do not rename other index pages', async ({
+test('Uni hash routes preserve each leaf title and do not rename other index pages @viewport:xl', async ({
   page,
 }) => {
+  test.info().annotations.push(XL_VIEWPORT_REASON);
   test.skip(!uniUrl, 'Set DOCS_UNI_URL to the running Uni Docs app.');
   await page.emulateMedia({ colorScheme: 'light' });
   const javaId = 'BsQUwF6kisLoqnrcb5aIUF';
@@ -742,7 +755,10 @@ test('Uni hash routes preserve each leaf title and do not rename other index pag
   await expect(page.getByRole('link', { name: 'Languages', exact: true })).toBeVisible();
 });
 
-test('Uni local text attachments open with the adjacent file content', async ({ page }) => {
+test('Uni local text attachments open with the adjacent file content @viewport:xl', async ({
+  page,
+}) => {
+  test.info().annotations.push(XL_VIEWPORT_REASON);
   test.skip(!uniUrl || !uniTocPath, 'Set the Uni consumer URL and TOC path.');
   const sections = JSON.parse(readFileSync(uniTocPath, 'utf8')) as Array<{
     groups?: Array<{
@@ -781,9 +797,10 @@ test('Uni local text attachments open with the adjacent file content', async ({ 
 });
 
 for (const targetUrl of protectedUrls) {
-  test(`protected Docs host denies a signed-out browser: ${new URL(targetUrl).host}${new URL(targetUrl).pathname}`, async ({
+  test(`protected Docs host denies a signed-out browser: ${new URL(targetUrl).host}${new URL(targetUrl).pathname} @viewport:xl`, async ({
     page,
   }) => {
+    test.info().annotations.push(XL_VIEWPORT_REASON);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
