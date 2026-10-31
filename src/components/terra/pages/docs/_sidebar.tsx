@@ -67,11 +67,7 @@ import {
 } from '@carbon/icons-react';
 import { AlertError } from '@terra-symposium/styling/ui';
 import { Button } from '@terra-symposium/styling/ui';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuTrigger,
-} from '@terra-symposium/styling/ui';
+import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@terra-symposium/styling/ui';
 import {
   Dialog,
   DialogContent,

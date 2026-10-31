@@ -424,6 +424,7 @@ export function TerraContentEditor({
   readOnly = false,
   resetKey,
   nested = false,
+  toolbar = true,
   docsAttachments = [],
   toolbarActions,
   blocks = {},
@@ -433,6 +434,7 @@ export function TerraContentEditor({
   readOnly?: boolean;
   resetKey?: string;
   nested?: boolean;
+  toolbar?: boolean;
   docsAttachments?: DocsHostAttachment[];
   toolbarActions?: ReactNode;
   blocks?: DocsBlockOptions;
@@ -477,7 +479,7 @@ export function TerraContentEditor({
       >
         <NodePlugin nodes={nodes} />
         {!readOnly && <ContentChangeListener onChange={updateContent} />}
-        {!readOnly && (
+        {!readOnly && toolbar && (
           <div className="not-prose sticky top-3 z-20 mb-3">
             <TerraToolbar
               nested={nested}

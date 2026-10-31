@@ -78,11 +78,7 @@ import { EditStateCtx } from '../../../../lib/terra/docs/state.js';
 import { ErrorBoundary } from '../../ui.js';
 import { Input } from '@terra-symposium/styling/ui';
 import { Label } from '@terra-symposium/styling/ui';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@terra-symposium/styling/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@terra-symposium/styling/ui';
 import { SearchEmpty } from '@terra-symposium/styling/ui';
 import {
   Select,

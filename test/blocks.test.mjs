@@ -1347,10 +1347,11 @@ test('HTML table math with letter subscripts is parsed before Markdown emphasis'
   const source = `<table><tbody><tr><td>$${formula}$</td></tr></tbody></table>`;
   const table = markdownToDocsValue(source).find((block) => block._type === 'table');
   assert.ok(table);
-  const math = table.rows[0].cells[0].content[0].children.filter(
-    (child) => child._type === 'math',
+  const math = table.rows[0].cells[0].content[0].children.filter((child) => child._type === 'math');
+  assert.deepEqual(
+    math.map((child) => child.code),
+    [formula],
   );
-  assert.deepEqual(math.map((child) => child.code), [formula]);
   const roundTrip = docsValueToMarkdown(markdownToDocsValue(source));
   assert.doesNotMatch(roundTrip, /TERRADOCSMATH/);
   assert.match(roundTrip, new RegExp(formula.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
@@ -1368,16 +1369,20 @@ test('Markdown table math with letter subscripts is parsed before emphasis', () 
   const value = markdownToDocsValue(source);
   const table = value.find((block) => block._type === 'table');
   assert.ok(table);
-  const math = table.rows[1].cells[1].content[0].children.filter(
-    (child) => child._type === 'math',
+  const math = table.rows[1].cells[1].content[0].children.filter((child) => child._type === 'math');
+  assert.deepEqual(
+    math.map((child) => child.code),
+    [formula],
   );
-  assert.deepEqual(math.map((child) => child.code), [formula]);
   const roundTrip = docsValueToMarkdown(value);
   assert.doesNotMatch(roundTrip, /TERRADOCSMATH/);
   assert.match(roundTrip, new RegExp(formula.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   const prose = value.find((block) => block._type === 'block');
   assert.ok(prose);
-  assert.equal(prose.children.some((child) => child._type === 'math'), false);
+  assert.equal(
+    prose.children.some((child) => child._type === 'math'),
+    false,
+  );
 });
 
 test('Markdown and HTML table images stay structured and round-trip as readable Markdown', () => {

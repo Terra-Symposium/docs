@@ -12,7 +12,10 @@ declare global {
     __terraContentOptions?: {
       attachments?: DocsHostAttachment[];
       blocks?: DocsBlockOptions;
+      nested?: boolean;
+      persistKey?: string;
       readOnly?: boolean;
+      toolbar?: boolean;
     };
     __terraDocsMockResponses?: Record<
       string,
@@ -65,12 +68,15 @@ export default function EditorHarness(): JSX.Element {
   const [options] = useState(() =>
     typeof window === 'undefined' ? {} : (window.__terraContentOptions ?? {}),
   );
-  const [content, setContent] = useState(
-    () =>
+  const [content, setContent] = useState(() => {
+    const saved = options.persistKey ? sessionStorage.getItem(options.persistKey) : null;
+    if (saved) return JSON.parse(saved) as unknown[];
+    return (
       (mapContent(
         typeof window === 'undefined' ? [] : (window.__terraContentFixture ?? []),
-      ) as unknown[]) ?? [],
-  );
+      ) as unknown[]) ?? []
+    );
+  });
   return (
     <StrictMode>
       <div className="docs-theme-scope">
@@ -79,8 +85,14 @@ export default function EditorHarness(): JSX.Element {
             content={content}
             {...(options.attachments ? { docsAttachments: options.attachments } : {})}
             {...(options.blocks ? { blocks: options.blocks } : {})}
+            nested={options.nested ?? false}
+            toolbar={options.toolbar ?? true}
             readOnly={readOnly}
-            onChange={(value) => setContent(value)}
+            onChange={(value) => {
+              setContent(value);
+              if (options.persistKey)
+                sessionStorage.setItem(options.persistKey, JSON.stringify(value));
+            }}
           />
           <pre data-testid="editor-output" className="sr-only">
             {JSON.stringify(content)}

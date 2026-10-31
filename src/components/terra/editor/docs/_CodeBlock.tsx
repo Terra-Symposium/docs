@@ -48,12 +48,7 @@ import { Checkmark as CheckIcon, Copy as CopyIcon } from '@carbon/icons-react';
 import { Compartment, EditorSelection, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { ErrorBoundary } from '../../ui.js';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@terra-symposium/styling/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@terra-symposium/styling/ui';
 
 // TYPES
 import type { Extension } from '@codemirror/state';

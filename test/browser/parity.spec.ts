@@ -219,10 +219,7 @@ test('pinned Terra Docs attachment management dialog matches the original', asyn
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveCSS('position', 'fixed');
   await expect(page.locator('[data-state="open"].fixed').first()).toHaveCSS('position', 'fixed');
-  await expect(page.locator('[data-state="open"].fixed').first()).toHaveCSS(
-    'height',
-    '1000px',
-  );
+  await expect(page.locator('[data-state="open"].fixed').first()).toHaveCSS('height', '1000px');
   await expect(dialog.getByText('Salesphere', { exact: true })).toBeVisible();
   await expect(dialog.getByText('Runtime map', { exact: true })).toBeVisible();
   await expectOriginalScreenshot(page, 'attachment-management-dialog');

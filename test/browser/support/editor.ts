@@ -10,8 +10,11 @@ export async function openEditor(
   options: {
     attachments?: DocsHostAttachment[];
     blocks?: DocsBlockOptions;
+    nested?: boolean;
+    persistKey?: string;
     readOnly?: boolean;
     mockResponses?: Record<string, { data?: unknown; error?: string }>;
+    toolbar?: boolean;
   } = {},
 ): Promise<void> {
   await page.addInitScript(

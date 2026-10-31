@@ -373,8 +373,6 @@ test('Uni source, TOC, rendered pages, and attachment view agree for every leaf'
         /node_data:|edges_data:/,
       );
     }
-    const attachmentIds = leaf.attachments.map((attachment) => attachment.id).sort();
-    const headingTexts = markdownHeadings(markdown);
     for (const attachment of leaf.attachments) {
       if (attachment.type === 'fileAttachment') {
         const diskPath = resolve(dirname(markdownPath), attachment.path);

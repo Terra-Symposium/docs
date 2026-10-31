@@ -826,7 +826,9 @@ test('leaf reorder is stored and appears in the same order after reload', async 
       () =>
         page.evaluate(() => {
           const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
-          return state.tree[0].children[0].children.map((node: { origName: string }) => node.origName);
+          return state.tree[0].children[0].children.map(
+            (node: { origName: string }) => node.origName,
+          );
         }),
       { timeout: 5_000 },
     )

@@ -1,12 +1,20 @@
-import { openEditor } from '../support/editor.js';
+import { openEditor } from '../../../../support/editor.js';
 import { expect, test } from '@playwright/test';
-import type { TerraContent } from '../support/editor.js';
+import type { TerraContent } from '../../../../support/editor.js';
+
+const XL_VIEWPORT_TEST = {
+  tag: '@viewport:xl',
+  annotation: {
+    type: 'viewport-reason',
+    description: 'Rich-block interactions use the standard desktop editor layout.',
+  },
+} as const;
 
 const codeFixture = [
   { _key: 'code-under-test', _type: 'code', language: 'typescript', value: 'const answer = 1;' },
 ] satisfies TerraContent;
 
-test('code.spec: Render source and emit edits', async ({ page }) => {
+test('code.spec: Render source and emit edits', XL_VIEWPORT_TEST, async ({ page }) => {
   const code = page.locator('[data-terra-block="code"] .cm-content');
   await test.step('Inject Code and verify it renders', async () => {
     await openEditor(page, codeFixture);
@@ -24,7 +32,7 @@ test('code.spec: Render source and emit edits', async ({ page }) => {
   });
 });
 
-test('code.spec: Change language and copy source', async ({ page }) => {
+test('code.spec: Change language and copy source', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, codeFixture);
   const code = page.locator('[data-terra-block="code"]');
   await code.getByRole('combobox').click();
@@ -43,7 +51,7 @@ test('code.spec: Change language and copy source', async ({ page }) => {
     .toBe('const answer = 1;');
 });
 
-test('code.spec: Preserve entered newlines', async ({ page }) => {
+test('code.spec: Preserve entered newlines', XL_VIEWPORT_TEST, async ({ page }) => {
   await openEditor(page, codeFixture);
   const code = page.locator('[data-terra-block="code"] .cm-content');
   await code.click();

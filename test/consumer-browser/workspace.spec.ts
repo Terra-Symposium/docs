@@ -53,7 +53,10 @@ async function assertViteArtifactVersion(
   const sourceVersion = source?.match(new RegExp(`${packageSlug}-(\\d+\\.\\d+\\.\\d+)\\.tgz`))?.[1];
   if (source?.endsWith('/dist/lib/index.js') && !sourceVersion) {
     const stylingRoot = process.env.DOCS_STYLING_SOURCE_ROOT;
-    expect(stylingRoot, 'Set DOCS_STYLING_SOURCE_ROOT for the local Styling workspace').toBeTruthy();
+    expect(
+      stylingRoot,
+      'Set DOCS_STYLING_SOURCE_ROOT for the local Styling workspace',
+    ).toBeTruthy();
     const stylingManifest = JSON.parse(
       readFileSync(resolve(stylingRoot!, '../../package.json'), 'utf8'),
     ) as { name?: string; version?: string };
@@ -67,7 +70,10 @@ async function assertViteArtifactVersion(
   // and package version instead of assuming a fixed port.
   if (source?.endsWith('/lib-dist/lib/index.js') && !sourceVersion) {
     const docsSourceRoot = process.env.DOCS_PACKAGE_SOURCE_ROOT;
-    expect(docsSourceRoot, 'Set DOCS_PACKAGE_SOURCE_ROOT for the local Docs workspace').toBeTruthy();
+    expect(
+      docsSourceRoot,
+      'Set DOCS_PACKAGE_SOURCE_ROOT for the local Docs workspace',
+    ).toBeTruthy();
     const docsManifest = JSON.parse(
       readFileSync(resolve(docsSourceRoot!, '../../../package.json'), 'utf8'),
     ) as { name?: string; version?: string };
@@ -469,9 +475,10 @@ for (const targetUrl of targetUrls) {
     const viewToolbarWidth = await page
       .locator('[data-docs-main-toolbar]')
       .evaluate((element) => element.getBoundingClientRect().width);
-    expect(viewModeWidth, `View mode should retain its original full-row width in ${targetUrl}`).toBeGreaterThan(
-      viewToolbarWidth * 0.8,
-    );
+    expect(
+      viewModeWidth,
+      `View mode should retain its original full-row width in ${targetUrl}`,
+    ).toBeGreaterThan(viewToolbarWidth * 0.8);
     expect(
       viewToolbarWidth - viewModeWidth,
       `View mode should preserve the original toolbar geometry in ${targetUrl}`,
@@ -486,7 +493,9 @@ for (const targetUrl of targetUrls) {
       'attachments',
     );
     await expect(page.locator('[data-docs-attachments]')).toBeVisible();
-    const attachmentModeWidth = await mode.evaluate((element) => element.getBoundingClientRect().width);
+    const attachmentModeWidth = await mode.evaluate(
+      (element) => element.getBoundingClientRect().width,
+    );
     expect(
       attachmentModeWidth,
       `Attachments mode selector should fit beside its file filters in ${targetUrl}`,

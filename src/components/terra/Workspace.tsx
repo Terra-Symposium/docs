@@ -72,10 +72,7 @@ export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element 
 
     return () => {
       colorScheme.removeEventListener('change', applyPageHue);
-      const restore = (
-        element: HTMLElement,
-        original: { value: string; priority: string },
-      ) => {
+      const restore = (element: HTMLElement, original: { value: string; priority: string }) => {
         if (element.style.getPropertyValue('background-color') !== appliedBackground) return;
         if (original.value)
           element.style.setProperty('background-color', original.value, original.priority);
@@ -204,31 +201,27 @@ export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element 
   }, []);
 
   return (
-    <div
-      ref={portalThemeRoot}
-      className="docs-theme-scope"
-      {...(theme ? { style: theme } : {})}
-    >
+    <div ref={portalThemeRoot} className="docs-theme-scope" {...(theme ? { style: theme } : {})}>
       <Scaffold
-          tree={props.tree as any}
-          pathname={props.pathname}
-          permission={props.permission}
-          userData={props.userData ?? null}
-          title={props.title}
-          {...(props.path ? { path: props.path } : {})}
-          {...(props.description ? { description: props.description } : {})}
-          {...(props.contributors ? { contributors: props.contributors } : {})}
-          {...(props.updatedAt ? { updatedAt: props.updatedAt } : {})}
-          {...(props.source ? { source: props.source } : {})}
-          {...(props.content !== undefined ? { content: props.content as any } : {})}
-          {...(props.renderContent !== undefined ? { viewContent: props.renderContent } : {})}
-          {...(props.beforeContent !== undefined ? { beforeContent: props.beforeContent } : {})}
-          {...(props.afterContent !== undefined ? { afterContent: props.afterContent } : {})}
-          {...(props.standalone !== undefined ? { standalone: props.standalone } : {})}
-          {...(props.full !== undefined ? { full: props.full } : {})}
-          {...(props.mode ? { mode: props.mode } : {})}
-          {...(props.blocks ? { blocks: props.blocks } : {})}
-        />
+        tree={props.tree as any}
+        pathname={props.pathname}
+        permission={props.permission}
+        userData={props.userData ?? null}
+        title={props.title}
+        {...(props.path ? { path: props.path } : {})}
+        {...(props.description ? { description: props.description } : {})}
+        {...(props.contributors ? { contributors: props.contributors } : {})}
+        {...(props.updatedAt ? { updatedAt: props.updatedAt } : {})}
+        {...(props.source ? { source: props.source } : {})}
+        {...(props.content !== undefined ? { content: props.content as any } : {})}
+        {...(props.renderContent !== undefined ? { viewContent: props.renderContent } : {})}
+        {...(props.beforeContent !== undefined ? { beforeContent: props.beforeContent } : {})}
+        {...(props.afterContent !== undefined ? { afterContent: props.afterContent } : {})}
+        {...(props.standalone !== undefined ? { standalone: props.standalone } : {})}
+        {...(props.full !== undefined ? { full: props.full } : {})}
+        {...(props.mode ? { mode: props.mode } : {})}
+        {...(props.blocks ? { blocks: props.blocks } : {})}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { acquirePort } from '@terra-symposium/standards-quality/port';
+import process from 'node:process';
 
 const port = Number(process.env.DOCS_PLAYWRIGHT_PORT ?? 4335);
 if (!Number.isInteger(port) || port < 1 || port > 65535) {

@@ -1,13 +1,11 @@
-# Docs test ownership during extraction
+# Test ownership
 
-The public package owns tests for its portable contract: Markdown and rich-block conversion, rendering, the workspace header and toolbar order, navigation controls, and capability-gated Edit. Run them with `pnpm test`, `pnpm test:browser`, and `pnpm check`.
+Terra Docs owns the reusable editor, document workspace, rich blocks, and the deterministic browser host used to exercise document behavior. `test/browser` mirrors the package source boundaries: workspace journeys live in `workspace.spec.ts`, while rich-block specs live under `components/terra/editor/docs/` to match `src/components/terra/editor/docs/`. Playwright discovers each `*.spec.ts` directly; there is no import-only aggregator. Browser tests use Playwright controls and assert the rendered result and persisted state; they do not substitute source-text checks for UI behavior.
 
-The Terra website still owns the following tests because their subjects remain website implementations. They must keep running there until those subjects are extracted and the tests can use public package APIs without a sibling checkout:
+`test/consumer-browser` has one narrow responsibility: verify that a separately installed package works through its public exports in a consumer app. It checks the consumer integration boundary and does not repeat the package's editor or rich-block behavior cases.
 
-| Website suite                                                         | Current website dependency                                                             | Package replacement needed                                                                                 |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `tests/astro/content/terra-content/docs/*.case.ts` and `docs.spec.ts` | `TerraContentEditor`, Sanity `TerraContent`, website Playwright harness                | Extract the shared Article/Problem/Docs editor surface and run component cases here                        |
-| `tests/docs/docs.spec.ts`                                             | Hosted Docs routes, auth, Sanity actions, website migrations and custom product blocks | Keep host authorization and storage tests in Terra; move only portable editor and renderer assertions here |
-| `tests/docs/docs.test.ts`                                             | Website Docs paths, datatable, local Development export, Sanity metadata               | Keep host adapters and product data tests in Terra; move any portable path and document logic here         |
+The Terra website owns only behavior introduced by its host: authorization, Sanity actions, migrations, persistence adapters, and website-specific route composition. Those tests use the Docs package's public entry points for editor behavior. Portable editor, workspace, and rich-block assertions belong here and should not be duplicated in the website.
 
-Do not remove the website tests while they are the only coverage for its hosted editor, permissions, storage, and legacy content. Completing the move requires the shared editor extraction, replacing website internal imports with package exports, then running the same browser assertions against the package harness. A copied test that cannot run does not count as migrated coverage.
+Use the declared viewport tags in each browser scenario to select only the sizes that can change its observable behavior. Keep layout-independent editing and persistence journeys at XL. Add a mobile or tablet run when the workspace navigation, controls, wrapping, or overflow changes the interaction, and record the reason in the test annotation.
+
+Run package unit tests with `pnpm test`, the package browser inventory with `pnpm test:browser`, and the public consumer check with `pnpm test:consumer`. `pnpm check` validates formatting, lint, and types.

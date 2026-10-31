@@ -37,11 +37,7 @@ import {
 import { ErrorBoundary } from '../../ui.js';
 import { Empty } from '../../ui.js';
 import { Input } from '@terra-symposium/styling/ui';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@terra-symposium/styling/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@terra-symposium/styling/ui';
 import { SearchEmpty } from '@terra-symposium/styling/ui';
 
 /*//////////////////////////////////////////////////

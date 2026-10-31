@@ -250,9 +250,9 @@ export const renderMd = (val: string): string => {
   // apostrophe into `&#39;`, then escaping the code span again turns it into
   // visible `&amp;#39;` text in table cells.
   const protectedText = text.replace(/`([^`]+)`/g, (_, c: string) => {
-      codes.push(`<code>${escHtml(c)}</code>`);
-      return `__CODE_${codes.length - 1}__`;
-    });
+    codes.push(`<code>${escHtml(c)}</code>`);
+    return `__CODE_${codes.length - 1}__`;
+  });
   let html = escHtml(protectedText)
     .replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,

@@ -1,7 +1,10 @@
-import { openEditor } from '../support/editor.js';
+import { openEditor } from '../../../../support/editor.js';
 import { expect, test } from '@playwright/test';
-import { docsValueToMarkdown, markdownToDocsValue } from '../../../lib-dist/lib/markdown-model.js';
-import type { TerraContent } from '../support/editor.js';
+import {
+  docsValueToMarkdown,
+  markdownToDocsValue,
+} from '../../../../../../lib-dist/lib/markdown-model.js';
+import type { TerraContent } from '../../../../support/editor.js';
 
 const calloutFixture = [
   {

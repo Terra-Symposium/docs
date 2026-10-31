@@ -1,7 +1,7 @@
-import { openEditor } from '../support/editor.js';
+import { openEditor } from '../../../../support/editor.js';
 import { expect, test } from '@playwright/test';
-import { markdownToDocsValue } from '../../../lib-dist/lib/markdown-model.js';
-import type { TerraContent } from '../support/editor.js';
+import { markdownToDocsValue } from '../../../../../../lib-dist/lib/markdown-model.js';
+import type { TerraContent } from '../../../../support/editor.js';
 
 const textCell = (key: string, text: string) => ({
   _key: key,
@@ -127,12 +127,18 @@ test('table.spec: Render Sanity terraBlock aliases inside nested table cells', a
         {
           _key: 'sanity-header-row',
           _type: 'row',
-          cells: [terraCell('sanity-heading-cell', 'Aspect'), terraCell('sanity-description-cell', 'Description')],
+          cells: [
+            terraCell('sanity-heading-cell', 'Aspect'),
+            terraCell('sanity-description-cell', 'Description'),
+          ],
         },
         {
           _key: 'sanity-data-row',
           _type: 'row',
-          cells: [terraCell('sanity-aspect-cell', 'Professional practice'), terraCell('sanity-body-cell', 'Evidence-based and collaborative.')],
+          cells: [
+            terraCell('sanity-aspect-cell', 'Professional practice'),
+            terraCell('sanity-body-cell', 'Evidence-based and collaborative.'),
+          ],
         },
       ],
     },
@@ -146,7 +152,9 @@ test('table.spec: Render Sanity terraBlock aliases inside nested table cells', a
   await expect(table.getByRole('cell').nth(1)).toContainText('Evidence-based and collaborative.');
 });
 
-test('table.spec: Render compact Docs Markdown text aliases inside nested cells', async ({ page }) => {
+test('table.spec: Render compact Docs Markdown text aliases inside nested cells', async ({
+  page,
+}) => {
   const compactCell = (key: string, text: string) => ({
     _key: key,
     _type: 'cell',
@@ -169,12 +177,18 @@ test('table.spec: Render compact Docs Markdown text aliases inside nested cells'
         {
           _key: 'compact-header-row',
           _type: 'row',
-          cells: [compactCell('compact-header', '🏗️ Service'), compactCell('compact-tech', '📦 Technology')],
+          cells: [
+            compactCell('compact-header', '🏗️ Service'),
+            compactCell('compact-tech', '📦 Technology'),
+          ],
         },
         {
           _key: 'compact-data-row',
           _type: 'row',
-          cells: [compactCell('compact-service', 'Web Application'), compactCell('compact-runtime', 'Astro')],
+          cells: [
+            compactCell('compact-service', 'Web Application'),
+            compactCell('compact-runtime', 'Astro'),
+          ],
         },
       ],
     },
@@ -188,7 +202,9 @@ test('table.spec: Render compact Docs Markdown text aliases inside nested cells'
   await expect(table.getByRole('cell').nth(1)).toHaveText('Astro');
 });
 
-test('table.spec: Render legacy Sanity text blocks with string children in cells', async ({ page }) => {
+test('table.spec: Render legacy Sanity text blocks with string children in cells', async ({
+  page,
+}) => {
   const legacyTextCell = (key: string, text: string) => ({
     _key: key,
     _type: 'cell',
@@ -211,12 +227,18 @@ test('table.spec: Render legacy Sanity text blocks with string children in cells
         {
           _key: 'legacy-string-children-header',
           _type: 'row',
-          cells: [legacyTextCell('legacy-header-label', '🔍 Aspect'), legacyTextCell('legacy-header-description', 'Description')],
+          cells: [
+            legacyTextCell('legacy-header-label', '🔍 Aspect'),
+            legacyTextCell('legacy-header-description', 'Description'),
+          ],
         },
         {
           _key: 'legacy-string-children-body',
           _type: 'row',
-          cells: [legacyTextCell('legacy-body-label', '🗣️ Voice'), legacyTextCell('legacy-body-description', 'Professional and evidence-based.')],
+          cells: [
+            legacyTextCell('legacy-body-label', '🗣️ Voice'),
+            legacyTextCell('legacy-body-description', 'Professional and evidence-based.'),
+          ],
         },
       ],
     },

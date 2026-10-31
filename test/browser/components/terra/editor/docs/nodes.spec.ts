@@ -1,6 +1,6 @@
-import { openEditor } from '../support/editor.js';
+import { openEditor } from '../../../../support/editor.js';
 import { expect, test } from '@playwright/test';
-import type { TerraContent } from '../support/editor.js';
+import type { TerraContent } from '../../../../support/editor.js';
 
 const nodesFixture = [
   {

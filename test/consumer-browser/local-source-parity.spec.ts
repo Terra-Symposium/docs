@@ -174,20 +174,15 @@ test('every local Markdown page agrees with its Docs route and rendered content'
       const body = page.locator('[data-docs-body-content]');
       if (host.name.includes('Standards') && sourcePage.slug === '') {
         const hero = sourcePage.frontmatter.hero as
-          | { tagline?: string; actions?: Array<{ text: string; link: string }> }
-          | undefined;
+          { tagline?: string; actions?: Array<{ text: string; link: string }> } | undefined;
         expect(hero, 'Standards frontmatter hero').toBeDefined();
         const heroCard = body.locator('[data-standards-hero-card]');
         await expect(heroCard, 'Standards frontmatter card').toBeVisible();
         if (hero?.tagline) await expect(heroCard).toContainText(hero.tagline);
         for (const action of hero?.actions ?? []) {
           const link = heroCard.getByRole('link', { name: action.text });
-          await expect(link, 'Standards frontmatter action').toHaveAttribute(
-            'href',
-            action.link,
-          );
+          await expect(link, 'Standards frontmatter action').toHaveAttribute('href', action.link);
         }
-
       }
       const sourceUnits = visibleSourceUnits(sourcePage.markdown);
       const visibleSourceContent = async (): Promise<string> => {
@@ -218,9 +213,7 @@ test('every local Markdown page agrees with its Docs route and rendered content'
             .map((image) => image.getAttribute('alt') ?? '')
             .join(' '),
         );
-        return normalizeVisibleText(
-          `${renderedBody} ${renderedCode} ${renderedImageAlternatives}`,
-        );
+        return normalizeVisibleText(`${renderedBody} ${renderedCode} ${renderedImageAlternatives}`);
       };
       // Hydration can reveal source-backed blocks in a different order from the
       // Markdown stream. Wait for the whole expected page inventory at once;
@@ -292,18 +285,18 @@ test('every local Markdown page agrees with its Docs route and rendered content'
               );
             })
             .map((block) => {
-            if (block.matches('pre code')) return block.textContent ?? '';
-            const codeMirrorLines = block.querySelectorAll('.cm-line');
-            if (codeMirrorLines.length)
-              return Array.from(codeMirrorLines, (line) => line.textContent ?? '').join('\n');
-            const fallbackLines = block.querySelectorAll('.docs-code-block-fallback-line');
-            if (fallbackLines.length)
-              return Array.from(fallbackLines, (line) => {
-                const spans = line.querySelectorAll('span');
-                return spans.item(spans.length - 1)?.textContent ?? '';
-              }).join('\n');
-            return block.querySelector('code')?.textContent ?? '';
-          }),
+              if (block.matches('pre code')) return block.textContent ?? '';
+              const codeMirrorLines = block.querySelectorAll('.cm-line');
+              if (codeMirrorLines.length)
+                return Array.from(codeMirrorLines, (line) => line.textContent ?? '').join('\n');
+              const fallbackLines = block.querySelectorAll('.docs-code-block-fallback-line');
+              if (fallbackLines.length)
+                return Array.from(fallbackLines, (line) => {
+                  const spans = line.querySelectorAll('span');
+                  return spans.item(spans.length - 1)?.textContent ?? '';
+                }).join('\n');
+              return block.querySelector('code')?.textContent ?? '';
+            }),
         );
       const codeSources = markdownCodeBlocks(sourcePage.markdown);
       expect(
@@ -396,9 +389,10 @@ test('every local Markdown page agrees with its Docs route and rendered content'
       const expectedRoute = new URL(pathname, url).pathname;
       const tocLink = tocLinks.find((link) => new URL(link.href).pathname === expectedRoute);
       expect(tocLink, `${host.name} ${sourcePage.slug} TOC link`).toBeDefined();
-      expect(normalizeVisibleText(tocLink?.title ?? ''), `${host.name} ${sourcePage.slug} TOC label`).toBe(
-        normalizeVisibleText(host.tocTitles?.[sourcePage.slug] ?? sourcePage.title),
-      );
+      expect(
+        normalizeVisibleText(tocLink?.title ?? ''),
+        `${host.name} ${sourcePage.slug} TOC label`,
+      ).toBe(normalizeVisibleText(host.tocTitles?.[sourcePage.slug] ?? sourcePage.title));
       expect(new URL(tocLink!.href).pathname).toBe(url.pathname);
 
       if (host.sectionForPage) {
@@ -406,15 +400,17 @@ test('every local Markdown page agrees with its Docs route and rendered content'
         for (const expectedPage of pages.filter(
           (candidate) => host.sectionForPage!(candidate) === activeSection,
         )) {
-          const path = new URL(`${host.basePath ?? ''}${expectedPage.pathname}`, host.url!).pathname;
+          const path = new URL(`${host.basePath ?? ''}${expectedPage.pathname}`, host.url!)
+            .pathname;
           const item = tocLinks.find((link) => new URL(link.href).pathname === path);
           expect(
             item,
             `${host.name} TOC route ${expectedPage.slug} (${path}); got ${JSON.stringify(tocLinks)}`,
           ).toBeDefined();
-          expect(normalizeVisibleText(item?.title ?? ''), `${host.name} TOC label ${expectedPage.slug}`).toBe(
-            normalizeVisibleText(host.tocTitles?.[expectedPage.slug] ?? expectedPage.title),
-          );
+          expect(
+            normalizeVisibleText(item?.title ?? ''),
+            `${host.name} TOC label ${expectedPage.slug}`,
+          ).toBe(normalizeVisibleText(host.tocTitles?.[expectedPage.slug] ?? expectedPage.title));
         }
       }
     }
@@ -431,13 +427,20 @@ test('every local Markdown page agrees with its Docs route and rendered content'
         title: string;
       }>
     ).find((skill) => skill.directory === 'cloud-playwright');
-    expect(skillSource, 'Standards Skills source inventory contains Cloud Playwright').toBeDefined();
-    await page.goto(new URL('/skills/', standardsSkills.url!).toString(), { waitUntil: 'domcontentloaded' });
+    expect(
+      skillSource,
+      'Standards Skills source inventory contains Cloud Playwright',
+    ).toBeDefined();
+    await page.goto(new URL('/skills/', standardsSkills.url!).toString(), {
+      waitUntil: 'domcontentloaded',
+    });
     const skillsBrowser = page.getByRole('region', { name: 'Skills browser' });
     await expect(skillsBrowser).toBeVisible();
     await skillsBrowser.locator('[data-skill-select="cloud-playwright"]').click();
     await expect(skillsBrowser.getByRole('heading', { name: skillSource!.title })).toBeVisible();
-    await expect(skillsBrowser.locator('[data-skill-description]')).toHaveText(skillSource!.description);
+    await expect(skillsBrowser.locator('[data-skill-description]')).toHaveText(
+      skillSource!.description,
+    );
     await expect(skillsBrowser.locator('[data-skill-body]')).toHaveText(skillSource!.body);
   }
   expect(browserErrors).toEqual([]);

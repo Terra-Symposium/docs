@@ -102,7 +102,7 @@ function span(text: string, marks: string[] = []) {
 function withInlineMathTokens(tokens: Token[] | undefined, inlineMath: boolean): Token[] {
   if (!tokens || !inlineMath) return tokens ?? [];
   const result: Token[] = [];
-  for (let index = 0; index < tokens.length; ) {
+  for (let index = 0; index < tokens.length;) {
     if (!['text', 'escape'].includes(tokens[index]!.type)) {
       result.push(tokens[index]!);
       index += 1;
@@ -141,10 +141,7 @@ function withInlineMathTokens(tokens: Token[] | undefined, inlineMath: boolean):
         result.push({
           ...token,
           raw,
-          text:
-            text.length === token.raw.length
-              ? text.slice(localStart, localEnd)
-              : raw,
+          text: text.length === token.raw.length ? text.slice(localStart, localEnd) : raw,
         });
       }
     };
@@ -450,7 +447,8 @@ function protectMarkdownInlineMath(source: string, inlineMath: boolean): string 
       continue;
     }
 
-    output += source.slice(cursor, index) + encodeInlineMathPlaceholder(source.slice(index + 1, end));
+    output +=
+      source.slice(cursor, index) + encodeInlineMathPlaceholder(source.slice(index + 1, end));
     index = end + 1;
     cursor = index;
   }
@@ -965,9 +963,7 @@ function escapeHtmlTableText(value: string, inlineMath: boolean): string {
   for (const match of matches) {
     const start = match.index ?? 0;
     const code = match[1] ?? '';
-    output +=
-      escapeMarkdownText(decoded.slice(cursor, start)) +
-      encodeInlineMathPlaceholder(code);
+    output += escapeMarkdownText(decoded.slice(cursor, start)) + encodeInlineMathPlaceholder(code);
     cursor = start + match[0].length;
   }
   return output + escapeMarkdownText(decoded.slice(cursor));
@@ -1433,7 +1429,9 @@ function parseMarkdown(
       ? richPlaceholder(blocks, { _type: 'math', code: code.trim(), inline: false, markdown: raw })
       : rawPlaceholder(blocks, raw),
   );
-  const parsed = marked.lexer(protectMarkdownInlineMath(source, inlineMath), { gfm: true }) as Token[];
+  const parsed = marked.lexer(protectMarkdownInlineMath(source, inlineMath), {
+    gfm: true,
+  }) as Token[];
   const result: RichBlock[] = [];
   for (const token of parsed) {
     if (token.type === 'space') continue;

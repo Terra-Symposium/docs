@@ -5,12 +5,7 @@ import { useEditor } from '@portabletext/editor';
 import { useEffect, useRef, useState } from 'react';
 import { ErrorBoundary } from '../../ui.js';
 import { Button } from '@terra-symposium/styling/ui';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@terra-symposium/styling/ui';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@terra-symposium/styling/ui';
 import { Input } from '@terra-symposium/styling/ui';
 import { Label } from '@terra-symposium/styling/ui';
 import { CodeBlock } from './_CodeBlock.js';

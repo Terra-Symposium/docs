@@ -3,11 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toHeadingId } from '../../editor/docs/heading.js';
 import { cn } from '../../../../lib/terra/runtime/runtime.js';
-import {
-  ButtonLink,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-} from '@terra-symposium/styling/ui';
+import { ButtonLink, SidebarMenuSub, SidebarMenuSubItem } from '@terra-symposium/styling/ui';
 
 /** Returns the rendered Docs mode shell used by navigation and the table of contents. */
 const docsShellOf = (): HTMLElement | null =>

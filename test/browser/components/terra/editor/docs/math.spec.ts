@@ -1,6 +1,6 @@
-import { openEditor } from '../support/editor.js';
+import { openEditor } from '../../../../support/editor.js';
 import { expect, test } from '@playwright/test';
-import type { TerraContent } from '../support/editor.js';
+import type { TerraContent } from '../../../../support/editor.js';
 
 const blockFixture = [
   { _key: 'math-under-test', _type: 'math', code: 'x^2', inline: false },

@@ -59,12 +59,7 @@ import {
   Upload as UploadIcon,
 } from '@carbon/icons-react';
 import { Button } from '@terra-symposium/styling/ui';
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@terra-symposium/styling/ui';
+import { Card, CardDescription, CardHeader, CardTitle } from '@terra-symposium/styling/ui';
 import { CodeBlock } from '../../editor/docs/_CodeBlock.js';
 import {
   Dialog,

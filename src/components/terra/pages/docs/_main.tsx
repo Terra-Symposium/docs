@@ -76,11 +76,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@terra-symposium/styling/ui';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@terra-symposium/styling/ui';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@terra-symposium/styling/ui';
 import { Separator } from '@terra-symposium/styling/ui';
 import { Textarea } from '@terra-symposium/styling/ui';
 import { Toaster } from 'sonner';
@@ -791,34 +787,34 @@ export default function Scaffold({
             : typeof detail.url === 'string'
               ? detail.url
               : previous.pathname || '';
-          const pathname = keepDeepPath(
-            previous.pathname || '',
-            rawPathname ? rawPathname.split('?')[0] || '' : previous.pathname || '',
-          );
-          const contributors = Array.isArray(detail.contributors)
-            ? detail.contributors.filter((value): value is string => typeof value === 'string')
-            : pathname === previous.pathname && Array.isArray(previous.contributors)
-              ? previous.contributors
-              : [];
-          return {
-            ...previous,
-            ...detail,
-            contributors,
-            source:
-              Object.prototype.hasOwnProperty.call(detail, 'source') &&
-              typeof detail.source === 'string'
-                ? detail.source
-                : previous.source || '',
-            content: isDocBody(detail.content) ? detail.content : previous.content,
-            pathname,
-            compiledMDX:
-              Object.prototype.hasOwnProperty.call(detail, 'compiledMDX') &&
-              detail.compiledMDX !== undefined
-                ? String(detail.compiledMDX)
-                : (previous.compiledMDX ?? ''),
-            versions: previous.versions,
-          };
-        });
+        const pathname = keepDeepPath(
+          previous.pathname || '',
+          rawPathname ? rawPathname.split('?')[0] || '' : previous.pathname || '',
+        );
+        const contributors = Array.isArray(detail.contributors)
+          ? detail.contributors.filter((value): value is string => typeof value === 'string')
+          : pathname === previous.pathname && Array.isArray(previous.contributors)
+            ? previous.contributors
+            : [];
+        return {
+          ...previous,
+          ...detail,
+          contributors,
+          source:
+            Object.prototype.hasOwnProperty.call(detail, 'source') &&
+            typeof detail.source === 'string'
+              ? detail.source
+              : previous.source || '',
+          content: isDocBody(detail.content) ? detail.content : previous.content,
+          pathname,
+          compiledMDX:
+            Object.prototype.hasOwnProperty.call(detail, 'compiledMDX') &&
+            detail.compiledMDX !== undefined
+              ? String(detail.compiledMDX)
+              : (previous.compiledMDX ?? ''),
+          versions: previous.versions,
+        };
+      });
     };
     document.addEventListener('docs:navigate', handleNav);
     window.addEventListener('docs:navigate', handleNav);
