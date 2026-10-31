@@ -103,6 +103,14 @@ test('source comparison keeps HTML line breaks between table cell values', () =>
   );
 });
 
+test('source comparison ignores Markdown hard-break markers as visible copy', () => {
+  const source = '**Professor Ren Ping Liu — Subject Coordinator**\\\nContact details follow.';
+  expect(visibleSourceUnits(source)).toEqual([
+    'Professor Ren Ping Liu — Subject Coordinator',
+    'Contact details follow.',
+  ]);
+});
+
 test('source comparison keeps a literal pipe in prose', () => {
   expect(visibleSourceUnits('Professor Ren Ping Liu | Subject Coordinator')).toContain(
     'Professor Ren Ping Liu | Subject Coordinator',
@@ -117,7 +125,8 @@ test('source comparison checks rich math data without treating schema fields as 
 });
 
 test('source comparison checks display math as math instead of prose', () => {
-  const source = 'Before the formula.\n\n$$\n\\text{Total delay} = N \\cdot \\frac{L}{R}\n$$\n\nAfter the formula.';
+  const source =
+    'Before the formula.\n\n$$\n\\text{Total delay} = N \\cdot \\frac{L}{R}\n$$\n\nAfter the formula.';
   expect(visibleSourceUnits(source)).toEqual(['Before the formula.', 'After the formula.']);
   expect(markdownMathExpressions(source)).toEqual(['\\text{Total delay} = N \\cdot \\frac{L}{R}']);
 });
@@ -134,7 +143,8 @@ test('source comparison preserves math delimiters displayed as inline code', () 
 });
 
 test('source comparison treats image titles with parentheses as metadata', () => {
-  const source = '![A useful diagram.](./diagram.png "TCP additive increase (AIMD) probes bandwidth.")';
+  const source =
+    '![A useful diagram.](./diagram.png "TCP additive increase (AIMD) probes bandwidth.")';
   expect(visibleSourceUnits(source)).toEqual(['A useful diagram.']);
 });
 
@@ -243,9 +253,7 @@ $$
     'First principles',
     'The derivative is defined by the limit of the difference quotient:',
   ]);
-  expect(markdownMathExpressions(source)).toEqual([
-    "f'(x) = \\lim_{h\\to0}\\frac{f(x+h)-f(x)}{h}",
-  ]);
+  expect(markdownMathExpressions(source)).toEqual(["f'(x) = \\lim_{h\\to0}\\frac{f(x+h)-f(x)}{h}"]);
 });
 
 test('source comparison handles example blocks nested in accordion items', () => {
@@ -295,7 +303,9 @@ test('Uni direct leaf deep links load without contributor metadata', async ({ pa
   expect(browserErrors, 'direct leaf entry should not throw in Scaffold').toEqual([]);
 });
 
-test('Uni landing page renders the local Markdown source before visual capture', async ({ page }) => {
+test('Uni landing page renders the local Markdown source before visual capture', async ({
+  page,
+}) => {
   test.skip(!uniUrl || !uniTocPath, 'Set DOCS_UNI_URL and DOCS_UNI_TOC_PATH.');
 
   const repoRoot = resolve(dirname(uniTocPath), '..');
@@ -415,17 +425,20 @@ test('Uni source, TOC, rendered pages, and attachment view agree for every leaf'
     await expect(title, `${leaf.id} title`).toHaveValue(leaf.title);
     await expect(sectionSelector, `${leaf.id} section`).toContainText(leaf.section);
     await expect
-      .poll(async () => {
-        try {
-          return await page.evaluate(() =>
-            document.documentElement.style.getPropertyValue('--hue'),
-          );
-        } catch {
-          // A route transition can briefly replace the document execution
-          // context; retry until the selected section's theme is applied.
-          return '';
-        }
-      }, { message: `${leaf.id} section hue finishes updating` })
+      .poll(
+        async () => {
+          try {
+            return await page.evaluate(() =>
+              document.documentElement.style.getPropertyValue('--hue'),
+            );
+          } catch {
+            // A route transition can briefly replace the document execution
+            // context; retry until the selected section's theme is applied.
+            return '';
+          }
+        },
+        { message: `${leaf.id} section hue finishes updating` },
+      )
       .toBe(String(leaf.hue));
 
     const markdownPath = resolve(repoRoot, leaf.path);
@@ -449,28 +462,32 @@ test('Uni source, TOC, rendered pages, and attachment view agree for every leaf'
         visibleClone.querySelectorAll('.katex').forEach((math) => math.remove());
         return visibleClone.innerText;
       });
-      const visibleCode = await body
-        .locator('code')
-        .evaluateAll((elements) =>
-          elements
-            .filter((element) => {
-              const style = getComputedStyle(element);
-              return style.display !== 'none' && style.visibility === 'visible' && element.getClientRects().length > 0;
-            })
-            .map((element) => element.textContent ?? '')
-            .join(' '),
-        );
-      const visibleImageAlt = await body
-        .locator('img[alt]')
-        .evaluateAll((elements) =>
-          elements
-            .filter((element) => {
-              const style = getComputedStyle(element);
-              return style.display !== 'none' && style.visibility === 'visible' && element.getClientRects().length > 0;
-            })
-            .map((element) => element.getAttribute('alt') ?? '')
-            .join(' '),
-        );
+      const visibleCode = await body.locator('code').evaluateAll((elements) =>
+        elements
+          .filter((element) => {
+            const style = getComputedStyle(element);
+            return (
+              style.display !== 'none' &&
+              style.visibility === 'visible' &&
+              element.getClientRects().length > 0
+            );
+          })
+          .map((element) => element.textContent ?? '')
+          .join(' '),
+      );
+      const visibleImageAlt = await body.locator('img[alt]').evaluateAll((elements) =>
+        elements
+          .filter((element) => {
+            const style = getComputedStyle(element);
+            return (
+              style.display !== 'none' &&
+              style.visibility === 'visible' &&
+              element.getClientRects().length > 0
+            );
+          })
+          .map((element) => element.getAttribute('alt') ?? '')
+          .join(' '),
+      );
       const accessibleEmbedTitles = await body
         .locator('iframe[title]')
         .evaluateAll((elements) =>
@@ -502,9 +519,10 @@ test('Uni source, TOC, rendered pages, and attachment view agree for every leaf'
     );
 
     for (const sourceUnit of sourceUnits)
-      expect(renderedBody, `${leaf.id} source meaning should render: ${sourceUnit.slice(0, 140)}`).toContain(
-        sourceUnit,
-      );
+      expect(
+        renderedBody,
+        `${leaf.id} source meaning should render: ${sourceUnit.slice(0, 140)}`,
+      ).toContain(sourceUnit);
     if (leaf.id === '9AexXGHk6co2Lu8zEXVqtu')
       await page.screenshot({
         path: 'test-results/consumer-uni-network-course-guide-light.png',
@@ -643,9 +661,7 @@ test('Uni source, TOC, rendered pages, and attachment view agree for every leaf'
       await expect(card, `${leaf.id} attachment ${attachment.name}`).toHaveCount(1);
       await expect(card).toHaveAttribute('aria-label', 'Attachment ' + attachment.name);
       if (attachment.type === 'fileAttachment')
-        await expect(card.locator('p.truncate')).toHaveText(
-          localAttachmentRoute(leaf, attachment),
-        );
+        await expect(card.locator('p.truncate')).toHaveText(localAttachmentRoute(leaf, attachment));
     }
     const renderedAttachmentIds = await attachments.evaluateAll((elements) =>
       elements.map((element) => element.getAttribute('data-docs-attachment-id') ?? '').sort(),

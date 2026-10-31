@@ -80,31 +80,40 @@ export function pagesFromDirectory(
 }
 
 export function normalizeVisibleText(value: string): string {
-  return value
-    .normalize('NFKD')
-    // Portable Text and Markdown renderers may typographically transform
-    // straight quotes. Compare their meaning, not the typography choice.
-    .replace(/[‘’]/g, "'")
-    .replace(/′/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/\s+(['′])/g, '$1')
-    .replace(/\s+/g, ' ')
-    .replace(/\s+([.,!?;:])/g, '$1')
-    .trim();
+  return (
+    value
+      .normalize('NFKD')
+      // Portable Text and Markdown renderers may typographically transform
+      // straight quotes. Compare their meaning, not the typography choice.
+      .replace(/[‘’]/g, "'")
+      .replace(/′/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/\s+(['′])/g, '$1')
+      .replace(/\s+/g, ' ')
+      .replace(/\s+([.,!?;:])/g, '$1')
+      .trim()
+  );
 }
 
 function plainMarkdownLine(line: string): string {
   // Inline math is verified from the rendered KaTeX source annotation below.
   // Keep prose comparison independent of KaTeX's duplicated assistive/visual
   // text nodes and its superscript line breaks.
+  // A trailing backslash is Markdown's hard-break marker. It affects layout,
+  // not visible copy, so exclude it before comparing source meaning with the
+  // rendered text. Do not strip an escaped literal backslash (\\).
+  const visibleLine = line.replace(/(?<!\\)\\\s*$/, '');
   const inlineCode: string[] = [];
   // Protect inline code before stripping math syntax. A code span containing
   // $$ is literal visible content, not a display-math delimiter.
-  const protectedLine = line.replace(/(\x60+)(.*?)\1/g, (_match, _fence: string, value: string) => {
-    const token = 'INLINECODETOKEN' + inlineCode.length + 'END';
-    inlineCode.push(value);
-    return token;
-  });
+  const protectedLine = visibleLine.replace(
+    /(\x60+)(.*?)\1/g,
+    (_match, _fence: string, value: string) => {
+      const token = 'INLINECODETOKEN' + inlineCode.length + 'END';
+      inlineCode.push(value);
+      return token;
+    },
+  );
   const visibleMath = protectedLine.replace(/(?<!\\)[$]{1,2}([\s\S]*?)[$]{1,2}/g, ' ');
   let plain = visibleMath
     .replace(/^\s{0,3}(?:#{1,6}\s+|>\s*|(?:[-*+]\s+)|\d+[.)]\s+)/, '')
@@ -191,7 +200,9 @@ function addVisibleMarkdown(units: string[], source: string): void {
       continue;
     }
     if (/^:{3}terra-item-end\s*$/.test(trimmed)) continue;
-    const admonition = trimmed.match(/^:{3,}(?:note|tip|important|caution|warning|danger|info|success|example)(?:\[([^\]]+)\])?\s*$/i);
+    const admonition = trimmed.match(
+      /^:{3,}(?:note|tip|important|caution|warning|danger|info|success|example)(?:\[([^\]]+)\])?\s*$/i,
+    );
     if (admonition) {
       if (admonition[1]) addVisibleMarkdown(units, admonition[1]);
       continue;
