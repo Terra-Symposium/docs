@@ -24,8 +24,142 @@ type Token = {
   [name: string]: unknown;
 };
 
+function encodeInlineMathPlaceholder(code: string): string {
+  const hex = Array.from(code, (character) =>
+    (character.codePointAt(0) ?? 0).toString(16).padStart(6, '0'),
+  ).join('');
+  return `TERRADOCSMATH${hex}END`;
+}
+
+function decodeInlineMathPlaceholder(value: string): string | undefined {
+  const match = value.match(/^TERRADOCSMATH([0-9a-f]+)END$/i);
+  if (!match || match[1]!.length % 6 !== 0) return undefined;
+  const codepoints: number[] = [];
+  for (let offset = 0; offset < match[1]!.length; offset += 6) {
+    const codepoint = Number.parseInt(match[1]!.slice(offset, offset + 6), 16);
+    if (codepoint > 0x10ffff || (codepoint >= 0xd800 && codepoint <= 0xdfff)) return undefined;
+    codepoints.push(codepoint);
+  }
+  return String.fromCodePoint(...codepoints);
+}
+
+function restoreInlineMathPlaceholders(value: string): string {
+  return value.replace(/TERRADOCSMATH[0-9a-f]+END/gi, (placeholder) => {
+    const code = decodeInlineMathPlaceholder(placeholder);
+    return code === undefined ? placeholder : `$${code}$`;
+  });
+}
+
+function withGeneratedInlineMathTokens(tokens: Token[] | undefined): Token[] {
+  const result: Token[] = [];
+  for (const token of tokens ?? []) {
+    if (!['text', 'escape'].includes(token.type)) {
+      result.push(token);
+      continue;
+    }
+    const matches = [...token.raw.matchAll(/TERRADOCSMATH[0-9a-f]+END/gi)];
+    if (!matches.length) {
+      result.push(token);
+      continue;
+    }
+    let cursor = 0;
+    for (const match of matches) {
+      const start = match.index ?? 0;
+      if (start > cursor) {
+        const raw = token.raw.slice(cursor, start);
+        const text = token.text ?? token.raw;
+        result.push({
+          ...token,
+          raw,
+          text: text.length === token.raw.length ? text.slice(cursor, start) : raw,
+        });
+      }
+      const code = decodeInlineMathPlaceholder(match[0]);
+      result.push(
+        code === undefined
+          ? { ...token, raw: match[0], text: match[0] }
+          : { type: 'docsMath', raw: match[0], text: code },
+      );
+      cursor = start + match[0].length;
+    }
+    if (cursor < token.raw.length) {
+      const raw = token.raw.slice(cursor);
+      const text = token.text ?? token.raw;
+      result.push({
+        ...token,
+        raw,
+        text: text.length === token.raw.length ? text.slice(cursor) : raw,
+      });
+    }
+  }
+  return result;
+}
+
 function span(text: string, marks: string[] = []) {
   return { _type: 'span', _key: key(), text, marks };
+}
+
+function withInlineMathTokens(tokens: Token[] | undefined, inlineMath: boolean): Token[] {
+  if (!tokens || !inlineMath) return tokens ?? [];
+  const result: Token[] = [];
+  for (let index = 0; index < tokens.length; ) {
+    if (!['text', 'escape'].includes(tokens[index]!.type)) {
+      result.push(tokens[index]!);
+      index += 1;
+      continue;
+    }
+
+    const run: Token[] = [];
+    while (index < tokens.length && ['text', 'escape'].includes(tokens[index]!.type)) {
+      run.push(tokens[index]!);
+      index += 1;
+    }
+    const source = run.map((token) => token.raw).join('');
+    const matches = [...source.matchAll(/(?<!\\)\$([^$\n]+)\$/g)];
+    if (!matches.length) {
+      result.push(...run);
+      continue;
+    }
+
+    const appendSourceRange = (start: number, end: number) => {
+      let offset = 0;
+      for (const token of run) {
+        const tokenStart = offset;
+        const tokenEnd = tokenStart + token.raw.length;
+        offset = tokenEnd;
+        const from = Math.max(start, tokenStart);
+        const to = Math.min(end, tokenEnd);
+        if (from >= to) continue;
+        if (from === tokenStart && to === tokenEnd) {
+          result.push(token);
+          continue;
+        }
+        const localStart = from - tokenStart;
+        const localEnd = to - tokenStart;
+        const raw = token.raw.slice(localStart, localEnd);
+        const text = token.text ?? token.raw;
+        result.push({
+          ...token,
+          raw,
+          text:
+            text.length === token.raw.length
+              ? text.slice(localStart, localEnd)
+              : raw,
+        });
+      }
+    };
+
+    let cursor = 0;
+    for (const match of matches) {
+      const start = match.index ?? 0;
+      const raw = match[0];
+      appendSourceRange(cursor, start);
+      result.push({ type: 'docsMath', raw, text: match[1] ?? '' });
+      cursor = start + raw.length;
+    }
+    appendSourceRange(cursor, source.length);
+  }
+  return result;
 }
 
 function inline(
@@ -42,7 +176,14 @@ function inline(
   const addMark = (items: typeof result, mark: string) =>
     items.map((item) => (item._type === 'span' ? { ...item, marks: [...item.marks, mark] } : item));
 
-  for (const token of tokens) {
+  for (const token of withInlineMathTokens(
+    inlineMath ? withGeneratedInlineMathTokens(tokens) : tokens,
+    inlineMath,
+  )) {
+    if (token.type === 'docsMath') {
+      result.push({ _type: 'math', _key: key(), code: token.text ?? '', inline: true });
+      continue;
+    }
     if (token.type === 'html') {
       const tag = token.raw.match(/^<(\/)?(u|ins|s|del|strike|em|i|strong|b|code)\s*>$/i);
       if (tag) {
@@ -166,11 +307,12 @@ function paragraphTokens(tokens: Token[] | undefined): Token[] {
 function containsUnsupportedInlineHtml(tokens: Token[] | undefined): boolean {
   return Boolean(
     tokens?.some((token) => {
-      if (token.type === 'html')
+      if (token.type === 'html') {
         return (
           !/^<\/?(?:u|ins|s|del|strike|em|i|strong|b|code)\s*>$/i.test(token.raw) &&
           !/^<br\s*\/?>$/i.test(token.raw)
         );
+      }
       return containsUnsupportedInlineHtml(token.tokens);
     }),
   );
@@ -258,6 +400,61 @@ function codeFenceRanges(source: string): SourceRange[] {
   }
   if (open) ranges.push({ start: open.start, end: source.length });
   return ranges;
+}
+
+function protectMarkdownInlineMath(source: string, inlineMath: boolean): string {
+  if (!inlineMath) return source;
+  const fences = codeFenceRanges(source);
+  let fenceIndex = 0;
+  let output = '';
+  let cursor = 0;
+  let index = 0;
+  while (index < source.length) {
+    while (fenceIndex < fences.length && index >= fences[fenceIndex]!.end) fenceIndex += 1;
+    const fence = fences[fenceIndex];
+    if (fence && index >= fence.start && index < fence.end) {
+      index = fence.end;
+      continue;
+    }
+
+    if (source[index] === '`' && source[index - 1] !== '\\') {
+      const marker = source.slice(index).match(/^`+/)?.[0];
+      const end = marker ? source.indexOf(marker, index + marker.length) : -1;
+      if (marker && end !== -1) {
+        index = end + marker.length;
+        continue;
+      }
+    }
+
+    if (source[index] !== '$' || source[index - 1] === '\\') {
+      index += 1;
+      continue;
+    }
+    if (source[index + 1] === '$') {
+      const end = source.indexOf('$$', index + 2);
+      if (end !== -1) {
+        index = end + 2;
+        continue;
+      }
+      index += 2;
+      continue;
+    }
+
+    let end = index + 1;
+    while (end < source.length && source[end] !== '\n') {
+      if (source[end] === '$' && source[end - 1] !== '\\' && source[end + 1] !== '$') break;
+      end += 1;
+    }
+    if (end >= source.length || source[end] !== '$' || end === index + 1) {
+      index += 1;
+      continue;
+    }
+
+    output += source.slice(cursor, index) + encodeInlineMathPlaceholder(source.slice(index + 1, end));
+    index = end + 1;
+    cursor = index;
+  }
+  return output + source.slice(cursor);
 }
 
 function structuredBlockRanges(source: string): SourceRange[] {
@@ -757,7 +954,26 @@ function markdownDestination(value: string): string {
 }
 
 /** Convert HTML table cells without letting ordinary underscores become Markdown emphasis. */
-function htmlToMarkdown(source: string): string {
+function escapeHtmlTableText(value: string, inlineMath: boolean): string {
+  const decoded = decodeHtmlRepeated(value);
+  if (!inlineMath) return escapeMarkdownText(decoded);
+  const matches = [...decoded.matchAll(/(?<!\\)\$([^$\n]+)\$/g)];
+  if (!matches.length) return escapeMarkdownText(decoded);
+
+  let output = '';
+  let cursor = 0;
+  for (const match of matches) {
+    const start = match.index ?? 0;
+    const code = match[1] ?? '';
+    output +=
+      escapeMarkdownText(decoded.slice(cursor, start)) +
+      encodeInlineMathPlaceholder(code);
+    cursor = start + match[0].length;
+  }
+  return output + escapeMarkdownText(decoded.slice(cursor));
+}
+
+function htmlToMarkdown(source: string, inlineMath: boolean): string {
   type OpenTag = { name: string; close: string };
   const stack: OpenTag[] = [];
   const tagPattern = /<!--[\s\S]*?-->|<\/?([A-Za-z][A-Za-z0-9:-]*)\b([^>]*?)>/g;
@@ -769,14 +985,14 @@ function htmlToMarkdown(source: string): string {
     const raw = match[0];
     const name = match[1]?.toLowerCase();
     if (!name) {
-      output += escapeMarkdownText(source.slice(copiedUntil, index));
+      output += escapeHtmlTableText(source.slice(copiedUntil, index), inlineMath);
       copiedUntil = index + raw.length;
       continue;
     }
     const closing = /^<\//.test(raw);
     const selfClosing = /\/\s*>$/.test(raw);
     const attributes = match[2] ?? '';
-    output += escapeMarkdownText(source.slice(copiedUntil, index));
+    output += escapeHtmlTableText(source.slice(copiedUntil, index), inlineMath);
     copiedUntil = tagPattern.lastIndex;
 
     if (closing) {
@@ -833,7 +1049,7 @@ function htmlToMarkdown(source: string): string {
     else if ((name === 'p' || name === 'div' || name === 'li' || name === 'pre') && !selfClosing)
       stack.push({ name, close });
   }
-  output += escapeMarkdownText(source.slice(copiedUntil));
+  output += escapeHtmlTableText(source.slice(copiedUntil), inlineMath);
   while (stack.length) output += stack.pop()!.close;
   return output.replace(/\n{3,}/g, '\n\n').trim();
 }
@@ -896,7 +1112,7 @@ function tableBlock(
     _type: 'table',
     _key: key(),
     header,
-    markdown,
+    markdown: restoreInlineMathPlaceholders(markdown),
     rows: rows.map((cells) => ({
       _type: 'row',
       _key: key(),
@@ -953,7 +1169,10 @@ function htmlTableBlock(
   const rows = [...table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr\s*>/gi)].map((row) => {
     const cells = [...(row[1] ?? '').matchAll(/<(?:th|td)\b[^>]*>([\s\S]*?)<\/(?:th|td)\s*>/gi)];
     return cells.map((cell) => {
-      const markdown = htmlToMarkdown(cell[1] ?? '');
+      const markdown = htmlToMarkdown(
+        cell[1] ?? '',
+        options.inlineMath !== false && options.math !== false,
+      );
       const cellBlocks: RichBlock[] = [];
       const cellMarkdownWithBlocks = markdown.replace(
         /TERRADOCSBLOCK(\d+)PLACEHOLDER/g,
@@ -977,7 +1196,13 @@ function htmlTableBlock(
   }));
   // Use one isolated placeholder registry per cell; parsing every paragraph and rich inline
   // component is necessary to keep the table's complete source visible in the nested renderer.
-  return { _type: 'table', _key: key(), header: 'Table', markdown: table, rows: parsedRows };
+  return {
+    _type: 'table',
+    _key: key(),
+    header: 'Table',
+    markdown: restoreInlineMathPlaceholders(table),
+    rows: parsedRows,
+  };
 }
 
 function markdownList(token: Token, options: DocsBlockOptions, level = 1): RichBlock[] {
@@ -1208,7 +1433,7 @@ function parseMarkdown(
       ? richPlaceholder(blocks, { _type: 'math', code: code.trim(), inline: false, markdown: raw })
       : rawPlaceholder(blocks, raw),
   );
-  const parsed = marked.lexer(source, { gfm: true }) as Token[];
+  const parsed = marked.lexer(protectMarkdownInlineMath(source, inlineMath), { gfm: true }) as Token[];
   const result: RichBlock[] = [];
   for (const token of parsed) {
     if (token.type === 'space') continue;

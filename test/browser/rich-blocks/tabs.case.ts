@@ -107,3 +107,169 @@ test('tabs.spec: Emit active tab edits', async ({ page }) => {
     )
     .toBe('First explanation updated');
 });
+
+test('tabs.spec: Render source-backed table cells inside read-only tabs', async ({ page }) => {
+  const cell = (key: string, text: string) => ({
+    _key: key,
+    _type: 'cell',
+    content: [
+      {
+        _key: `${key}-block`,
+        _type: 'block',
+        children: [{ _key: `${key}-span`, _type: 'span', marks: [], text }],
+        markDefs: [],
+        style: 'normal',
+      },
+    ],
+  });
+  const content = [
+    {
+      _key: 'brand-tabs',
+      _type: 'tabs',
+      items: [
+        {
+          _key: 'overview',
+          _type: 'item',
+          title: 'Overview',
+          content: [
+            {
+              _key: 'overview-table',
+              _type: 'table',
+              header: 'Overview values',
+              rows: [
+                { _key: 'overview-header', _type: 'row', cells: [cell('aspect', 'Aspect'), cell('description', 'Description')] },
+                { _key: 'overview-voice', _type: 'row', cells: [cell('voice', 'Voice'), cell('voice-copy', 'Professional and evidence-based.')] },
+              ],
+            },
+          ],
+        },
+        {
+          _key: 'principles',
+          _type: 'item',
+          title: 'Principles',
+          content: [
+            {
+              _key: 'principles-table',
+              _type: 'table',
+              header: 'Principle values',
+              rows: [
+                { _key: 'principles-header', _type: 'row', cells: [cell('attribute', 'Attribute'), cell('description-2', 'Description')] },
+                { _key: 'principles-motto', _type: 'row', cells: [cell('motto', 'Motto'), cell('motto-copy', 'Engineering trust and confidence.')] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ] satisfies TerraContent;
+
+  await openEditor(page, content, { readOnly: true });
+  const tabs = page.getByRole('tablist').last();
+  const overview = page.getByRole('tab', { name: 'Overview' });
+  await expect(overview).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('table').getByText('Voice', { exact: true })).toBeVisible();
+  await expect(page.getByRole('table').getByText('Professional and evidence-based.', { exact: true })).toBeVisible();
+
+  await page.getByRole('tab', { name: 'Principles' }).click();
+  await expect(page.getByRole('table').getByText('Motto', { exact: true })).toBeVisible();
+  await expect(page.getByRole('table').getByText('Engineering trust and confidence.', { exact: true })).toBeVisible();
+  await expect(tabs).toBeVisible();
+});
+
+test('tabs.spec: Render Sanity terraBlock cells inside production-shaped nested tables', async ({ page }) => {
+  const terraCell = (key: string, text: string) => ({
+    _key: key,
+    _type: 'cell',
+    content: [
+      {
+        _key: `${key}-block`,
+        _type: 'terraBlock',
+        children: [{ _key: `${key}-span`, _type: 'span', marks: [], text }],
+        markDefs: [],
+        style: 'normal',
+      },
+    ],
+  });
+  const content = [
+    {
+      _key: 'salesphere-brand-tabs',
+      _type: 'tabs',
+      items: [
+        {
+          _key: 'brand-overview',
+          _type: 'item',
+          title: 'Overview',
+          content: [
+            {
+              _key: 'brand-overview-table',
+              _type: 'table',
+              header: 'Table',
+              rows: [
+                { _key: 'brand-heading-row', _type: 'row', cells: [terraCell('brand-aspect', '🔍 Aspect'), terraCell('brand-description', 'Description')] },
+                { _key: 'brand-voice-row', _type: 'row', cells: [terraCell('brand-voice', '🗣️ Voice'), terraCell('brand-voice-description', 'Professional, authoritative, and evidence-based.')] },
+                { _key: 'brand-culture-row', _type: 'row', cells: [terraCell('brand-culture', '🏢 Culture'), terraCell('brand-culture-description', 'Data-driven, ethical, and collaborative.')] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ] satisfies TerraContent;
+
+  await openEditor(page, content, { readOnly: true });
+  const table = page.locator('[data-docs-editor-block="DocsTable"] table');
+  await expect(page.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
+  await expect(table.getByRole('columnheader').nth(0)).toContainText('🔍 Aspect');
+  await expect(table.getByRole('columnheader').nth(1)).toContainText('Description');
+  await expect(table.getByRole('cell').nth(0)).toContainText('🗣️ Voice');
+  await expect(table.getByRole('cell').nth(1)).toContainText('Professional, authoritative, and evidence-based.');
+  await expect(table.getByRole('cell').nth(3)).toContainText('Data-driven, ethical, and collaborative.');
+});
+
+test('tabs.spec: Render production legacy string children in table cells', async ({ page }) => {
+  const cell = (key: string, text: string) => ({
+    _key: key,
+    _type: 'cell',
+    content: [
+      {
+        _key: `${key}-block`,
+        _type: 'terraBlock',
+        children: text,
+        markDefs: [],
+        style: 'normal',
+      },
+    ],
+  });
+  const content = [
+    {
+      _key: 'production-tabs',
+      _type: 'tabs',
+      items: [
+        {
+          _key: 'production-overview',
+          _type: 'item',
+          title: 'Overview',
+          content: [
+            {
+              _key: 'production-brand-table',
+              _type: 'table',
+              header: 'Table',
+              rows: [
+                { _key: 'production-header', _type: 'row', cells: [cell('aspect', '🔍 Aspect'), cell('description', 'Description')] },
+                { _key: 'production-voice', _type: 'row', cells: [cell('voice', '🗣️ Voice'), cell('voice-copy', 'Professional, authoritative, and evidence-based.')] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ] satisfies TerraContent;
+
+  await openEditor(page, content, { readOnly: true });
+  const table = page.locator('[data-docs-editor-block="DocsTable"] table');
+  await expect(page.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
+  await expect(table.getByRole('columnheader').nth(0)).toHaveText('🔍 Aspect');
+  await expect(table.getByRole('columnheader').nth(1)).toHaveText('Description');
+  await expect(table.getByRole('cell').nth(0)).toHaveText('🗣️ Voice');
+  await expect(table.getByRole('cell').nth(1)).toHaveText('Professional, authoritative, and evidence-based.');
+});

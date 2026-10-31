@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { markdownToDocsValue } from '../lib/markdown-model.js';
-import { docsHueTheme } from '../lib/docs-theme.js';
 import { TerraDocsWorkspace } from './terra/Workspace.js';
 import type { DocsBlockOptions } from './blocks.js';
 import type {
@@ -32,6 +31,8 @@ export type DocsLocalWorkspaceProps = {
   pathname: string;
   title: string;
   description?: string;
+  /** Optional host-owned content rendered before the page body in View mode. */
+  beforeContent?: ReactNode;
   hue?: number | null;
   rootPath?: string;
   homePath?: string;
@@ -102,6 +103,19 @@ function findTreeNode(
   return undefined;
 }
 
+function findTreeLeaf(
+  nodes: DocsHostTreeNode[],
+  id: string,
+  ancestors: DocsHostTreeNode[] = [],
+): { node: DocsHostTreeNode; ancestors: DocsHostTreeNode[] } | undefined {
+  for (const node of nodes) {
+    if (node.type === 'leaf' && node.origName === id) return { node, ancestors };
+    const found = node.children ? findTreeLeaf(node.children, id, [...ancestors, node]) : undefined;
+    if (found) return found;
+  }
+  return undefined;
+}
+
 function firstLeaf(nodes: DocsHostTreeNode[]): DocsHostTreeNode | undefined {
   for (const node of nodes) {
     if (node.type === 'leaf') return node;
@@ -122,6 +136,7 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
     pathname,
     title,
     description,
+    beforeContent,
     hue = 145,
     rootPath = '/',
     homePath,
@@ -134,7 +149,6 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
     () => (page ? markdownToDocsValue(page.markdown, blocks) : []),
     [blocks, page],
   );
-  const theme = docsHueTheme(hue);
   const host = useMemo<DocsHostAdapter>(() => {
     const activePage = (): DocsLocalPage | undefined =>
       typeof window === 'undefined'
@@ -147,9 +161,10 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
       if (!input || typeof input !== 'object') return undefined;
       const value = input as Record<string, unknown>;
       const direct =
+        findDocsLocalPage(pages, value.id) ??
         findDocsLocalPage(pages, value.path) ??
         findDocsLocalPage(pages, value.pathname) ??
-        findDocsLocalPage(pages, value.id);
+        findDocsLocalPage(pages, value.origName);
       if (direct) return direct;
       const requested = [value.path, value.pathname, value.id].find(
         (candidate) => typeof candidate === 'string' && candidate.length > 0,
@@ -175,12 +190,17 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
       },
       rootPath,
       ...(homePath ? { homePath } : {}),
+      hue,
       siteTitle: title,
       ...(description ? { siteDescription: description } : {}),
       assetUrl: () => undefined,
       resolveRoute(value) {
         const resolved = findDocsLocalPage(pages, value) ?? pages[0];
-        const match = resolved ? findTreeNode(tree, resolved.id) : undefined;
+        // Leaf IDs may intentionally match their section IDs (for example a
+        // Standards `skills` section containing the `skills` landing leaf).
+        // Resolve the leaf explicitly so a branch collision cannot redirect
+        // the selected section to the first section in the TOC.
+        const match = resolved ? findTreeLeaf(tree, resolved.id) : undefined;
         const branches = match?.ancestors.filter((node) => node.type === 'branch') ?? [];
         return {
           sectionId: branches[0]?.origName ?? tree[0]?.origName ?? 'index',
@@ -250,25 +270,24 @@ export function DocsLocalWorkspace(props: DocsLocalWorkspaceProps): JSX.Element 
       },
     };
     return adapter;
-  }, [description, homePath, pages, pathname, rootPath, title, tree]);
+  }, [description, homePath, hue, pages, pathname, rootPath, title, tree]);
 
   return (
-    <div className="docs-theme-scope" style={theme}>
-      <TerraDocsWorkspace
-        host={host}
-        tree={tree}
-        pathname={pathname}
-        permission="read"
-        title={page?.title ?? title}
-        {...(page?.path ? { path: page.path } : {})}
-        {...(page?.description ? { description: page.description } : {})}
-        {...(page?.contributors ? { contributors: page.contributors } : {})}
-        {...(page?.updatedAt ? { updatedAt: page.updatedAt } : {})}
-        {...(page ? { source: page.markdown, content } : { content })}
-        {...(afterContent !== undefined ? { afterContent } : {})}
-        {...(customBlocks ? { customBlocks } : {})}
-        {...(blocks ? { blocks } : {})}
-      />
-    </div>
+    <TerraDocsWorkspace
+      host={host}
+      tree={tree}
+      pathname={pathname}
+      permission="read"
+      title={page?.title ?? title}
+      {...(page?.path ? { path: page.path } : {})}
+      {...(page?.description ? { description: page.description } : {})}
+      {...(page?.contributors ? { contributors: page.contributors } : {})}
+      {...(page?.updatedAt ? { updatedAt: page.updatedAt } : {})}
+      {...(page ? { source: page.markdown, content } : { content })}
+      {...(beforeContent !== undefined ? { beforeContent } : {})}
+      {...(afterContent !== undefined ? { afterContent } : {})}
+      {...(customBlocks ? { customBlocks } : {})}
+      {...(blocks ? { blocks } : {})}
+    />
   );
 }

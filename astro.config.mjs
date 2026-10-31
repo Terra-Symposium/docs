@@ -6,5 +6,11 @@ export default defineConfig({
   outDir: './site-dist/',
   devToolbar: { enabled: false },
   integrations: [react()],
-  vite: { optimizeDeps: { include: [...DOCS_VITE_OPTIMIZE_DEPS] } },
+  vite: {
+    // Linked local packages (notably the live Styling checkout) must resolve
+    // React through this app. Otherwise Radix's portal providers load a second
+    // React instance and fail during Astro SSR/hydration with invalid hooks.
+    resolve: { dedupe: ['react', 'react-dom'] },
+    optimizeDeps: { include: [...DOCS_VITE_OPTIMIZE_DEPS] },
+  },
 });

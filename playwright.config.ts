@@ -1,17 +1,19 @@
 import { defineConfig } from '@playwright/test';
 
+const port = Number(process.env.DOCS_PLAYWRIGHT_PORT ?? 4335);
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: './test/browser',
-  use: { baseURL: 'http://127.0.0.1:4335', browserName: 'chromium' },
+  use: { baseURL, browserName: 'chromium' },
   expect: {
     toHaveScreenshot: {
       pathTemplate: '{testDir}/{testFileName}-snapshots/{arg}{ext}',
     },
   },
   webServer: {
-    command:
-      'pnpm docs:build && python3 -m http.server 4335 --bind 127.0.0.1 --directory site-dist',
-    url: 'http://127.0.0.1:4335/',
+    command: `python3 -m http.server ${port} --bind 127.0.0.1 --directory site-dist`,
+    url: `${baseURL}/`,
     reuseExistingServer: false,
     timeout: 120_000,
   },

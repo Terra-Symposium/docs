@@ -19,7 +19,9 @@ export function createDocsSchema(options: DocsBlockOptions = {}) {
       { name: 'em', title: 'Italic' },
       { name: 'underline', title: 'Underline' },
       { name: 'strike-through', title: 'Strikethrough' },
-      { name: 'code', title: 'Code' },
+      // `code` is also a Docs block object. Keep Sanity inline-code marks on a
+      // distinct editor-only name and translate them at the storage boundary.
+      { name: 'terra-inline-code', title: 'Code' },
     ],
     annotations: [{ name: 'link', fields: [{ name: 'href', type: 'string' }] }],
     lists: [{ name: 'bullet' }, { name: 'number' }],

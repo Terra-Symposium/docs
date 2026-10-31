@@ -50,6 +50,7 @@ test('nodes.spec: Render nodes and edges', async ({ page }) => {
   await expect(flowchart).toHaveCSS('height', '240px');
   await expect(flowchart.getByText('Start step')).toBeVisible();
   await expect(flowchart.getByText('Finish step')).toBeVisible();
+  await expect(flowchart.locator('.react-flow__attribution')).toHaveCSS('display', 'none');
 });
 
 const autoLayoutNodesFixture = [

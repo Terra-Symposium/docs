@@ -1,9 +1,11 @@
 import { markdownToDocsValue } from '../lib/markdown-model.js';
+import { $surfaceReady, useTransitionState } from '../lib/terra/docs/state.js';
 import { TerraDocsWorkspace } from './terra/Workspace.js';
 import { docsHueTheme } from '../lib/docs-theme.js';
 import type { DocsHostAdapter, DocsHostAttachment, DocsHostTreeNode } from '../lib/host.js';
 import type { DocsAttachment, DocsLeaf, DocsSection } from '../lib/workspace-types.js';
 import type { DocsNavNode } from './navigation.js';
+import { useEffect } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 type Props = {
@@ -21,7 +23,18 @@ type Props = {
   attachments?: DocsAttachment[];
   updatedAt?: string;
   renderContent?: ReactNode;
+  children?: ReactNode;
+  staticContent?: boolean;
 };
+
+function StaticContentSlot({ children }: { children: ReactNode }): JSX.Element {
+  const transition = useTransitionState();
+  useEffect(() => {
+    $surfaceReady.set('view');
+    document.dispatchEvent(new Event('docs:surface-ready'));
+  }, [transition]);
+  return <>{children}</>;
+}
 
 const slug = (value: string): string =>
   value
@@ -104,6 +117,8 @@ export function DocsStaticWorkspace({
   attachments = [],
   updatedAt,
   renderContent,
+  children,
+  staticContent = false,
 }: Props): JSX.Element {
   const workspaceSections: DocsSection[] = sections ?? sectionsFromNavigation(nodes);
   const theme = docsHueTheme(hue);
@@ -127,6 +142,11 @@ export function DocsStaticWorkspace({
   const currentAttachments = active?.leaf.attachments ?? attachments;
   const docPath = active?.leaf.href ?? currentPath;
   const docContent = Array.isArray(content) ? content : markdownToDocsValue(markdown);
+  const contentSlot = renderContent ?? children;
+  const readyContent =
+    contentSlot !== undefined || staticContent ? (
+      <StaticContentSlot key={currentPath}>{contentSlot ?? null}</StaticContentSlot>
+    ) : undefined;
 
   const tree: DocsHostTreeNode[] = workspaceSections.map((section) => {
     const sectionId = section.id ?? slug(section.title);
@@ -289,7 +309,7 @@ export function DocsStaticWorkspace({
           : {})}
         source={markdown}
         content={docContent}
-        {...(renderContent !== undefined ? { renderContent } : {})}
+        {...(readyContent !== undefined ? { renderContent: readyContent } : {})}
       />
     </div>
   );

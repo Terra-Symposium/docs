@@ -65,13 +65,13 @@ import {
   Link as LinkIcon,
   TrashCan as TrashIcon,
 } from '@carbon/icons-react';
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { AlertError } from '@terra-symposium/styling/ui';
+import { Button } from '@terra-symposium/styling/ui';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import {
   Dialog,
   DialogContent,
@@ -79,19 +79,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import { ExportDialog as SharedExportDialog } from './_export-dialog.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
+import { Label } from '@terra-symposium/styling/ui';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Separator } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { Separator } from '@terra-symposium/styling/ui';
 import {
   Sidebar,
   SidebarContent,
@@ -99,8 +99,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarRail,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Slider } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { Slider } from '@terra-symposium/styling/ui';
 
 // TYPES
 import type { ActionRes, Md } from '../../../../lib/terra/runtime/types.js';

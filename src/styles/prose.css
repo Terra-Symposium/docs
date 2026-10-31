@@ -69,6 +69,25 @@ DOCS
   margin-bottom: 1.25em;
 }
 
+/* Portable Text emits one list wrapper per block. Match the original Docs
+   list rhythm while preserving the source level and ordered-list start value. */
+.terra-docs-content :is(ul, ol)[data-docs-list-level] {
+  list-style-position: outside;
+  margin-block: 0;
+  padding-inline-start: 1.5rem;
+}
+.terra-docs-content :is(ul, ol)[data-docs-list-level] > li {
+  line-height: 1.5;
+  margin-block: 0;
+}
+.terra-docs-content :is(ul, ol)[data-docs-list-level] > li > p {
+  line-height: 1.5;
+  margin-block: 0;
+}
+.terra-docs-content > [data-list-item] {
+  margin-block: 0;
+}
+
 /* print */
 @media print {
   .prose {
@@ -497,7 +516,7 @@ SHARED
   > :last-child {
     @apply !mb-0;
   }
-  a {
+  a:not(:where(.not-prose, .not-prose *)) {
     color: inherit !important;
   }
   code:not(pre code) {
@@ -588,7 +607,7 @@ aside .title + * {
   > :first-child > :first-child {
     @apply !mt-0;
   }
-  a {
+  a:not(:where(.not-prose, .not-prose *)) {
     @apply underline underline-offset-2;
     color: inherit;
   }

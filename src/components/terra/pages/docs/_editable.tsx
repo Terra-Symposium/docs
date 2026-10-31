@@ -33,7 +33,7 @@ import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 import React from 'react';
 import { EditStateCtx, EditorSurfaceCtx, TransitionCtx } from '../../../../lib/terra/docs/state.js';
 import { ErrorBoundary } from '../../ui.js';
-import { Progress } from '@terra-symposium/styling/ui/terra-original';
+import { Progress } from '@terra-symposium/styling/ui';
 
 // DATA
 import { IMG_RESPONSIVE } from '../../ui.js';

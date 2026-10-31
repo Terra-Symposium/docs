@@ -139,22 +139,9 @@ export function toCodeJsx(src: string): string {
       /<pre><code(?:\s+class="language-([^"]+)")?>([\s\S]*?)<\/code><\/pre>/gi,
       (_, l: string, v: string) => codeJsx(l || '', v),
     );
-  if (/<(?:td|th)\b[^>]*>\s*<code\b/i.test(res))
-    res = res.replace(
-      /<(t[dh])(\b[^>]*)>\s*<code(?:\s+class="language-([^"]+)")?>([\s\S]*?)<\/code>\s*<\/\1>/gi,
-      (_, t: string, a: string, l: string, v: string) =>
-        `<${t}${a}>${codeJsx(
-          l || '',
-          v
-            .replace(/&#10;/g, '\n')
-            .replace(/&#13;/g, '\r')
-            .replace(TerraQualityRegex.REGEX_QUOT_G_REGEX(), '"')
-            .replace(/&#39;/g, "'")
-            .replace(TerraQualityRegex.REGEX_AMP_G_REGEX(), '&')
-            .replace(TerraQualityRegex.REGEX_LT_G_REGEX(), '<')
-            .replace(TerraQualityRegex.REGEX_GT_G_REGEX(), '>'),
-        )}</${t}>`,
-    );
+  // Inline code within a table cell is document text, not a standalone Code
+  // block. Wrapping it in Code JSX made Markdown exports leak MDX into cells and
+  // caused HTML entities to be escaped a second time by local-source readers.
   res = res.replace(
     /<Code\b([\s\S]*?)\s+code=(?:"([\s\S]*?)"|\{`((?:\\.|[^`])*?)`\})\s*\/>/g,
     (_match, p, q, e) => {
@@ -259,11 +246,14 @@ export const renderMd = (val: string): string => {
     return `<pre><code${code[1]?.trim() ? ` class="language-${escHtml(code[1].trim())}"` : ''}>${escHtml(code[2] || '')}</code></pre>`;
   const codes: string[] = [];
   const lines = text.split(/\n{2,}/);
-  let html = escHtml(text)
-    .replace(/`([^`]+)`/g, (_, c: string) => {
+  // Protect inline code before escaping prose. Escaping first turns an
+  // apostrophe into `&#39;`, then escaping the code span again turns it into
+  // visible `&amp;#39;` text in table cells.
+  const protectedText = text.replace(/`([^`]+)`/g, (_, c: string) => {
       codes.push(`<code>${escHtml(c)}</code>`);
       return `__CODE_${codes.length - 1}__`;
-    })
+    });
+  let html = escHtml(protectedText)
     .replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
       (_, l: string, h: string) => `<a href="${escHtml(h)}">${l}</a>`,

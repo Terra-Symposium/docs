@@ -50,10 +50,10 @@ import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import EditProvider, { Loader, TransitionShell } from './_editable.js';
 import Nav from './_sidebar.js';
 import { Suspense } from 'react';
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
+import { AlertError } from '@terra-symposium/styling/ui';
 import { Attachments } from './_attachments.js';
-import { Badge } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { Badge } from '@terra-symposium/styling/ui';
+import { Button } from '@terra-symposium/styling/ui';
 import {
   Dialog,
   DialogContent,
@@ -61,28 +61,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { DocsToolbarActions, Toolbar } from './_toolbar.js';
 import { useBlockNav } from './use-block-nav.js';
 import { useMediaPaste } from './use-media-paste.js';
 import { EditStateCtx, EditorSurfaceCtx, TransitionCtx } from '../../../../lib/terra/docs/state.js';
 import { ErrorBoundary } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
+import { Label } from '@terra-symposium/styling/ui';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Separator } from '@terra-symposium/styling/ui/terra-original';
-import { Textarea } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { Separator } from '@terra-symposium/styling/ui';
+import { Textarea } from '@terra-symposium/styling/ui';
 import { Toaster } from 'sonner';
 const TerraContentEditor = lazy(() =>
   import('../../editor/TerraContentEditor.js').then((module) => ({
@@ -534,7 +534,7 @@ const EditorSurfaces = {
 					{(updatedAt || contributors.length > 0) && (
 						<div className='mt-4 flex flex-wrap items-center gap-2 text-sm text-primary-11'>
 							{updatedAt && <span>Last modified {new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(updatedAt))}</span>}
-							{contributors.map(c => <Badge key={c} size='sm' title='Contributing author' variant='secondary'>{c}</Badge>)}
+							{contributors.map(c => <Badge key={c} size='sm' title='Contributing author' variant='secondary-tonal'>{c}</Badge>)}
 						</div>
 					)}
 				</div>
@@ -582,6 +582,7 @@ export default function Scaffold({
   content: initContent,
   mode: initialMode,
   viewContent,
+  beforeContent,
   afterContent,
   blocks: docsBlocks,
 }: {
@@ -601,11 +602,12 @@ export default function Scaffold({
   updatedAt?: string;
   mode?: Mode;
   viewContent?: ReactNode;
+  beforeContent?: ReactNode;
   afterContent?: ReactNode;
   blocks?: DocsBlockOptions;
 }): JSX.Element {
   // STATES
-  const navigationState = { open: useAtom($sidebar), leafTitle: useAtom($leafTitle) };
+  const navigationState = { open: useAtom($sidebar) };
   // Match the original Docs shell: only render the Portable Text editor after hydration.
   // Its external store is not SSR-safe, and rendering it in the initial HTML causes React #419.
   const [hydrated, setHydrated] = useState<boolean>(standalone);
@@ -680,6 +682,7 @@ export default function Scaffold({
     const content = toPortableBody(initContent);
     const src = initSrc || (typeof initContent === 'string' ? initContent : '');
     setCurrDoc((p) => {
+      const existingContributors = Array.isArray(p.contributors) ? p.contributors : [];
       if (
         p.pathname === initPathname &&
         p.path === initPath &&
@@ -688,8 +691,9 @@ export default function Scaffold({
         p.updatedAt === initUpdatedAt &&
         p.source === src &&
         p.compiledMDX === initMdx &&
-        p.contributors.length === contributors.length &&
-        p.contributors.every((c, i) => c === contributors[i]) &&
+        Array.isArray(p.contributors) &&
+        existingContributors.length === contributors.length &&
+        existingContributors.every((c, i) => c === contributors[i]) &&
         JSON.stringify(p.content) === JSON.stringify(content)
       )
         return p;
@@ -730,10 +734,8 @@ export default function Scaffold({
         typeof (e as CustomEvent<{ isActive?: boolean; title?: string }>).detail.title !== 'string'
       )
         return;
-      setCurrDoc((p) => ({
-        ...p,
-        title: (e as CustomEvent<{ isActive?: boolean; title?: string }>).detail.title!,
-      }));
+      const title = (e as CustomEvent<{ isActive?: boolean; title?: string }>).detail.title!;
+      setCurrDoc((p) => ({ ...p, title }));
     };
     document.addEventListener('docs:rename', rename);
     return () => {
@@ -741,15 +743,8 @@ export default function Scaffold({
     };
   }, []);
   useEffect(() => {
-    if (currDoc.path) $leafTitle.set({ path: currDoc.path, title: currDoc.title });
+    setDocumentTitle(currDoc.title);
   }, [currDoc.path, currDoc.title]);
-  useEffect(() => {
-    setDocumentTitle(
-      navigationState.leafTitle?.path === currDoc.path
-        ? (navigationState.leafTitle?.title ?? currDoc.title)
-        : currDoc.title,
-    );
-  }, [currDoc.path, currDoc.title, navigationState.leafTitle]);
   useEffect(() => {
     /**
      * Handles update favicon.
@@ -796,27 +791,34 @@ export default function Scaffold({
             : typeof detail.url === 'string'
               ? detail.url
               : previous.pathname || '';
-        return {
-          ...previous,
-          ...detail,
-          source:
-            Object.prototype.hasOwnProperty.call(detail, 'source') &&
-            typeof detail.source === 'string'
-              ? detail.source
-              : previous.source || '',
-          content: isDocBody(detail.content) ? detail.content : previous.content,
-          pathname: keepDeepPath(
+          const pathname = keepDeepPath(
             previous.pathname || '',
             rawPathname ? rawPathname.split('?')[0] || '' : previous.pathname || '',
-          ),
-          compiledMDX:
-            Object.prototype.hasOwnProperty.call(detail, 'compiledMDX') &&
-            detail.compiledMDX !== undefined
-              ? String(detail.compiledMDX)
-              : (previous.compiledMDX ?? ''),
-          versions: previous.versions,
-        };
-      });
+          );
+          const contributors = Array.isArray(detail.contributors)
+            ? detail.contributors.filter((value): value is string => typeof value === 'string')
+            : pathname === previous.pathname && Array.isArray(previous.contributors)
+              ? previous.contributors
+              : [];
+          return {
+            ...previous,
+            ...detail,
+            contributors,
+            source:
+              Object.prototype.hasOwnProperty.call(detail, 'source') &&
+              typeof detail.source === 'string'
+                ? detail.source
+                : previous.source || '',
+            content: isDocBody(detail.content) ? detail.content : previous.content,
+            pathname,
+            compiledMDX:
+              Object.prototype.hasOwnProperty.call(detail, 'compiledMDX') &&
+              detail.compiledMDX !== undefined
+                ? String(detail.compiledMDX)
+                : (previous.compiledMDX ?? ''),
+            versions: previous.versions,
+          };
+        });
     };
     document.addEventListener('docs:navigate', handleNav);
     window.addEventListener('docs:navigate', handleNav);
@@ -1097,6 +1099,7 @@ export default function Scaffold({
                             {hydrated &&
                               (a === 'view' ? (
                                 <>
+                                  {beforeContent}
                                   {viewContent ?? (
                                     <View
                                       body={isDocBody(currDoc.content) ? currDoc.content : []}

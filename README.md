@@ -27,6 +27,8 @@ pnpm dev        # Vite component playground
 pnpm docs:dev   # Astro installation and configuration guide
 ```
 
+The launcher delegates port acquisition to Terra Quality, then starts the dev server with strict port handling. Host apps use this shared launcher; set DOCS_DEV_PORT to override their preferred port.
+
 Build commands: `pnpm run check`, `pnpm run build`, `pnpm run build:demo`, and `pnpm run docs:build`.
 
 The reusable block registry includes accordions, tabs, tables, callouts, code, images, embeds, math, diagrams, raw Markdown, and TypeScript documentation. All are available by default; hosts can disable individual members with the `blocks` prop. Local repository pages stay read-only in the browser.

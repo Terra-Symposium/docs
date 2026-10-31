@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from 'react';
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import React from 'react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
 import {
   Checkmark as CheckmarkIcon,
   ChevronDown as ChevronDownIcon,
@@ -33,16 +33,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import { Empty } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import { SearchEmpty } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { SearchEmpty } from '@terra-symposium/styling/ui';
 
 /*//////////////////////////////////////////////////
 CONFIG

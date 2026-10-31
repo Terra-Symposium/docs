@@ -30,7 +30,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import { defaultDocsBlock, enabledDocsBlocks } from '../../../blocks.js';
 import { DocsAttachmentPicker } from './DocsAttachmentPicker.js';

@@ -6,6 +6,8 @@ export type DocsHostTreeNode = {
   type: 'branch' | 'leaf';
   origName: string;
   title?: string;
+  /** Explicit accent for this node; descendants inherit the nearest defined hue. */
+  hue?: number | null;
   url?: string;
   path?: string;
   permission?: 'read' | 'write';
@@ -168,6 +170,8 @@ export type TerraDocsWorkspaceProps = {
   content?: unknown;
   /** Optional static React content slot rendered inside the canonical View surface. */
   renderContent?: ReactNode;
+  /** Optional host-owned React content rendered before the document body in View mode. */
+  beforeContent?: ReactNode;
   /** Optional host-owned React content appended after the canonical View surface. */
   afterContent?: ReactNode;
   standalone?: boolean;

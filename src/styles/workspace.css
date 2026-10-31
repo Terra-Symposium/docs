@@ -2,3 +2,7 @@
 @import 'katex/dist/katex.min.css';
 @import '@xyflow/react/dist/style.css';
 @import './prose.css';
+/* The pre-extraction Terra layout suppressed React Flow's attribution badge. */
+.react-flow__attribution {
+  display: none !important;
+}

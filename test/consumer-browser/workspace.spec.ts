@@ -21,62 +21,72 @@ async function assertViteArtifactVersion(
   targetUrl: string,
   artifact: 'docs' | 'styling',
 ): Promise<void> {
-  const expectedVersion = artifact === 'docs' ? expectedDocsVersion : expectedStylingVersion;
-  const moduleName = artifact === 'docs' ? '@terra-symposium_docs' : '@terra-symposium_styling';
-  const entryUrl = new URL(`/node_modules/.vite/deps/${moduleName}.js`, targetUrl);
-  const entryResponse = await page.request.get(entryUrl.toString());
-  let sourceMap: { sources?: unknown };
-
-  if (artifact === 'docs') {
-    expect(entryResponse.ok(), `Vite must expose the Docs client entry for ${targetUrl}`).toBe(
-      true,
+  const packageName = `@terra-symposium/${artifact}`;
+  // Vite can optimize an installed package, leave it as an @fs module, or serve
+  // its package.json directly. Read the package manifest from the running host;
+  // this checks the package that host resolves rather than guessing from the
+  // optimizer's implementation details.
+  const packageUrl = new URL(`/node_modules/${packageName}/package.json`, targetUrl);
+  const response = await page.request.get(packageUrl.toString());
+  const expectedVersion =
+    artifact === 'docs' ? expectedDocsVersion : expectedStylingVersionFor(targetUrl);
+  if (response.ok()) {
+    const manifest = (await response.json()) as { name?: string; version?: string };
+    expect(manifest.name).toBe(packageName);
+    expect(manifest.version, `Resolved ${packageName} version for ${targetUrl}`).toBe(
+      expectedVersion,
     );
-    const response = await page.request.get(`${entryUrl}.map`);
-    expect(response.ok(), `Vite must expose the Docs client source map for ${targetUrl}`).toBe(
-      true,
-    );
-    sourceMap = (await response.json()) as { sources?: unknown };
-  } else {
-    const host = new URL(targetUrl).host;
-    // Styling's own site resolves Styling from its workspace. Uni consumes
-    // Docs' compiled stylesheet and has no separate Styling JavaScript entry.
-    if (host === '127.0.0.1:4311' || host === '127.0.0.1:5175') return;
-    expect(entryResponse.ok(), `Vite must expose the Styling client entry for ${targetUrl}`).toBe(
-      true,
-    );
-    // Styling's optimized entry is a tiny proxy. Its implementation source map
-    // belongs to the content-hashed chunk it re-exports.
-    const chunkPath = (await entryResponse.text()).match(/from ["']([^"']+\.js)\?v=/)?.[1];
-    expect(
-      chunkPath,
-      `Vite Styling entry has no implementation chunk for ${targetUrl}`,
-    ).toBeTruthy();
-    const response = await page.request.get(new URL(`${chunkPath}.map`, targetUrl).toString());
-    expect(response.ok(), `Vite must expose the Styling client source map for ${targetUrl}`).toBe(
-      true,
-    );
-    sourceMap = (await response.json()) as { sources?: unknown };
+    return;
   }
 
-  const packageMarker =
-    artifact === 'docs' ? '@terra-symposium+docs@' : '@terra-symposium+styling@';
-  const source = Array.isArray(sourceMap.sources)
-    ? sourceMap.sources.find(
-        (candidate): candidate is string =>
-          typeof candidate === 'string' && candidate.includes(packageMarker),
-      )
-    : undefined;
+  // Styling's Astro docs host resolves Docs from a nested pnpm package, which
+  // Vite serves through its optimizer instead of exposing a top-level manifest.
+  const metadataUrl = new URL('/node_modules/.vite/deps/_metadata.json', targetUrl);
+  const metadataResponse = await page.request.get(metadataUrl.toString());
+  expect(metadataResponse.ok(), `Vite must expose dependency metadata for ${targetUrl}`).toBe(true);
+  const metadata = (await metadataResponse.json()) as {
+    optimized?: Record<string, { src?: string }>;
+  };
+  const source = metadata.optimized?.[packageName]?.src;
+  expect(source, `Vite must identify the resolved ${packageName} entry`).toBeTruthy();
+  const packageSlug = artifact === 'docs' ? 'terra-symposium-docs' : 'terra-symposium-styling';
+  const sourceVersion = source?.match(new RegExp(`${packageSlug}-(\\d+\\.\\d+\\.\\d+)\\.tgz`))?.[1];
+  if (source?.endsWith('/dist/lib/index.js') && !sourceVersion) {
+    const stylingRoot = process.env.DOCS_STYLING_SOURCE_ROOT;
+    expect(stylingRoot, 'Set DOCS_STYLING_SOURCE_ROOT for the local Styling workspace').toBeTruthy();
+    const stylingManifest = JSON.parse(
+      readFileSync(resolve(stylingRoot!, '../../package.json'), 'utf8'),
+    ) as { name?: string; version?: string };
+    expect(stylingManifest.name).toBe('@terra-symposium/styling');
+    expect(stylingManifest.version).toBe(expectedVersion);
+    return;
+  }
+  // The Docs package's own Astro demo resolves the in-repository library
+  // build directly, while external consumers resolve a vendored tarball.
+  // Port acquisition may move the demo, so identify the artifact by its source
+  // and package version instead of assuming a fixed port.
+  if (source?.endsWith('/lib-dist/lib/index.js') && !sourceVersion) {
+    const docsSourceRoot = process.env.DOCS_PACKAGE_SOURCE_ROOT;
+    expect(docsSourceRoot, 'Set DOCS_PACKAGE_SOURCE_ROOT for the local Docs workspace').toBeTruthy();
+    const docsManifest = JSON.parse(
+      readFileSync(resolve(docsSourceRoot!, '../../../package.json'), 'utf8'),
+    ) as { name?: string; version?: string };
+    expect(docsManifest.name).toBe('@terra-symposium/docs');
+    expect(docsManifest.version).toBe(expectedDocsVersion);
+    return;
+  }
+  expect(sourceVersion, `Resolved package entry should identify its version: ${source}`).toBe(
+    expectedVersion,
+  );
+}
 
-  expect(
-    source,
-    `Vite client source map for @terra-symposium/${artifact} must identify the package tarball used by ${targetUrl}`,
-  ).toBeTruthy();
-  const tarballName = artifact === 'docs' ? 'terra-symposium-docs' : 'terra-symposium-styling';
-  const actualVersion = source!.match(new RegExp(`${tarballName}-(\\d+\\.\\d+\\.\\d+)\\.tgz`))?.[1];
-  expect(
-    actualVersion,
-    `Vite client source for @terra-symposium/${artifact} should identify its installed tarball: ${source}`,
-  ).toBe(expectedVersion);
+function expectedStylingVersionFor(targetUrl: string): string {
+  const origin = new URL(targetUrl).origin;
+  const configured = (process.env.DOCS_CONSUMER_STYLING_VERSIONS ?? '')
+    .split(',')
+    .map((entry) => entry.trim().split('='))
+    .find(([host]) => host === origin)?.[1];
+  return configured || expectedStylingVersion;
 }
 
 const consumerUrls = (process.env.DOCS_CONSUMER_URLS ?? '')
@@ -154,9 +164,14 @@ async function waitForThemeControls(
   scheme: 'light' | 'dark',
 ): Promise<void> {
   const background = scheme === 'dark' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
+  const workspace = page.locator('.terra-docs-workspace');
   await expect
     .poll(() =>
-      page.locator('.docs-theme-scope').evaluate((scope) => getComputedStyle(scope).colorScheme),
+      workspace.evaluate(
+        (element) =>
+          getComputedStyle(element.closest<HTMLElement>('.docs-theme-scope') ?? element)
+            .colorScheme,
+      ),
     )
     .toBe(scheme);
   await expect
@@ -237,14 +252,34 @@ for (const targetUrl of targetUrls) {
     test.skip(!targetUrl, 'Set DOCS_CONSUMER_URLS to one or more installed Docs host URLs.');
 
     const browserErrors: string[] = [];
+    const astroDevToolbarOptimizerErrors: string[] = [];
     let stage = 'navigation';
     page.on('pageerror', (error) => browserErrors.push(`${stage} pageerror: ${error.message}`));
     page.on('console', (message) => {
-      if (message.type() === 'error') browserErrors.push(`${stage} console: ${message.text()}`);
+      if (message.type() !== 'error') return;
+      // Astro's dev toolbar is hidden from the consumer screenshots and is not
+      // part of the shared Docs workspace. A long-running local Astro process
+      // can retain an outdated optimizer entrypoint; its generic console error
+      // is classified with the exact toolbar response below.
+      if (
+        message.text() ===
+          'Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)' &&
+        astroDevToolbarOptimizerErrors.length > 0
+      )
+        return;
+      browserErrors.push(`${stage} console: ${message.text()}`);
     });
     page.on('response', (response) => {
-      if (response.status() >= 400)
-        browserErrors.push(`${stage} HTTP ${response.status()}: ${response.url()}`);
+      if (response.status() < 400) return;
+      const url = new URL(response.url());
+      if (
+        response.status() === 504 &&
+        url.pathname === '/@id/astro/runtime/client/dev-toolbar/entrypoint.js'
+      ) {
+        astroDevToolbarOptimizerErrors.push(`${response.status()}: ${response.url()}`);
+        return;
+      }
+      browserErrors.push(`${stage} HTTP ${response.status()}: ${response.url()}`);
     });
 
     await page.emulateMedia({ colorScheme: 'light' });
@@ -252,6 +287,10 @@ for (const targetUrl of targetUrls) {
     const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
     expect(response?.status(), `Consumer route did not load: ${targetUrl}`).toBeLessThan(400);
     await expect(page.locator('.terra-docs-workspace')).toBeVisible({ timeout: 30_000 });
+    // Markdown source is hydrated by the host adapter after the workspace
+    // shell appears. Wait for real rendered content before taking screenshots
+    // so a fast network-idle event cannot capture a blank editor canvas.
+    await expect(page.locator('[data-docs-body-content]')).toHaveText(/\S/, { timeout: 30_000 });
     // Astro's floating development toolbar is tooling, not part of the Docs UI;
     // remove it from visual captures so it cannot obscure the page being reviewed.
     await page.addStyleTag({
@@ -367,7 +406,13 @@ for (const targetUrl of targetUrls) {
     await waitForThemeControls(page, 'dark');
     await expect
       .poll(() =>
-        page.locator('.docs-theme-scope').evaluate((scope) => getComputedStyle(scope).colorScheme),
+        page
+          .locator('.terra-docs-workspace')
+          .evaluate(
+            (element) =>
+              getComputedStyle(element.closest<HTMLElement>('.docs-theme-scope') ?? element)
+                .colorScheme,
+          ),
       )
       .toBe('dark');
     const darkTheme = await page.locator('.terra-docs-workspace').evaluate((workspace) => {
@@ -420,6 +465,17 @@ for (const targetUrl of targetUrls) {
 
     stage = 'mode selector and attachments';
     const mode = page.getByRole('combobox', { name: 'Mode' });
+    const viewModeWidth = await mode.evaluate((element) => element.getBoundingClientRect().width);
+    const viewToolbarWidth = await page
+      .locator('[data-docs-main-toolbar]')
+      .evaluate((element) => element.getBoundingClientRect().width);
+    expect(viewModeWidth, `View mode should retain its original full-row width in ${targetUrl}`).toBeGreaterThan(
+      viewToolbarWidth * 0.8,
+    );
+    expect(
+      viewToolbarWidth - viewModeWidth,
+      `View mode should preserve the original toolbar geometry in ${targetUrl}`,
+    ).toBeLessThan(100);
     await mode.click();
     await expect(page.getByRole('option', { name: 'Code', exact: true })).toHaveCount(0);
     if (readOnlyUrls.has(targetUrl))
@@ -430,6 +486,11 @@ for (const targetUrl of targetUrls) {
       'attachments',
     );
     await expect(page.locator('[data-docs-attachments]')).toBeVisible();
+    const attachmentModeWidth = await mode.evaluate((element) => element.getBoundingClientRect().width);
+    expect(
+      attachmentModeWidth,
+      `Attachments mode selector should fit beside its file filters in ${targetUrl}`,
+    ).toBeLessThan(viewToolbarWidth * 0.25);
     await assertAttachmentToolbarFits(page);
     await assertTitleFits(page);
     await page.screenshot({
@@ -459,7 +520,13 @@ for (const targetUrl of targetUrls) {
     await waitForThemeControls(page, 'dark');
     await expect
       .poll(() =>
-        page.locator('.docs-theme-scope').evaluate((scope) => getComputedStyle(scope).colorScheme),
+        page
+          .locator('.terra-docs-workspace')
+          .evaluate(
+            (element) =>
+              getComputedStyle(element.closest<HTMLElement>('.docs-theme-scope') ?? element)
+                .colorScheme,
+          ),
       )
       .toBe('dark');
     const darkAttachments = await page.locator('.terra-docs-workspace').evaluate((workspace) => {
@@ -561,6 +628,13 @@ for (const targetUrl of targetUrls) {
       await page.keyboard.press('Escape');
     }
     expect(browserErrors, `Browser errors in ${targetUrl}`).toEqual([]);
+    expect(astroDevToolbarOptimizerErrors.length).toBeLessThanOrEqual(1);
+    if (astroDevToolbarOptimizerErrors.length) {
+      test.info().annotations.push({
+        type: 'environment',
+        description: `Astro dev toolbar returned an outdated optimizer response: ${astroDevToolbarOptimizerErrors[0]}`,
+      });
+    }
   });
 }
 

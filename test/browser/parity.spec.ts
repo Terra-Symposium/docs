@@ -217,6 +217,12 @@ test('pinned Terra Docs attachment management dialog matches the original', asyn
   await page.getByRole('menuitem', { name: 'Manage attachments', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: /Manage Attachments — Start here/i });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS('position', 'fixed');
+  await expect(page.locator('[data-state="open"].fixed').first()).toHaveCSS('position', 'fixed');
+  await expect(page.locator('[data-state="open"].fixed').first()).toHaveCSS(
+    'height',
+    '1000px',
+  );
   await expect(dialog.getByText('Salesphere', { exact: true })).toBeVisible();
   await expect(dialog.getByText('Runtime map', { exact: true })).toBeVisible();
   await expectOriginalScreenshot(page, 'attachment-management-dialog');

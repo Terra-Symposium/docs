@@ -49,9 +49,32 @@ test('Standards Docs preserves the interactive Skills explorer', async ({ page }
   test.skip(!standardsUrl, 'Set DOCS_STANDARDS_URL to the running Standards Docs host.');
 
   const browserErrors: string[] = [];
+  const astroDevToolbarOptimizerErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(error.message));
   page.on('console', (message) => {
-    if (message.type() === 'error') browserErrors.push(message.text());
+    if (message.type() !== 'error') return;
+    // Long-running Astro dev servers can retain a stale optimizer entrypoint
+    // for the dev toolbar. Ignore its generic console message only when the
+    // exact toolbar request was independently observed as a 504 below.
+    if (
+      message.text() ===
+        'Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)' &&
+      astroDevToolbarOptimizerErrors.length > 0
+    )
+      return;
+    browserErrors.push(message.text());
+  });
+  page.on('response', (response) => {
+    if (response.status() < 400) return;
+    const url = new URL(response.url());
+    if (
+      response.status() === 504 &&
+      url.pathname === '/@id/astro/runtime/client/dev-toolbar/entrypoint.js'
+    ) {
+      astroDevToolbarOptimizerErrors.push(`${response.status()}: ${response.url()}`);
+      return;
+    }
+    browserErrors.push(`HTTP ${response.status()}: ${response.url()}`);
   });
 
   const response = await page.goto(new URL('/skills/', standardsUrl).toString(), {

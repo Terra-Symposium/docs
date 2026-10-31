@@ -19,6 +19,7 @@ type Props = {
 };
 
 const { title, homeHref = '/', description, pageTitle, nodes = [], sections, currentPath, rootPath = '/', markdown = '', content, attachments = [], updatedAt } = Astro.props;
+const staticContent = Astro.slots.has('default');
 ---
 
 <DocsStaticWorkspace
@@ -35,4 +36,7 @@ const { title, homeHref = '/', description, pageTitle, nodes = [], sections, cur
 	content={content}
 	attachments={attachments}
 	updatedAt={updatedAt}
-/>
+	staticContent={staticContent}
+>
+	<slot />
+</DocsStaticWorkspace>

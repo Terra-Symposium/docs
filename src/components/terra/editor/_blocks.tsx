@@ -20,17 +20,17 @@ import {
   AccordionContent,
   AccordionItem as AccordionPrimitiveItem,
   AccordionTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { Card, CardContent, CardHeader } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { Button } from '@terra-symposium/styling/ui';
+import { Card, CardContent, CardHeader } from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 
 // TYPES
 import type { ReactElement, ReactNode } from 'react';

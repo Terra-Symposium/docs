@@ -32,7 +32,7 @@ import { getDocsHostAdapter } from '../../../../lib/host-runtime.js';
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
 import React from 'react';
-import { TextTooltip, TooltipProvider } from '@terra-symposium/styling/ui/terra-original';
+import { TextTooltip, TooltipProvider } from '@terra-symposium/styling/ui';
 import {
   ArrowUpRight as PopOutIcon,
   CaretDown as CaretDownIcon,
@@ -53,8 +53,8 @@ import {
   TextUnderline as UnderlineIcon,
   Undo as UndoIcon,
 } from '@carbon/icons-react';
-import { Button as UiButton } from '@terra-symposium/styling/ui/terra-original';
-import { ButtonGroup } from '@terra-symposium/styling/ui/terra-original';
+import { Button as UiButton } from '@terra-symposium/styling/ui';
+import { ButtonGroup } from '@terra-symposium/styling/ui';
 import { CodeBlock } from '../../editor/docs/_CodeBlock.js';
 import {
   Dialog,
@@ -63,7 +63,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,17 +73,17 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { EditStateCtx } from '../../../../lib/terra/docs/state.js';
 import { ErrorBoundary } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
+import { Label } from '@terra-symposium/styling/ui';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import { SearchEmpty } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { SearchEmpty } from '@terra-symposium/styling/ui';
 import {
   Select,
   SelectContent,
@@ -93,8 +93,8 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
-import { ToggleGroup, ToggleGroupItem } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { ToggleGroup, ToggleGroupItem } from '@terra-symposium/styling/ui';
 
 // DATA
 import { ATTCH_TYPES } from '../../../../lib/terra/docs/attachments.js';
@@ -315,7 +315,12 @@ function Mode({
         onModeChange(n);
       }}
     >
-      <SelectTrigger aria-label="Mode" width={mode === 'attachments' ? 'fit' : 'full'}>
+      <SelectTrigger
+        aria-label="Mode"
+        // Match the original full-row selector in View/Edit. Attachments adds
+        // its type filters beside this control, so only that mode sizes to fit.
+        className={mode === 'attachments' ? 'w-fit' : undefined}
+      >
         <SelectValue placeholder="Mode" />
       </SelectTrigger>
       {/* prettier-ignore */}

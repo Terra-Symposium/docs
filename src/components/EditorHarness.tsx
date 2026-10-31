@@ -73,18 +73,20 @@ export default function EditorHarness(): JSX.Element {
   );
   return (
     <StrictMode>
-      <main className="terra-docs-workspace mx-auto min-h-svh max-w-5xl p-6">
-        <TerraContentEditor
-          content={content}
-          {...(options.attachments ? { docsAttachments: options.attachments } : {})}
-          {...(options.blocks ? { blocks: options.blocks } : {})}
-          readOnly={readOnly}
-          onChange={(value) => setContent(value)}
-        />
-        <pre data-testid="editor-output" className="sr-only">
-          {JSON.stringify(content)}
-        </pre>
-      </main>
+      <div className="docs-theme-scope">
+        <main className="terra-docs-workspace mx-auto min-h-svh max-w-5xl p-6">
+          <TerraContentEditor
+            content={content}
+            {...(options.attachments ? { docsAttachments: options.attachments } : {})}
+            {...(options.blocks ? { blocks: options.blocks } : {})}
+            readOnly={readOnly}
+            onChange={(value) => setContent(value)}
+          />
+          <pre data-testid="editor-output" className="sr-only">
+            {JSON.stringify(content)}
+          </pre>
+        </main>
+      </div>
     </StrictMode>
   );
 }

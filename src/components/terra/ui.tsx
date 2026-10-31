@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import type { ErrorInfo, JSX, ReactNode } from 'react';
-export { Empty } from '@terra-symposium/styling/ui/terra-original';
+export { Empty } from '@terra-symposium/styling/ui';
 
 export class ErrorBoundary extends Component<
   {

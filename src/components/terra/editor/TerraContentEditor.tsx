@@ -37,6 +37,7 @@ type ContentMember = Record<string, any> & { _key?: string; _type: string };
 type EditorValue = PortableTextBlock[];
 
 const containerTypes = new Set(['accordion', 'callout', 'tabs']);
+const INLINE_CODE_MARK = 'terra-inline-code';
 
 const rendererByType: Record<string, (props: any) => JSX.Element | null> = {
   accordion: renderSections,
@@ -93,11 +94,34 @@ function fallbackInline(value: ContentMember): ContentMember {
   };
 }
 
-function normalizeTextChildren(value: unknown, options: DocsBlockOptions): unknown[] {
+function normalizeTextChildren(
+  value: unknown,
+  options: DocsBlockOptions,
+  blockKey?: string,
+): unknown[] {
+  if (typeof value === 'string') {
+    value = value
+      ? [
+          {
+            _key: `${blockKey ?? 'docs-block'}-text`,
+            _type: 'span',
+            marks: [],
+            text: value,
+          },
+        ]
+      : [];
+  }
   if (!Array.isArray(value)) return [];
   return value.map((child) => {
     if (!isMember(child)) return child;
-    if (child._type === 'span' || child._type === 'todoInline') return child;
+    if (child._type === 'span') {
+      const marks = Array.isArray(child.marks) ? child.marks : [];
+      return {
+        ...child,
+        marks: marks.map((mark: unknown) => (mark === 'code' ? INLINE_CODE_MARK : mark)),
+      };
+    }
+    if (child._type === 'todoInline') return child;
     if (child._type === 'math' && options.inlineMath !== false) return child;
     return fallbackInline(child);
   });
@@ -116,8 +140,13 @@ function toEditorValue(value: unknown[], options: DocsBlockOptions = {}): Editor
         ...rest,
         _type: 'block',
         children: normalizeTextChildren(
-          Array.isArray(children) && children.length > 0 ? children : c,
+          typeof children === 'string'
+            ? children
+            : Array.isArray(children) && children.length > 0
+              ? children
+              : c,
           options,
+          typeof member._key === 'string' ? member._key : undefined,
         ),
       } as unknown as PortableTextBlock;
     }
@@ -183,6 +212,11 @@ function restoreTextChildren(value: unknown): unknown {
   return value.map((child) => {
     if (!isMember(child)) return child;
     if (child._type === 'todoInline' && isPreservedMember(child.source)) return child.source;
+    if (child._type === 'span' && Array.isArray(child.marks))
+      return {
+        ...child,
+        marks: child.marks.map((mark: unknown) => (mark === INLINE_CODE_MARK ? 'code' : mark)),
+      };
     return child;
   });
 }
@@ -285,7 +319,12 @@ function OrderedListItem({
   }
 
   return (
-    <ol className="list-decimal" start={start}>
+    <ol
+      className="list-outside list-decimal pl-6 leading-6"
+      data-docs-list-level={level}
+      start={start}
+      style={{ marginInlineStart: `${Math.max(0, level - 1) * 1.5}rem` }}
+    >
       <li data-level={level} data-list-item="number">
         {children}
       </li>
@@ -308,7 +347,11 @@ function TerraTextBlock({ attributes, children, node, readOnly }: any): JSX.Elem
           {content}
         </OrderedListItem>
       ) : (
-        <ul className="list-disc">
+        <ul
+          className="list-outside list-disc pl-6 leading-6"
+          data-docs-list-level={node.level ?? 1}
+          style={{ marginInlineStart: `${Math.max(0, (node.level ?? 1) - 1) * 1.5}rem` }}
+        >
           <li data-level={node.level ?? 1} data-list-item={node.listItem}>
             {content}
           </li>
@@ -469,7 +512,13 @@ export function TerraContentEditor({
                       {children}
                     </OrderedListItem>
                   ) : (
-                    <ul className="list-disc">{item}</ul>
+                    <ul
+                      className="list-outside list-disc pl-6 leading-6"
+                      data-docs-list-level={level}
+                      style={{ marginInlineStart: `${Math.max(0, level - 1) * 1.5}rem` }}
+                    >
+                      {item}
+                    </ul>
                   );
                 }}
                 renderAnnotation={({ children, value }) => {
@@ -482,7 +531,7 @@ export function TerraContentEditor({
                   if (value === 'em') return <em>{children}</em>;
                   if (value === 'underline') return <u>{children}</u>;
                   if (value === 'strike-through') return <s>{children}</s>;
-                  if (value === 'code') return <code>{children}</code>;
+                  if (value === INLINE_CODE_MARK) return <code>{children}</code>;
                   return <>{children}</>;
                 }}
                 renderStyle={({ children, schemaType }) =>

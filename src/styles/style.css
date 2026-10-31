@@ -3,7 +3,6 @@
    cascade, while the host imports only this published stylesheet. */
 @import '../../node_modules/@terra-symposium/styling/dist/docs-base.css';
 @import '../../node_modules/@terra-symposium/styling/dist/ui-base.css';
-@import './workspace.css';
 @import './docs-theme.css';
 @tailwind utilities;
 .terra-docs {

@@ -2,6 +2,9 @@ import preset from '@terra-symposium/styling/tailwind-preset';
 
 export default {
   presets: [preset],
+  // Keep Docs utilities inside the theme wrapper so later host utility sheets
+  // cannot override responsive layout classes such as `md:hidden`.
+  important: '.docs-theme-scope',
   // The Docs bundle is compiled from the package's source, so every utility
   // used by the extracted workspace and its standalone site is present in the
   // same deterministic stylesheet as Styling's original UI primitives.

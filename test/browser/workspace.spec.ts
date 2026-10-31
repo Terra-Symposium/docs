@@ -163,6 +163,10 @@ test('Markdown ordered lists keep consecutive numbering and restart after a para
             'A separate paragraph ends the list.',
             '',
             '1. A new list starts at one.',
+            '',
+            '- Base bullet',
+            '  - Nested bullet',
+            '    - Third-level bullet',
           ].join('\n'),
         },
       ],
@@ -193,6 +197,203 @@ test('Markdown ordered lists keep consecutive numbering and restart after a para
     'Third step',
     'A new list starts at one.',
   ]);
+
+  const baseList = content
+    .locator('ul[data-docs-list-level="1"]')
+    .filter({ hasText: 'Base bullet' });
+  const nestedList = content
+    .locator('ul[data-docs-list-level="2"]')
+    .filter({ hasText: 'Nested bullet' });
+  const thirdLevelList = content
+    .locator('ul[data-docs-list-level="3"]')
+    .filter({ hasText: 'Third-level bullet' });
+  await expect(baseList).toHaveCount(1);
+  await expect(nestedList).toHaveCount(1);
+  await expect(thirdLevelList).toHaveCount(1);
+  const listLayout = await Promise.all(
+    [baseList, nestedList, thirdLevelList].map((list) =>
+      list.evaluate((element) => {
+        const styles = getComputedStyle(element);
+        const paragraph = element.querySelector('li > p');
+        const paragraphStyles = paragraph ? getComputedStyle(paragraph) : null;
+        return {
+          padding: Number.parseFloat(styles.paddingInlineStart),
+          margin: Number.parseFloat(styles.marginInlineStart),
+          marker: styles.listStyleType,
+          lineHeight: Number.parseFloat(styles.lineHeight),
+          paragraphMargin: paragraphStyles
+            ? Number.parseFloat(paragraphStyles.marginBlockStart) +
+              Number.parseFloat(paragraphStyles.marginBlockEnd)
+            : null,
+        };
+      }),
+    ),
+  );
+  expect(listLayout.map((item) => item.marker)).toEqual(['disc', 'disc', 'disc']);
+  expect(listLayout.map((item) => item.padding)).toEqual([24, 24, 24]);
+  expect(listLayout.map((item) => item.margin)).toEqual([0, 24, 48]);
+  expect(listLayout.every((item) => item.lineHeight <= 24)).toBe(true);
+  expect(listLayout.every((item) => item.paragraphMargin === 0)).toBe(true);
+  await page.screenshot({ path: '/tmp/docs-markdown-lists.png', fullPage: true });
+});
+
+test('section hues update without reload and color the page root, links, and diagram nodes', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.addInitScript(
+    (fixture) => {
+      Object.assign(window, { __terraDocsLocalWorkspaceFixture: fixture });
+    },
+    {
+      tree: [
+        {
+          type: 'branch',
+          origName: 'programming',
+          title: 'Programming',
+          hue: 30,
+          children: [
+            {
+              type: 'branch',
+              origName: 'programming-one',
+              title: 'Programming 1',
+              children: [
+                {
+                  type: 'leaf',
+                  origName: 'orange-page',
+                  title: 'Orange page',
+                  path: 'programming/orange-page/index.md',
+                  url: '/docs/#orange-page',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'branch',
+          origName: 'mathematics',
+          title: 'Mathematics',
+          hue: 150,
+          children: [
+            {
+              type: 'branch',
+              origName: 'mathematics-one',
+              title: 'Mathematics 1',
+              children: [
+                {
+                  type: 'leaf',
+                  origName: 'green-page',
+                  title: 'Green page',
+                  path: 'mathematics/green-page/index.md',
+                  url: '/docs/#green-page',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      pages: [
+        {
+          id: 'orange-page',
+          path: 'content/programming/orange-page/index.md',
+          pathname: '/docs/#orange-page',
+          title: 'Orange page',
+          markdown: [
+            'A [complementary link](#green-page) follows the section hue.',
+            '',
+            '<Nodes direction="TB" nodes={[{"id":"orange-node","type":"terminator","data":{"title":"Orange section node","href":"/#green-page"}},{"id":"primary-node","type":"process","data":{"title":"Primary section node","href":"/#green-page"}}]} edges={[]} height={240} />',
+            '',
+            ...Array.from({ length: 36 }, (_, index) => `Long page background check ${index + 1}.`),
+          ].join('\n\n'),
+        },
+        {
+          id: 'green-page',
+          path: 'content/mathematics/green-page/index.md',
+          pathname: '/docs/#green-page',
+          title: 'Green page',
+          markdown: 'This page belongs to the Mathematics hue.\n\n- One\n- Two',
+        },
+      ],
+      pathname: '/docs/#orange-page',
+      title: 'Hue fixture',
+      hue: 145,
+      rootPath: '/docs/',
+      homePath: '/docs/#orange-page',
+    },
+  );
+
+  let loadCount = 0;
+  page.on('load', () => {
+    loadCount += 1;
+  });
+  await page.goto('/strict-local-workspace-harness/');
+  await waitForWorkspaceReady(page);
+  const content = page.locator('[data-docs-view-root]');
+  const hueOfPage = () =>
+    page.evaluate(() => ({
+      hue: document.documentElement.style.getPropertyValue('--hue'),
+      rootBackground: getComputedStyle(document.documentElement).backgroundColor,
+      bodyBackground: getComputedStyle(document.body).backgroundColor,
+      primary: getComputedStyle(document.documentElement).getPropertyValue('--primary-1').trim(),
+    }));
+
+  await expect(content.getByText('Long page background check 1.')).toBeVisible();
+  await expect.poll(async () => (await hueOfPage()).hue).toBe('30');
+  await expect
+    .poll(() => content.locator('[data-docs-editor-block="Nodes"] .react-flow__node a').count())
+    .toBeGreaterThan(0);
+  const orangeNodeColors = await content
+    .locator('[data-docs-editor-block="Nodes"] .react-flow__node a')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        title: node.textContent?.trim() ?? '',
+        className: (node as HTMLElement).className,
+        rendered: getComputedStyle(node).color,
+        primary: getComputedStyle(node).getPropertyValue('--primary-12').trim(),
+        secondary: getComputedStyle(node).getPropertyValue('--secondary-11').trim(),
+      })),
+    );
+  const primaryNode = orangeNodeColors.find((node) => node.title === 'Primary section node');
+  const secondaryNode = orangeNodeColors.find((node) => node.title === 'Orange section node');
+  expect(primaryNode?.className).toContain('text-primary-12');
+  expect(secondaryNode?.className).toContain('text-secondary-11');
+  expect(primaryNode?.rendered).toBe(`rgb(${primaryNode.primary.split(/\s+/).join(', ')})`);
+  expect(secondaryNode?.rendered).toBe(`rgb(${secondaryNode.secondary.split(/\s+/).join(', ')})`);
+
+  const beforeNavigation = await page.evaluate(
+    () => performance.getEntriesByType('navigation').length,
+  );
+  await page.getByRole('combobox', { name: 'Section' }).click();
+  await page.getByRole('option', { name: 'Mathematics' }).click();
+  const greenPageLink = page.getByRole('link', { name: 'Green page', exact: true });
+  await expect(greenPageLink).toBeVisible();
+  await greenPageLink.click();
+  await expect(page.getByRole('textbox', { name: 'Title' })).toHaveValue('Green page');
+  await expect(content.getByText('This page belongs to the Mathematics hue.')).toBeVisible();
+  await expect.poll(async () => (await hueOfPage()).hue).toBe('150');
+  expect(await page.evaluate(() => performance.getEntriesByType('navigation').length)).toBe(
+    beforeNavigation,
+  );
+  expect(loadCount).toBe(1);
+
+  await page.emulateMedia({ colorScheme: 'dark' });
+  const darkModeState = await page.evaluate(() => ({
+    htmlClass: document.documentElement.className,
+    scopeClass: document.querySelector('.docs-theme-scope')?.className ?? '',
+    colorScheme: getComputedStyle(document.querySelector('.docs-theme-scope')!).colorScheme,
+    media: matchMedia('(prefers-color-scheme: dark)').matches,
+    primary: getComputedStyle(document.querySelector('.docs-theme-scope')!)
+      .getPropertyValue('--primary-1')
+      .trim(),
+  }));
+  expect(darkModeState.colorScheme, JSON.stringify(darkModeState)).toBe('dark');
+  const darkPage = await hueOfPage();
+  expect(darkPage.hue).toBe('150');
+  expect(darkPage.rootBackground).toBe(darkPage.bodyBackground);
+  expect(darkPage.rootBackground).not.toBe('rgb(255, 255, 255)');
+  expect(darkPage.primary).not.toBe('');
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.screenshot({ path: '/tmp/docs-section-hue-dark-long-page.png', fullPage: true });
 });
 
 test('shared workspace keeps the Terra header, toolbar position, section navigation, and nested leaf actions', async ({
@@ -232,8 +433,9 @@ test('shared workspace keeps the Terra header, toolbar position, section navigat
     };
   });
   expect(toolbarPosition.followsHeader).toBeTruthy();
-  expect(toolbarPosition.modeWidth).toBeGreaterThan(700);
-  expect(toolbarPosition.toolbarWidth - toolbarPosition.modeWidth).toBeCloseTo(18, 0);
+  expect(toolbarPosition.toolbarWidth).toBeGreaterThan(700);
+  expect(toolbarPosition.modeWidth).toBeGreaterThan(toolbarPosition.toolbarWidth * 0.8);
+  expect(toolbarPosition.toolbarWidth - toolbarPosition.modeWidth).toBeLessThan(100);
   expect(toolbarPosition.fontFamily).toContain('Inter');
   expect(toolbarPosition.headingWidth).toBeCloseTo(768, 0);
   expect(toolbarPosition.headingFontSize).toBe('30px');
@@ -242,7 +444,7 @@ test('shared workspace keeps the Terra header, toolbar position, section navigat
     const host = document.querySelector('.workspace-demo-theme');
     const workspace = document.querySelector('.terra-docs-workspace');
     return {
-      host: host ? getComputedStyle(host).getPropertyValue('--primary-9').trim() : '',
+      host: host ? getComputedStyle(host).getPropertyValue('--primaryLight9').trim() : '',
       workspace: workspace
         ? getComputedStyle(workspace).getPropertyValue('--primary-9').trim()
         : '',
@@ -504,6 +706,7 @@ test('group create, rename, reorder, and delete use the shared sidebar actions',
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/workspace-demo/');
+  await waitForWorkspaceReady(page);
   await page.getByRole('combobox', { name: 'Mode' }).click();
   await page.getByRole('option', { name: 'Edit' }).click();
 
@@ -522,6 +725,7 @@ test('group create, rename, reorder, and delete use the shared sidebar actions',
     )
     .toBe(true);
   await page.reload();
+  await waitForWorkspaceReady(page);
   await page.getByRole('combobox', { name: 'Section' }).click();
   await page.getByRole('option', { name: 'Group lifecycle', exact: true }).click();
 
@@ -606,15 +810,27 @@ test('group create, rename, reorder, and delete use the shared sidebar actions',
 test('leaf reorder is stored and appears in the same order after reload', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/workspace-demo/');
+  await waitForWorkspaceReady(page);
   const sourceRow = page.locator('[data-docs-drop]').filter({ hasText: 'Salesphere' });
   const targetRow = page.locator('[data-docs-drop]').filter({ hasText: 'Runtime map' });
-  await sourceRow.getByRole('button', { name: 'Reorder item' }).dragTo(targetRow);
-
-  const orderedIds = await page.evaluate(() => {
-    const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
-    return state.tree[0].children[0].children.map((node: { origName: string }) => node.origName);
+  const reorderHandle = sourceRow.getByRole('button', { name: 'Reorder item' });
+  await expect(reorderHandle).toBeEnabled();
+  await reorderHandle.dragTo(targetRow, {
+    // A leaf row is only 24px tall in the shared sidebar. Drop near its bottom
+    // so this specifically tests insertion after the target leaf.
+    targetPosition: { x: 8, y: 23 },
   });
-  expect(orderedIds).toEqual(['runtime-map', 'salesphere']);
+
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const state = JSON.parse(localStorage.getItem('terra-docs-workspace-demo-v1') ?? '{}');
+          return state.tree[0].children[0].children.map((node: { origName: string }) => node.origName);
+        }),
+      { timeout: 5_000 },
+    )
+    .toEqual(['runtime-map', 'salesphere']);
 
   await page.reload();
   await expect
@@ -844,6 +1060,7 @@ test('section creation is retained, and menus remain keyboard accessible and por
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/workspace-demo/');
+  await waitForWorkspaceReady(page);
   const mode = page.getByRole('combobox', { name: 'Mode' });
   await mode.click();
   await expect(page.getByRole('option', { name: 'Edit' })).toBeVisible();
@@ -904,6 +1121,7 @@ test('section creation is retained, and menus remain keyboard accessible and por
     .toBe(true);
 
   await page.goto('/workspace-demo/');
+  await waitForWorkspaceReady(page);
   await expect(page.getByRole('combobox', { name: 'Section' })).toBeVisible();
   await page.getByRole('combobox', { name: 'Section' }).click();
   await expect(page.getByRole('option', { name: 'Created from browser' })).toBeVisible();

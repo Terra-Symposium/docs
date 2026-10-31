@@ -32,9 +32,12 @@ await cp(
   join(root, 'lib-dist', 'assets', 'fonts'),
   { recursive: true },
 );
-// Keep the shared primitive and Docs utilities in one Tailwind pass. Styling's
-// effect layer contains authored @layer rules, so append it after Tailwind has
-// resolved imports and generated the shared utility order.
+// Keep authored Docs prose after generated utilities, matching the original
+// website's cascade where its prose stylesheet loaded after global.css. Styling's
+// effect layer also contains authored @layer rules, so append it last.
+const workspaceStyles = await readFile(join(root, 'lib-dist', 'workspace.css'), 'utf8');
+await appendFile(join(root, 'lib-dist', 'style.css'), `\n${workspaceStyles}`);
+await rm(join(root, 'lib-dist', 'workspace.css'), { force: true });
 const effects = await readFile(
   join(root, 'node_modules', '@terra-symposium', 'styling', 'dist', 'effects.css'),
   'utf8',

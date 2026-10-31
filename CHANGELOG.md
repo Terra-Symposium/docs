@@ -1,5 +1,81 @@
 # @terra-symposium/docs
 
+## 0.1.71
+
+### Patch Changes
+
+- Add a host-owned View slot that renders before the canonical document body.
+- Preserve inline code marks inside nested Docs table cells when the editor uses the Sanity-compatible mark alias.
+
+## 0.1.69
+
+### Patch Changes
+
+- Preserve inline LaTeX expressions when Markdown lexing splits their source across text and escape tokens.
+
+## 0.1.68
+
+### Patch Changes
+
+- Keep optional leaf metadata such as contributors safe when local Docs navigation events omit it.
+
+## 0.1.67
+
+### Patch Changes
+
+- Restore the original full-row selector in View mode while keeping Attachments compact beside its filters, and strengthen source-to-render parity checks.
+
+## 0.1.66
+
+### Patch Changes
+
+- Keep the document mode selector intrinsically sized across all host instances.
+- Strengthen source-to-render TOC parity for typographic quote variants.
+
+## 0.1.65
+
+### Patch Changes
+
+- Resolve local Docs routes by their leaf node when a section and leaf share an ID.
+- Keep host-provided table-of-contents labels separate from the active document title.
+
+## 0.1.63
+
+### Patch Changes
+
+- Scope Docs utility styles to the Docs theme wrapper so host utility bundles cannot override responsive layout behavior.
+
+## 0.1.62
+
+### Patch Changes
+
+- Use the pre-extraction Terra Docs UI primitives from Styling and keep the mode selector full-width in View and compact in Attachments.
+
+## 0.1.61
+
+### Patch Changes
+
+- Scope prose link colors to text links so section-hued diagram node colors remain visible, and preserve compact, indented list rendering and ordered-list starts in the packaged workspace.
+
+## 0.1.60
+
+### Patch Changes
+
+- Refresh the shared Docs stylesheet so diagram text variants and section hue palettes render correctly in consuming repositories.
+
+## 0.1.59
+
+### Patch Changes
+
+- 64e302e: Keep the active section and selected leaf synchronized when host navigation changes between repository-backed routes.
+- 64e302e: Preserve ordered-list numbering across Markdown conversion and render thematic breaks as visible dividers in repository-backed pages.
+- 64e302e: Render nested callouts and rich blocks inside grouped Markdown with independent parser scopes.
+- Restore the original content-sized Docs mode selector across the shared workspace.
+- 64e302e: Preserve Markdown and HTML images as structured content inside table cells while keeping readable table Markdown.
+- 64e302e: Serialize nested callouts with safe deeper Markdown fences, render nested rich blocks recursively, and ignore visually empty Portable Text paragraphs during semantic round-trip checks.
+- 64e302e: Serialize Sanity tables with readable Markdown cells while preserving rich cell content and avoiding Portable Text source dumps.
+- Route Docs development servers through the shared Terra Quality port-acquisition utility.
+
 ## 0.1.58
 
 ### Patch Changes

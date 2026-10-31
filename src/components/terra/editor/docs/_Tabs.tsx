@@ -5,7 +5,7 @@ import { useEditor } from '@portabletext/editor';
 import { AccordionGroup, AccordionItem, TabsGroup, TabsItem } from '../_blocks.js';
 import { Add as AddIcon } from '@carbon/icons-react';
 import { ErrorBoundary } from '../../ui.js';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 
 import type { DocBody } from '../../../../lib/terra/runtime/types.js';

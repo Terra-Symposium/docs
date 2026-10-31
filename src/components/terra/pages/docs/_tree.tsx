@@ -58,7 +58,7 @@ import {
   MagicWand as MagicIcon,
   TrashCan as TrashIcon,
 } from '@carbon/icons-react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -68,7 +68,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import {
   SidebarGroup,
@@ -77,7 +77,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 
 // DATA
 import { REORDER } from '../../../../lib/terra/runtime/shared.js';
@@ -218,7 +218,10 @@ function Link({
             setTransition('local');
             let data: Md | undefined;
             try {
-              const result = (await actions.read.doc.get({ path: node.path })) as ActionRes<Md>;
+              const result = (await actions.read.doc.get({
+                id: node.origName,
+                pathname: node.url,
+              })) as ActionRes<Md>;
               if (!result.error) data = result.data;
             } catch {
               // Keep the current document visible when its replacement cannot be loaded.
@@ -245,8 +248,9 @@ function Link({
             else url.searchParams.delete('mode');
             // PIPELINE: sidebar navigation carries stored JSON; View never compiles Markdown.
             window.history.pushState(null, '', url.toString());
+            const route = `${url.pathname}${url.search}${url.hash}`;
             // prettier-ignore
-            document.dispatchEvent(new CustomEvent('docs:navigate', { detail: { url: url.pathname + url.search, pathname: url.pathname + url.search, path: node.path, title: data.title || node.title, description: data.description ?? node.description, contributors: node.contributors, updatedAt: node.updatedAt, source: data.source, content, compiledMDX: '' } }));
+            document.dispatchEvent(new CustomEvent('docs:navigate', { detail: { url: route, pathname: route, path: node.path, title: data.title || node.title, description: data.description ?? node.description, ...(Array.isArray(node.contributors) ? { contributors: node.contributors } : {}), ...(node.updatedAt ? { updatedAt: node.updatedAt } : {}), source: data.source, content, compiledMDX: '' } }));
           }}
         >
           {isDirty && (

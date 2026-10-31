@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
   Textarea,
   Toggle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import type { Mode as ToolbarMode, ToolbarState } from '../../../../lib/terra/runtime/types.js';
 
 const FIND_WORD = String.raw`[\p{L}\p{N}_]`;

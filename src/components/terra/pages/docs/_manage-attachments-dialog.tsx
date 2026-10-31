@@ -46,7 +46,7 @@ import {
   Label,
   Spinner,
   Textarea,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import type {
   AttchTgt,
   AttchType,

@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { applyHue } from '@terra-symposium/styling';
+import { useEffect, useRef, useState } from 'react';
 import type { JSX } from 'react';
-import { docsHueTheme } from '../../lib/docs-theme.js';
+import { docsHueTheme, resolveDocsTreeHue } from '../../lib/docs-theme.js';
 import Scaffold from './pages/docs/_main.js';
 import { configureDocsHost } from '../../lib/host-runtime.js';
 import type { TerraDocsWorkspaceProps } from '../../lib/host.js';
@@ -9,7 +10,81 @@ import type { TerraDocsWorkspaceProps } from '../../lib/host.js';
 export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element {
   configureDocsHost(props.host, props.customBlocks);
   const portalThemeRoot = useRef<HTMLDivElement>(null);
-  const theme = props.host.hue === undefined ? undefined : docsHueTheme(props.host.hue);
+  const [activePath, setActivePath] = useState(props.pathname);
+
+  useEffect(() => setActivePath(props.pathname), [props.pathname]);
+
+  useEffect(() => {
+    const updatePath = (event?: Event) => {
+      const detail = (event as CustomEvent<{ pathname?: unknown; url?: unknown }> | undefined)
+        ?.detail;
+      const route = [detail?.pathname, detail?.url].find(
+        (value): value is string => typeof value === 'string' && value.length > 0,
+      );
+      setActivePath(route ?? window.location.href);
+    };
+
+    document.addEventListener('docs:navigate', updatePath);
+    document.addEventListener('astro:after-swap', updatePath);
+    window.addEventListener('hashchange', updatePath);
+    window.addEventListener('popstate', updatePath);
+    return () => {
+      document.removeEventListener('docs:navigate', updatePath);
+      document.removeEventListener('astro:after-swap', updatePath);
+      window.removeEventListener('hashchange', updatePath);
+      window.removeEventListener('popstate', updatePath);
+    };
+  }, []);
+
+  let activeRoute;
+  try {
+    activeRoute = props.host.resolveRoute?.(activePath);
+  } catch {
+    activeRoute = undefined;
+  }
+  const hue = resolveDocsTreeHue(props.tree, activeRoute, props.host.hue);
+  const theme = hue === undefined ? undefined : docsHueTheme(hue);
+
+  // Terra originally applied Styling's hue palette to the page root. Keep the
+  // same behavior for every host so long documents never expose a white canvas
+  // below the workspace and route changes recolor the page without a reload.
+  useEffect(() => {
+    if (hue === undefined || typeof document === 'undefined') return;
+    const root = document.documentElement;
+    const body = document.body;
+    const originalRootBackground = {
+      value: root.style.getPropertyValue('background-color'),
+      priority: root.style.getPropertyPriority('background-color'),
+    };
+    const originalBodyBackground = {
+      value: body.style.getPropertyValue('background-color'),
+      priority: body.style.getPropertyPriority('background-color'),
+    };
+    const appliedBackground = 'rgb(var(--primary-1))';
+    const applyPageHue = () => {
+      applyHue(hue);
+      root.style.setProperty('background-color', appliedBackground);
+      body.style.setProperty('background-color', appliedBackground);
+    };
+    const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    applyPageHue();
+    colorScheme.addEventListener('change', applyPageHue);
+
+    return () => {
+      colorScheme.removeEventListener('change', applyPageHue);
+      const restore = (
+        element: HTMLElement,
+        original: { value: string; priority: string },
+      ) => {
+        if (element.style.getPropertyValue('background-color') !== appliedBackground) return;
+        if (original.value)
+          element.style.setProperty('background-color', original.value, original.priority);
+        else element.style.removeProperty('background-color');
+      };
+      restore(root, originalRootBackground);
+      restore(body, originalBodyBackground);
+    };
+  }, [hue]);
 
   useEffect(() => {
     const wrapper = portalThemeRoot.current;
@@ -39,6 +114,7 @@ export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element 
       dark: target.classList.contains('dark'),
       light: target.classList.contains('light'),
     };
+    const originalDocsScopeClass = target.classList.contains('docs-theme-scope');
     const originalBodyFont = {
       value: target.style.getPropertyValue('font-family'),
       priority: target.style.getPropertyPriority('font-family'),
@@ -48,6 +124,10 @@ export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element 
 
     const syncPortalTheme = () => {
       const computed = getComputedStyle(workspace);
+      // The original Radix primitives portal directly to body. Make that
+      // destination a Docs scope so the extracted bundle's scoped variants
+      // continue to style menus, selects, dialogs, and popovers there.
+      target.classList.add('docs-theme-scope');
       // Sanity's global editor styles supplied Inter on the original Terra Docs route.
       // Keep body-mounted Radix menus and dialogs on that same Docs typeface.
       const docsFont = computed.fontFamily;
@@ -119,30 +199,36 @@ export function TerraDocsWorkspace(props: TerraDocsWorkspaceProps): JSX.Element 
           target.classList.toggle('light', originalThemeClasses.light);
         }
       }
+      if (!originalDocsScopeClass) target.classList.remove('docs-theme-scope');
     };
   }, []);
 
   return (
-    <div ref={portalThemeRoot} {...(theme ? { className: 'docs-theme-scope', style: theme } : {})}>
+    <div
+      ref={portalThemeRoot}
+      className="docs-theme-scope"
+      {...(theme ? { style: theme } : {})}
+    >
       <Scaffold
-        tree={props.tree as any}
-        pathname={props.pathname}
-        permission={props.permission}
-        userData={props.userData ?? null}
-        title={props.title}
-        {...(props.path ? { path: props.path } : {})}
-        {...(props.description ? { description: props.description } : {})}
-        {...(props.contributors ? { contributors: props.contributors } : {})}
-        {...(props.updatedAt ? { updatedAt: props.updatedAt } : {})}
-        {...(props.source ? { source: props.source } : {})}
-        {...(props.content !== undefined ? { content: props.content as any } : {})}
-        {...(props.renderContent !== undefined ? { viewContent: props.renderContent } : {})}
-        {...(props.afterContent !== undefined ? { afterContent: props.afterContent } : {})}
-        {...(props.standalone !== undefined ? { standalone: props.standalone } : {})}
-        {...(props.full !== undefined ? { full: props.full } : {})}
-        {...(props.mode ? { mode: props.mode } : {})}
-        {...(props.blocks ? { blocks: props.blocks } : {})}
-      />
+          tree={props.tree as any}
+          pathname={props.pathname}
+          permission={props.permission}
+          userData={props.userData ?? null}
+          title={props.title}
+          {...(props.path ? { path: props.path } : {})}
+          {...(props.description ? { description: props.description } : {})}
+          {...(props.contributors ? { contributors: props.contributors } : {})}
+          {...(props.updatedAt ? { updatedAt: props.updatedAt } : {})}
+          {...(props.source ? { source: props.source } : {})}
+          {...(props.content !== undefined ? { content: props.content as any } : {})}
+          {...(props.renderContent !== undefined ? { viewContent: props.renderContent } : {})}
+          {...(props.beforeContent !== undefined ? { beforeContent: props.beforeContent } : {})}
+          {...(props.afterContent !== undefined ? { afterContent: props.afterContent } : {})}
+          {...(props.standalone !== undefined ? { standalone: props.standalone } : {})}
+          {...(props.full !== undefined ? { full: props.full } : {})}
+          {...(props.mode ? { mode: props.mode } : {})}
+          {...(props.blocks ? { blocks: props.blocks } : {})}
+        />
     </div>
   );
 }

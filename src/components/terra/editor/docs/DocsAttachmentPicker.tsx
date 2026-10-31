@@ -10,7 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import type { DocsBlockOptions } from '../../../blocks.js';
 import type { DocsHostAttachment } from '../../../../lib/host.js';

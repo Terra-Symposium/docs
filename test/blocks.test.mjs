@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { DOCS_BLOCK_TYPES, enabledDocsBlocks } from '../lib-dist/components/blocks.js';
 import { docsValueToMarkdown, markdownToDocsValue } from '../lib-dist/lib/markdown-model.js';
 import { renderMarkdown } from '../lib-dist/lib/markdown.js';
+import { stringifyDocBody } from '../lib-dist/lib/terra/runtime/content/document-markdown.js';
+import { renderMd, toCodeJsx } from '../lib-dist/lib/terra/runtime/content/markdown.js';
 
 function withoutPortableTextKeys(value) {
   if (Array.isArray(value)) return value.map(withoutPortableTextKeys);
@@ -929,6 +931,16 @@ test('inline math survives visual conversion and renders as math', () => {
   assert.doesNotMatch(renderMarkdown(source, { inlineMath: false }), /katex/);
 });
 
+test('inline math survives Markdown escapes split across lexer tokens', () => {
+  const source = String.raw`The acceleration due to gravity is $G = 9.8\,\text{m s}^{-2}$.`;
+  const value = markdownToDocsValue(source);
+  assert.equal(
+    value[0].children.find((child) => child._type === 'math')?.code,
+    String.raw`G = 9.8\,\text{m s}^{-2}`,
+  );
+  assert.match(renderMarkdown(source), /katex/);
+});
+
 test('math delimiters embedded in a Portable Text span remain supported inline math', () => {
   const value = [
     {
@@ -1291,6 +1303,81 @@ test('HTML table cells keep every paragraph, literal identifiers, inline code, a
     true,
   );
   assert.equal(formatted[1].children.find((child) => child._type === 'math').code, 'z_1z_2');
+});
+
+test('Terra table serialization keeps inline code readable and escapes its content once', () => {
+  const paragraph = (text) => ({
+    _key: `block-${text}`,
+    _type: 'block',
+    style: 'normal',
+    markDefs: [],
+    children: [{ _key: `span-${text}`, _type: 'span', marks: ['code'], text }],
+  });
+  const table = {
+    _key: 'inline-code-table',
+    _type: 'table',
+    header: 'Conditions',
+    rows: [
+      {
+        _key: 'conditions-row',
+        _type: 'row',
+        cells: [
+          { _key: 'apostrophe-cell', _type: 'cell', content: [paragraph("mode !== 'autonomous'")] },
+          { _key: 'jsx-cell', _type: 'cell', content: [paragraph('<PermissionsDialog />')] },
+        ],
+      },
+    ],
+  };
+
+  const renderedInline = renderMd("`mode !== 'autonomous'`");
+  assert.match(renderedInline, /<code>mode !== &#39;autonomous&#39;<\/code>/);
+  assert.doesNotMatch(renderedInline, /&amp;#39;/);
+
+  const markdown = stringifyDocBody([table]);
+  assert.match(markdown, /<code>mode !== &#39;autonomous&#39;<\/code>/);
+  assert.match(markdown, /<code>&lt;PermissionsDialog \/&gt;<\/code>/);
+  assert.doesNotMatch(markdown, /&amp;#39;|&amp;lt;|<Code>/);
+
+  const source = '<table><tr><td><code>mode !== &#39;autonomous&#39;</code></td></tr></table>';
+  assert.equal(toCodeJsx(source), source);
+});
+
+test('HTML table math with letter subscripts is parsed before Markdown emphasis', () => {
+  const formula = String.raw`\vec{F}_{A \to B} = -\vec{F}_{B \to A}`;
+  const source = `<table><tbody><tr><td>$${formula}$</td></tr></tbody></table>`;
+  const table = markdownToDocsValue(source).find((block) => block._type === 'table');
+  assert.ok(table);
+  const math = table.rows[0].cells[0].content[0].children.filter(
+    (child) => child._type === 'math',
+  );
+  assert.deepEqual(math.map((child) => child.code), [formula]);
+  const roundTrip = docsValueToMarkdown(markdownToDocsValue(source));
+  assert.doesNotMatch(roundTrip, /TERRADOCSMATH/);
+  assert.match(roundTrip, new RegExp(formula.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+test('Markdown table math with letter subscripts is parsed before emphasis', () => {
+  const formula = String.raw`\vec{F}_{A \to B} = -\vec{F}_{B \to A}`;
+  const source = [
+    '| Law | Statement |',
+    '| --- | --- |',
+    `| Third | $${formula}$ |`,
+    '',
+    'Literal code: `$x_A$` and escaped currency: \\$607 billion.',
+  ].join('\n');
+  const value = markdownToDocsValue(source);
+  const table = value.find((block) => block._type === 'table');
+  assert.ok(table);
+  const math = table.rows[1].cells[1].content[0].children.filter(
+    (child) => child._type === 'math',
+  );
+  assert.deepEqual(math.map((child) => child.code), [formula]);
+  const roundTrip = docsValueToMarkdown(value);
+  assert.doesNotMatch(roundTrip, /TERRADOCSMATH/);
+  assert.match(roundTrip, new RegExp(formula.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  const prose = value.find((block) => block._type === 'block');
+  assert.ok(prose);
+  assert.equal(prose.children.some((child) => child._type === 'math'), false);
 });
 
 test('Markdown and HTML table images stay structured and round-trip as readable Markdown', () => {
