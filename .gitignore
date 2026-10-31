@@ -11,3 +11,4 @@ test-results/
 *.tsbuildinfo
 
 lib-dist/
+vendor/

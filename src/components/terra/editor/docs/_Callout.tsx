@@ -4,7 +4,7 @@
 import { useEditor } from '@portabletext/editor';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 import { ErrorBoundary } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
 
 import type { DocsNestedContent } from '../../../../lib/terra/runtime/types.js';
 import type {
@@ -80,7 +80,11 @@ function CalloutEditor({
           memberProfile="docs"
           nested
           onChange={(c) =>
-            editor.send({ type: 'block.set', at: path, props: { content: c as DocsNestedContent } })
+            editor.send({
+              type: 'block.set',
+              at: path,
+              props: { content: c as DocsNestedContent, markdown: '' },
+            })
           }
         />
         {children}

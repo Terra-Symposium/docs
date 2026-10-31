@@ -50,9 +50,9 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from '@xyflow/react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { ButtonGroup } from '@terra-symposium/styling/ui/terra-original';
-import { Card, CardDescription } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
+import { ButtonGroup } from '@terra-symposium/styling/ui';
+import { Card, CardDescription } from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../ui.js';
 import {
   FitToScreen as FitToScreenIcon,
@@ -60,13 +60,13 @@ import {
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
 } from '@carbon/icons-react';
-import { Textarea } from '@terra-symposium/styling/ui/terra-original';
+import { Textarea } from '@terra-symposium/styling/ui';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 
 // TYPES
 // TYPES

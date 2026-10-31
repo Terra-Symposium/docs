@@ -5,7 +5,7 @@ import { useEditor } from '@portabletext/editor';
 import { AccordionGroup, AccordionItem, TabsGroup, TabsItem } from '../_blocks.js';
 import { Add as AddIcon } from '@carbon/icons-react';
 import { ErrorBoundary } from '../../ui.js';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
 import { TerraContentEditor } from '../TerraContentEditor.js';
 
 import type { DocBody } from '../../../../lib/terra/runtime/types.js';
@@ -127,19 +127,23 @@ function SectionsEditor({
     editor.send({
       type: 'block.set',
       at: path,
-      props: { items: items.map((i, c) => (c === idx ? { ...i, title } : i)) },
+      props: {
+        items: items.map((i, c) => (c === idx ? { ...i, title } : i)),
+        markdown: '',
+      },
     });
   const remove = (idx: number): void =>
     editor.send({
       type: 'block.set',
       at: path,
-      props: { items: items.filter((_item, c) => c !== idx) },
+      props: { items: items.filter((_item, c) => c !== idx), markdown: '' },
     });
   const add = (): void =>
     editor.send({
       type: 'block.set',
       at: path,
       props: {
+        markdown: '',
         items: [
           ...items,
           {
@@ -165,7 +169,10 @@ function SectionsEditor({
             type: 'block.set',
             at: path,
             props: {
-              items: items.map((i, c) => (c === v ? { ...i, content: x as DocsNestedContent } : i)),
+              items: items.map((i, c) =>
+                c === v ? { ...i, content: x as DocsNestedContent, markdown: '' } : i,
+              ),
+              markdown: '',
             },
           })
         }

@@ -60,7 +60,18 @@ export function layoutGraph<TNode extends FlowNodeLike>(
     const parentId = opts.getGroupId?.(n);
     if (parentId && graph.hasNode(parentId)) graph.setParent(n.id, parentId);
   });
-  edges.forEach((e) => graph.setEdge(e.source, e.target));
+  const groupNodeIds = new Set(
+    nodes.filter((node) => (node as { type?: unknown }).type === 'group').map((node) => node.id),
+  );
+  // Dagre's compound-graph ranker cannot assign ranks to self-loop edges or
+  // edges whose endpoint is a compound group. Keep those edges in the React
+  // Flow graph (the caller still owns the original edge list), but omit them
+  // from the graph used only to compute node positions.
+  edges.forEach((e) => {
+    if (e.source !== e.target && !groupNodeIds.has(e.source) && !groupNodeIds.has(e.target)) {
+      graph.setEdge(e.source, e.target);
+    }
+  });
   Dagre.layout(graph);
   return {
     positionedNodes: nodes.map((n) => {

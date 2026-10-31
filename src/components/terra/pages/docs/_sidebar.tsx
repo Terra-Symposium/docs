@@ -63,22 +63,15 @@ import {
   Download as DownloadIcon,
   Edit as EditIcon,
   Link as LinkIcon,
-  OverflowMenuVertical as OverflowMenuIcon,
   TrashCan as TrashIcon,
 } from '@carbon/icons-react';
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { AlertError } from '@terra-symposium/styling/ui';
+import { Button } from '@terra-symposium/styling/ui';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import {
   Dialog,
   DialogContent,
@@ -86,19 +79,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import { ExportDialog as SharedExportDialog } from './_export-dialog.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
+import { Label } from '@terra-symposium/styling/ui';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Separator } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { Separator } from '@terra-symposium/styling/ui';
 import {
   Sidebar,
   SidebarContent,
@@ -106,8 +99,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarRail,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Slider } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { Slider } from '@terra-symposium/styling/ui';
 
 // TYPES
 import type { ActionRes, Md } from '../../../../lib/terra/runtime/types.js';
@@ -449,10 +442,15 @@ export default (function Nav({
     delTargetPresent: !!delTgt,
   });
 
-  // Sync viewed section with URL on navigation
+  // Keep both the active tree route and section selector aligned with host
+  // navigation. Repository adapters can route every page through `/#id`, so
+  // parsing the cached cPathname can temporarily resolve the previous section.
+  // Resolve the incoming pathname itself before updating both pieces of state.
   useEffect(() => {
-    if (urlIds.sectionId) setViewedSecId(urlIds.sectionId);
-  }, [urlIds.sectionId]);
+    const currentRoute = route(pathname || '');
+    setCPathname(currentRoute.pathname);
+    if (currentRoute.sectionId) setViewedSecId(currentRoute.sectionId);
+  }, [pathname]);
   const sects = useMemo(() => {
     let s = Array.isArray(tree) ? tree.filter((d): d is Branch => d.type === 'branch') : [];
     // 1. Deduplicate by origName to prevent React key collisions and redundant entries
@@ -517,9 +515,6 @@ export default (function Nav({
       prevTree.current = items;
     }
   }, [items]);
-  useEffect(() => {
-    setCPathname(route(pathname).pathname);
-  }, [pathname]);
   const refreshTree = useCallback(async (): Promise<void> => {
     try {
       const { data, error: err } = (await actions.read.doc.list({
@@ -541,38 +536,52 @@ export default (function Nav({
      * @param newTitle - New title assigned to the matching document.
      */
     if (leafTitle?.path)
-      setTree((c) =>
-        (function updateSidebarNodeTitle(
-          nodes: TreeType[],
-          tgtPath: string,
-          newTitle: string,
-        ): TreeType[] {
-          /**
-           * Normalizes a sidebar asset path for comparisons by removing draft and file-extension markers.
-           *
-           * @param val - Sidebar document path or basename to normalize before matching a title update.
-           */
-          const cPath = (val: string): string =>
-            val
-              .replace(TerraQualityRegex.REGEX_DRAFTS_REGEX(), '')
-              .replace(TerraQualityRegex.REGEX_MD_MDX_PDF_I_REGEX(), '');
-          return nodes.map((n) => {
-            const nodePath = n.type === 'leaf' ? n.path || '' : '';
+      setTree((nodes) => {
+        /** Normalize full storage paths before matching a local title update. */
+        const cPath = (value: string): string =>
+          value
+            .replace(/\\/g, '/')
+            .split(/[?#]/, 1)[0]!
+            .replace(TerraQualityRegex.REGEX_DRAFTS_REGEX(), '')
+            .replace(TerraQualityRegex.REGEX_MD_MDX_PDF_I_REGEX(), '')
+            .replace(/^\/+|\/+$/g, '');
+        const targetPath = cPath(leafTitle.path);
+        const targetBasename = targetPath.split('/').at(-1)?.toLowerCase() ?? '';
+        const countBasename = (items: TreeType[]): number =>
+          items.reduce((count, item) => {
+            if (item.type === 'leaf') {
+              const basename = cPath(item.path || '')
+                .split('/')
+                .at(-1)
+                ?.toLowerCase();
+              return count + Number(basename === targetBasename);
+            }
+            return count + countBasename(item.children ?? []);
+          }, 0);
+        // Many repository documents are named index.md. A basename fallback
+        // would rename every such leaf, so only allow it for a unique filename.
+        const canMatchBasename =
+          targetBasename !== 'index' && targetBasename !== '' && countBasename(nodes) === 1;
+        const update = (items: TreeType[]): TreeType[] =>
+          items.map((node) => {
+            const nodePath = node.type === 'leaf' ? node.path || '' : '';
+            const normalizedNodePath = cPath(nodePath);
             if (
-              n.type === 'leaf' &&
-              (nodePath === tgtPath ||
-                n.origName === tgtPath ||
-                cPath(nodePath) === cPath(tgtPath) ||
-                cPath(nodePath.split('/').at(-1) || nodePath) ===
-                  cPath(tgtPath.split('/').at(-1) || tgtPath))
-            )
-              return { ...n, title: newTitle };
-            if (n.type === 'branch' && n.children)
-              return { ...n, children: updateSidebarNodeTitle(n.children, tgtPath, newTitle) };
-            return n;
+              node.type === 'leaf' &&
+              (nodePath === leafTitle.path ||
+                node.origName === leafTitle.path ||
+                normalizedNodePath === targetPath ||
+                (canMatchBasename &&
+                  normalizedNodePath.split('/').at(-1)?.toLowerCase() === targetBasename))
+            ) {
+              return { ...node, title: leafTitle.title };
+            }
+            if (node.type === 'branch' && node.children)
+              return { ...node, children: update(node.children) };
+            return node;
           });
-        })(c, leafTitle.path, leafTitle.title),
-      );
+        return update(nodes);
+      });
   }, [leafTitle]);
   useEffect(() => {
     /**
@@ -1775,74 +1784,64 @@ export default (function Nav({
         </Dialog>
         {/* HEADER */}
         <SidebarHeader className="print:hidden" data-docs-navigation="true">
-          {/* logo */}
-          <div className="mb-4 space-y-1 border-b border-primary-6 pb-4">
-            <a className="font-serif text-2xl hover:italic hover:tracking-tight" href={homePath}>
-              {siteTitle}
-            </a>
-            {siteDescription && <p className="m-0 text-sm text-primary-11">{siteDescription}</p>}
-          </div>
+          {/* Keep the original single-brand header; site description is optional. */}
+          <a className="font-serif text-2xl hover:italic hover:tracking-tight" href={homePath}>
+            {siteTitle}
+          </a>
+          {siteDescription && <p className="m-0 mt-1 text-sm text-primary-11">{siteDescription}</p>}
           {/* sects */}
-          <div className="mt-2">
-            <Label
-              htmlFor="docs-section-picker"
-              className="mb-1 block text-[10px] font-semibold tracking-[0.12em] text-primary-10"
-            >
-              SECTION
-            </Label>
-            <div className="flex items-center gap-1">
-              <div className={cn('block min-w-0 flex-1 rounded-md transition-opacity')}>
-                <Select
-                  disabled={transitioning}
-                  open={sectionOpen}
-                  onOpenChange={setSectionOpen}
-                  value={aViewed ? aViewed.origName : ''}
-                  onValueChange={async (v) => {
-                    if (v === '__add_section__') {
-                      setTimeout(() => {
-                        addSection();
-                      }, 0);
-                      return;
-                    }
-                    if (aViewed?.origName === v) return;
-                    setViewedSecId(v);
+          <div className="mt-2 flex items-center">
+            <div className={cn('block min-w-0 flex-1 rounded-md transition-opacity')}>
+              <Select
+                disabled={transitioning}
+                open={sectionOpen}
+                onOpenChange={setSectionOpen}
+                value={aViewed ? aViewed.origName : ''}
+                onValueChange={async (v) => {
+                  if (v === '__add_section__') {
+                    setTimeout(() => {
+                      addSection();
+                    }, 0);
+                    return;
+                  }
+                  if (aViewed?.origName === v) return;
+                  setViewedSecId(v);
+                }}
+              >
+                <SelectTrigger
+                  className="w-full"
+                  aria-label="Section"
+                  data-docs-navigation="true"
+                  onPointerDown={(e) => {
+                    if (e.button === 0) setSectionOpen(true);
                   }}
                 >
-                  <SelectTrigger
-                    id="docs-section-picker"
-                    className="w-full"
-                    aria-label="Section"
-                    data-docs-navigation="true"
-                    onPointerDown={(e) => {
-                      if (e.button === 0) setSectionOpen(true);
-                    }}
-                  >
-                    <SelectValue placeholder="Section" />
-                  </SelectTrigger>
-                  <SelectContent className="w-[var(--radix-select-trigger-width)]">
-                    {sects.map((s) => {
-                      if (s.simulated) {
-                        return (
-                          <SelectItem
-                            key={s.origName}
-                            value={s.origName}
-                            icon={
-                              <span
-                                aria-hidden="true"
-                                className="size-3.5 rounded-[3px]"
-                                style={{
-                                  backgroundColor: `hsl(${getHue(s.title || 'New Section')} 65% 55%)`,
-                                }}
-                              />
-                            }
-                            className="data-[state=checked]:text-primary-10 dark:data-[state=checked]:text-primary-12"
-                          >
-                            {s.title || 'New Section'}
-                          </SelectItem>
-                        );
-                      }
-                      // prettier-ignore
+                  <SelectValue placeholder="Section" />
+                </SelectTrigger>
+                <SelectContent className="w-[var(--radix-select-trigger-width)]">
+                  {sects.map((s) => {
+                    if (s.simulated) {
                       return (
+                        <SelectItem
+                          key={s.origName}
+                          value={s.origName}
+                          icon={
+                            <span
+                              aria-hidden="true"
+                              className="size-3.5 rounded-[3px]"
+                              style={{
+                                backgroundColor: `hsl(${getHue(s.title || 'New Section')} 65% 55%)`,
+                              }}
+                            />
+                          }
+                          className="data-[state=checked]:text-primary-10 dark:data-[state=checked]:text-primary-12"
+                        >
+                          {s.title || 'New Section'}
+                        </SelectItem>
+                      );
+                    }
+                    // prettier-ignore
+                    return (
 												<SelectItem
 											key={s.origName}
 													value={s.origName}
@@ -1855,51 +1854,21 @@ export default (function Nav({
 													</ContextMenu>
 												</SelectItem>
 											);
-                    })}
-                    {permission === 'write' && (
-                      <>
-                        {sects.length > 0 && !sects[0]?.simulated && <Separator className="my-1" />}
-                        <SelectItem
-                          value="__add_section__"
-                          icon={<AddIcon className="size-4" />}
-                          className="font-medium text-primary-11 data-[state=checked]:text-primary-10 dark:data-[state=checked]:text-primary-12"
-                        >
-                          <span>Add section</span>
-                        </SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              {aViewed && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="xs"
-                      aria-label={`Actions for section ${aViewed.title || aViewed.origName}`}
-                      className="h-8 w-8 shrink-0 px-1"
-                    >
-                      <OverflowMenuIcon size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {(SidebarActions.renderSects?.(aViewed) ?? []).map((action, index) => (
-                      <DropdownMenuItem
-                        key={`${action.label}-${index}`}
-                        disabled={action.disabled}
-                        onSelect={() => action.onSelect?.()}
-                        className={
-                          action.destructive ? 'text-destructive focus:text-destructive' : undefined
-                        }
+                  })}
+                  {permission === 'write' && (
+                    <>
+                      {sects.length > 0 && !sects[0]?.simulated && <Separator className="my-1" />}
+                      <SelectItem
+                        value="__add_section__"
+                        icon={<AddIcon className="size-4" />}
+                        className="font-medium text-primary-11 data-[state=checked]:text-primary-10 dark:data-[state=checked]:text-primary-12"
                       >
-                        {action.icon}
-                        {action.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                        <span>Add section</span>
+                      </SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </SidebarHeader>

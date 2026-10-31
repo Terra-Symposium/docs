@@ -1,8 +1,9 @@
 import { defineBlockObject, defineInlineObject, useEditor } from '@portabletext/editor';
 import { useState } from 'react';
 import katex from 'katex';
+import { docsValueToMarkdown } from '../lib/markdown-model.js';
 import { renderMarkdown } from '../lib/markdown.js';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import type { Path } from '@portabletext/editor';
 
 /** The portable Docs members. A host can disable any member without changing stored data. */
@@ -128,8 +129,86 @@ function safeUrl(value: unknown): string | undefined {
     return undefined;
   }
 }
-function nestedMarkdown(item: Record<string, unknown>): string {
-  return typeof item.markdown === 'string' ? item.markdown : text(item.content);
+
+function renderPortableTextChild(
+  child: unknown,
+  markDefinitions: Map<string, Record<string, unknown>>,
+  key: string,
+): JSX.Element | string | null {
+  if (!child || typeof child !== 'object') return null;
+  const member = child as Record<string, unknown>;
+  if (member._type === 'math') return <DocsRichBlock key={key} block={member as RichBlock} />;
+  if (member._type !== 'span') return null;
+
+  const textValue = typeof member.text === 'string' ? member.text : '';
+  let node: ReactNode = textValue
+    .split('\n')
+    .flatMap((line, index) => (index ? [<br key={`${key}-br-${index}`} />, line] : [line]));
+  const marks = Array.isArray(member.marks) ? member.marks : [];
+  for (const mark of marks) {
+    if (typeof mark !== 'string') continue;
+    if (mark === 'strong') node = <strong key={`${key}-strong`}>{node}</strong>;
+    else if (mark === 'em') node = <em key={`${key}-em`}>{node}</em>;
+    else if (mark === 'underline') node = <u key={`${key}-underline`}>{node}</u>;
+    else if (mark === 'strike-through') node = <del key={`${key}-strike`}>{node}</del>;
+    else if (mark === 'code') node = <code key={`${key}-code`}>{node}</code>;
+    else {
+      const definition = markDefinitions.get(mark);
+      const href = safeUrl(definition?.href);
+      if (href)
+        node = (
+          <a key={`${key}-link`} href={href}>
+            {node}
+          </a>
+        );
+    }
+  }
+  return <span key={key}>{node}</span>;
+}
+
+function PortableTextBlockView({ block }: { block: RichBlock }): JSX.Element {
+  const style = typeof block.style === 'string' ? block.style : 'normal';
+  const Tag = /^h[2-6]$/.test(style)
+    ? (style as 'h2' | 'h3' | 'h4' | 'h5' | 'h6')
+    : style === 'blockquote'
+      ? 'blockquote'
+      : 'p';
+  const definitions = Array.isArray(block.markDefs) ? block.markDefs : [];
+  const markDefinitions = new Map(
+    definitions.flatMap((item) =>
+      item && typeof item === 'object' && typeof item._key === 'string'
+        ? [[item._key, item as Record<string, unknown>] as const]
+        : [],
+    ),
+  );
+  const children = Array.isArray(block.children) ? block.children : [];
+  const rendered = children.map((child, index) =>
+    renderPortableTextChild(child, markDefinitions, `portable-${index}`),
+  );
+  if (block.listItem === 'bullet')
+    return (
+      <ul>
+        <li>{rendered}</li>
+      </ul>
+    );
+  if (block.listItem === 'number')
+    return (
+      <ol>
+        <li>{rendered}</li>
+      </ol>
+    );
+  return <Tag>{rendered}</Tag>;
+}
+function nestedMarkdown(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return docsValueToMarkdown(value as never).trimEnd();
+  if (value && typeof value === 'object') {
+    const item = value as Record<string, unknown>;
+    if (typeof item.markdown === 'string' && item.markdown) return item.markdown;
+    if (Array.isArray(item.content)) return docsValueToMarkdown(item.content as never).trimEnd();
+    return text(item);
+  }
+  return '';
 }
 function Diagram({ block }: { block: RichBlock }): JSX.Element {
   const nodes = (Array.isArray(block.nodes) ? block.nodes : []).filter(
@@ -212,6 +291,9 @@ function Diagram({ block }: { block: RichBlock }): JSX.Element {
 export function DocsRichBlock({ block }: { block: RichBlock }): JSX.Element {
   const items = Array.isArray(block.items) ? (block.items as Record<string, unknown>[]) : [];
   switch (block._type) {
+    case 'block':
+    case 'terraBlock':
+      return <PortableTextBlockView block={block} />;
     case 'accordion':
       return (
         <div className="terra-docs-accordions">
@@ -246,7 +328,10 @@ export function DocsRichBlock({ block }: { block: RichBlock }): JSX.Element {
                     ? ((row as Record<string, unknown>).cells as unknown[])
                     : []
                   ).map((cell, j) => (
-                    <td key={j}>{text(cell)}</td>
+                    <td
+                      key={j}
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(nestedMarkdown(cell)) }}
+                    />
                   ))}
                 </tr>
               ))}
@@ -349,6 +434,13 @@ function BlockEditor({
   const fields = DOCS_BLOCK_FIELDS[type] ?? [];
   const set = (props: Record<string, unknown>) =>
     editor.send({ type: 'block.set', at: path, props });
+  const update = (field: string, next: unknown) =>
+    set({
+      [field]: next,
+      ...(type === 'callout' && (field === 'title' || field === 'kind')
+        ? {}
+        : { markdown: field === 'markdown' ? next : '' }),
+    });
   const items = Array.isArray(block.items) ? (block.items as Record<string, unknown>[]) : [];
   const rows = Array.isArray(block.rows) ? (block.rows as Record<string, unknown>[]) : [];
   const nodes = Array.isArray(block.nodes) ? (block.nodes as Record<string, unknown>[]) : [];
@@ -365,8 +457,6 @@ function BlockEditor({
             <div className="terra-docs-rich-fields">
               {fields.map((field) => {
                 const value = block[field.name];
-                const update = (next: unknown) =>
-                  set({ [field.name]: next, markdown: field.name === 'markdown' ? next : '' });
                 if (field.name === 'items')
                   return (
                     <fieldset key="items">
@@ -665,13 +755,14 @@ function BlockEditor({
                       <input
                         type="checkbox"
                         checked={Boolean(value)}
-                        onChange={(event) => update(event.currentTarget.checked)}
+                        onChange={(event) => update(field.name, event.currentTarget.checked)}
                       />
                     ) : (
                       <textarea
                         value={String(value ?? '')}
                         onChange={(event) =>
                           update(
+                            field.name,
                             field.type === 'number'
                               ? Number(event.currentTarget.value)
                               : event.currentTarget.value,

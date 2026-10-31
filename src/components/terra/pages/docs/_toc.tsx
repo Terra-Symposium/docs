@@ -7,7 +7,7 @@ import {
   ButtonLink,
   SidebarMenuSub,
   SidebarMenuSubItem,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 
 /** Returns the rendered Docs mode shell used by navigation and the table of contents. */
 const docsShellOf = (): HTMLElement | null =>

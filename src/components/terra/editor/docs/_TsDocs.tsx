@@ -13,7 +13,7 @@ import { cn } from '../../../../lib/terra/runtime/runtime.js';
 import { useEffect, useState } from 'react';
 
 // COMPONENTS
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
+import { AlertError } from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import { Empty } from '../../ui.js';
 import { TerraContentEditor } from '../TerraContentEditor.js';

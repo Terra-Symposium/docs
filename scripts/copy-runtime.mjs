@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { appendFile, cp, mkdir, readFile, readdir, rm } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,5 +32,17 @@ await cp(
   join(root, 'lib-dist', 'assets', 'fonts'),
   { recursive: true },
 );
-await cp(join(root, 'src', 'styles', 'style.css'), join(root, 'lib-dist', 'style.css'));
-await writeFile(join(root, 'lib-dist', 'workspace.css'), "@import './docs-workspace-style.css';\n");
+// Keep authored Docs prose after generated utilities, matching the original
+// website's cascade where its prose stylesheet loaded after global.css. Styling's
+// effect layer also contains authored @layer rules, so append it last.
+const workspaceStyles = await readFile(join(root, 'lib-dist', 'workspace.css'), 'utf8');
+await appendFile(join(root, 'lib-dist', 'style.css'), `\n${workspaceStyles}`);
+await rm(join(root, 'lib-dist', 'workspace.css'), { force: true });
+const effects = await readFile(
+  join(root, 'node_modules', '@terra-symposium', 'styling', 'dist', 'effects.css'),
+  'utf8',
+);
+await appendFile(join(root, 'lib-dist', 'style.css'), `\n${effects}`);
+await cp(join(root, 'node_modules', 'katex', 'dist', 'fonts'), join(root, 'lib-dist', 'fonts'), {
+  recursive: true,
+});

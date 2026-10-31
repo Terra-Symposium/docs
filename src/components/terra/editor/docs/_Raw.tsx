@@ -14,6 +14,11 @@ import { ErrorBoundary } from '../../ui.js';
 // TYPES
 import type { DocsBlock } from '../types.js';
 
+function isMarkdownThematicBreak(markdown: string): boolean {
+  const source = markdown.replace(/\r\n?/g, '\n').trim();
+  return /^(?:\*(?:[\t ]*\*){2,}|-(?:[\t ]*-){2,}|_(?:[\t ]*_){2,})[\t ]*$/.test(source);
+}
+
 /*//////////////////////////////////////////////////
 HELPERS
 //////////////////////////////////////////////////*/
@@ -30,9 +35,17 @@ export function Raw({
 }: {
   block: /** Sanity Portable Text raw markup block fields. */ DocsBlock<'raw'>;
 }): JSX.Element {
+  const markdown = block.markdown ?? '';
   return (
     <ErrorBoundary name="Raw">
-      <CodeBlock docsSource code={block.markdown ?? ''} language="mdx" tone="view" />
+      {isMarkdownThematicBreak(markdown) ? (
+        <hr
+          className="my-16 h-px w-full border-0 bg-primary-6 print:hidden"
+          data-docs-raw-divider
+        />
+      ) : (
+        <CodeBlock docsSource code={markdown} language="mdx" tone="view" />
+      )}
     </ErrorBoundary>
   );
 }

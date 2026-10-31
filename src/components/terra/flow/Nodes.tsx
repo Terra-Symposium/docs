@@ -67,8 +67,8 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from '@xyflow/react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { ButtonGroup } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
+import { ButtonGroup } from '@terra-symposium/styling/ui';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -78,7 +78,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../ui.js';
 import { Handles, SkeletonCard, ZoomControls } from './_chrome.js';
 
@@ -239,6 +239,7 @@ function createNode(
       <Element
         {...(Element === 'button' ? { type: 'button' } : {})}
         {...(Element === 'a' ? { href: data.href } : {})}
+        {...(Element === 'a' ? { 'data-docs-flow-node-link': '' } : {})}
         onClick={data.onClick}
         className={cn(
           'relative block min-w-40 text-pretty p-2 text-center text-sm font-normal !no-underline shadow-md transition-shadow',
@@ -289,6 +290,11 @@ export function NoteNode({
           selected && NODE_CLASS.selected,
         )}
       >
+        <Handles
+          editable={data.editable === true}
+          sources={data.requiredHandles?.sources ?? []}
+          tgts={data.requiredHandles?.tgts ?? []}
+        />
         <svg width="0" height="0" className="absolute">
           <defs>
             <clipPath id={`sticky-${id}`} clipPathUnits="objectBoundingBox">
@@ -314,6 +320,7 @@ export const NODE_TYPES = {
       <Element
         type={Element === 'button' ? 'button' : undefined}
         href={Element === 'a' ? data.href : undefined}
+        data-docs-flow-node-link={Element === 'a' ? '' : undefined}
         onClick={data.onClick}
         className={cn(
           'block max-h-96 w-full overflow-y-scroll rounded-md border-2 border-primary-6 bg-primary-2 text-primary-12 !no-underline shadow-lg transition-shadow',

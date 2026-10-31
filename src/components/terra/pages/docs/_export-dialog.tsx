@@ -11,8 +11,8 @@ IMPORTS
 import { useState } from 'react';
 
 // COMPONENTS
-import { Button } from '@terra-symposium/styling/ui/terra-original';
-import { Checkbox } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
+import { Checkbox } from '@terra-symposium/styling/ui';
 import {
   Dialog,
   DialogContent,
@@ -20,10 +20,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
-import { Progress } from '@terra-symposium/styling/ui/terra-original';
+import { Label } from '@terra-symposium/styling/ui';
+import { Progress } from '@terra-symposium/styling/ui';
 
 // TYPES
 import type {

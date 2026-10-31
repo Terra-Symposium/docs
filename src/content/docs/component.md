@@ -31,7 +31,18 @@ To disable a member in one instance, set its flag to `false`:
 
 The same options can be passed to `renderMarkdown(markdown, blocks)`. Unknown or disabled structured source stays visible as escaped source, so it is not silently discarded.
 
-`markdownToDocsValue(source)` and `docsValueToMarkdown(value)` bridge local Markdown and visual editing. Existing `=== [Title]` accordions and `||| [Title]` tabs remain supported. Other structured members use a `:::terra-docs type` block containing JSON. Unrecognized Markdown tokens are kept as raw blocks; conversions preserve them verbatim. Store images and attachments beside the Markdown file and use relative paths.
+`markdownToDocsValue(source)` and `docsValueToMarkdown(value)` bridge local Markdown and visual editing. The supported representations are:
+
+- Paragraphs, headings 2–6, quotes, inline emphasis, links, and inline math use Markdown syntax. A level-one heading follows the original Terra contract and imports as normal text.
+- Ordered and unordered lists, including nested list levels, use Markdown list syntax.
+- GFM pipe tables and native HTML tables import as editable table blocks and export as pipe tables.
+- A standalone `![alt](./image.png "Title")` paragraph imports as an image block. An image embedded within prose remains in the paragraph source.
+- Fenced code blocks import as code content. Display math uses `$$` delimiters.
+- Callouts use container directives such as `:::warning[Check this]` followed by Markdown body content and a closing `:::`.
+- Accordions use `=== [Title]` and tabs use `||| [Title]`; the body between the opening and closing delimiter is Markdown.
+- Other structured rich blocks use `:::terra-docs type` with a JSON object containing the block. The `type` must match the object's `_type`.
+
+Unknown Markdown tokens and disabled block syntax are kept as raw source. Fields that cannot be represented in Markdown remain in the `:::terra-docs type` JSON form, so an open and save does not silently discard them. Store images and attachments beside the Markdown file and use relative paths.
 
 ## Workspace shell
 

@@ -19,26 +19,33 @@ export function createDocsSchema(options: DocsBlockOptions = {}) {
       { name: 'em', title: 'Italic' },
       { name: 'underline', title: 'Underline' },
       { name: 'strike-through', title: 'Strikethrough' },
-      { name: 'code', title: 'Code' },
+      // `code` is also a Docs block object. Keep Sanity inline-code marks on a
+      // distinct editor-only name and translate them at the storage boundary.
+      { name: 'terra-inline-code', title: 'Code' },
     ],
     annotations: [{ name: 'link', fields: [{ name: 'href', type: 'string' }] }],
-    lists: [],
-    inlineObjects:
-      options.inlineMath === false
+    lists: [{ name: 'bullet' }, { name: 'number' }],
+    blockObjects: [
+      ...enabledDocsBlocks(options).map((name) => ({
+        name,
+        fields: DOCS_BLOCK_FIELDS[name],
+      })),
+      { name: 'todoBlock', fields: [{ name: 'source', type: 'object' as const }] },
+    ],
+    inlineObjects: [
+      ...(options.inlineMath === false
         ? []
         : [
             {
               name: 'math',
               fields: [
-                { name: 'code', type: 'string' },
-                { name: 'inline', type: 'boolean' },
+                { name: 'code', type: 'string' as const },
+                { name: 'inline', type: 'boolean' as const },
               ],
             },
-          ],
-    blockObjects: enabledDocsBlocks(options).map((name) => ({
-      name,
-      fields: DOCS_BLOCK_FIELDS[name],
-    })),
+          ]),
+      { name: 'todoInline', fields: [{ name: 'source', type: 'object' as const }] },
+    ],
   });
 }
 export const schema = createDocsSchema();

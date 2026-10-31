@@ -42,8 +42,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // COMPONENTS
 import * as TerraQualityRegex from '../../../../lib/terra/regex.mjs';
-import { AlertError } from '@terra-symposium/styling/ui/terra-original';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { AlertError } from '@terra-symposium/styling/ui';
+import { Button } from '@terra-symposium/styling/ui';
 import { Checkmark as CheckIcon, Copy as CopyIcon } from '@carbon/icons-react';
 import { Compartment, EditorSelection, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
@@ -53,7 +53,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 
 // TYPES
 import type { Extension } from '@codemirror/state';
@@ -189,7 +189,13 @@ export function CodeBlock(
   const docsSrc = props.docsSource === true;
   // Keep intentional leading/trailing newlines. Stripping them here causes a
   // controlled Docs editor to undo a CodeMirror Enter transaction on rerender.
-  const code = stringifyCodeValue(props.code);
+  // Portable Text `code.value` is already the authored source. Decoding escape
+  // sequences here changes valid code such as `"Hello\\n"` into multiple
+  // rendered lines. Only the Docs source serializer needs the legacy unwrapping.
+  const code =
+    typeof props.code === 'string' && !props.docsSource
+      ? props.code
+      : stringifyCodeValue(props.code);
   const viewCode = docsSrc
     ? code.replace(
         /<Code\b([\s\S]*?)>(?:\s*\{`((?:\\.|[^`])*)`\}\s*|\s*([\s\S]*?)\s*)<\/Code>/g,

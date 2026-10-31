@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import type { ErrorInfo, JSX, ReactNode } from 'react';
+export { Empty } from '@terra-symposium/styling/ui';
 
 export class ErrorBoundary extends Component<
   {
@@ -22,20 +23,6 @@ export class ErrorBoundary extends Component<
         ))
       : this.props.children;
   }
-}
-export function Empty({
-  title = 'Nothing to show',
-  description = '',
-}: {
-  title?: string;
-  description?: string;
-}): JSX.Element {
-  return (
-    <div className="flex min-h-24 flex-col items-center justify-center gap-2 p-6 text-center text-primary-11">
-      <strong className="text-primary-12">{title}</strong>
-      {description && <span>{description}</span>}
-    </div>
-  );
 }
 export const IMG_RESPONSIVE = 'max-w-full object-contain';
 export default function User({

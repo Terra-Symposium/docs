@@ -20,10 +20,22 @@ const inlineFixture = [
 ] satisfies TerraContent;
 
 test('math.spec: Render block and emit formula edits', async ({ page }) => {
+  const missingKatexFonts: string[] = [];
+  page.on('response', (response) => {
+    if (/\/fonts\/KaTeX_[^/]+\.(?:woff2?|ttf)$/u.test(new URL(response.url()).pathname)) {
+      if (response.status() >= 400)
+        missingKatexFonts.push(`${response.status()} ${response.url()}`);
+    }
+  });
   await openEditor(page, blockFixture);
   const math = page.locator('[data-docs-editor-block="math"]');
   await expect(math).toHaveAttribute('data-math-code', 'x^2');
   await expect(math.locator('.katex')).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  await expect
+    .poll(() => page.evaluate(() => document.fonts.check('16px "KaTeX_Main"')))
+    .toBe(true);
+  expect(missingKatexFonts).toEqual([]);
   await page.locator('.docs-math-wrapper').evaluate((element) => {
     (
       element as HTMLElement & { __blockActions?: Array<{ onSelect?: () => void }> }
@@ -55,9 +67,21 @@ test('math.spec: Render block and emit formula edits', async ({ page }) => {
 });
 
 test('math.spec: Render inline within a paragraph', async ({ page }) => {
+  const missingKatexFonts: string[] = [];
+  page.on('response', (response) => {
+    if (/\/fonts\/KaTeX_[^/]+\.(?:woff2?|ttf)$/u.test(new URL(response.url()).pathname)) {
+      if (response.status() >= 400)
+        missingKatexFonts.push(`${response.status()} ${response.url()}`);
+    }
+  });
   await openEditor(page, inlineFixture);
   const inline = page.locator('[data-terra-inline="math"]');
   await expect(inline.locator('.katex')).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  await expect
+    .poll(() => page.evaluate(() => document.fonts.check('16px "KaTeX_Main"')))
+    .toBe(true);
+  expect(missingKatexFonts).toEqual([]);
   await expect(page.locator('[data-terra-content-editor]')).toContainText('Equation');
   await expect(page.locator('[data-terra-content-editor]')).toContainText('is useful.');
 });

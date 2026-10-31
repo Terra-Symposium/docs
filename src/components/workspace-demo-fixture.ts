@@ -495,11 +495,11 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
       const requestedSection = url.searchParams.get('section');
       const requestedGroup = url.searchParams.get('group');
       const requestedDocument = requestedLeaf ? findDocument(state, requestedLeaf) : undefined;
-      const requestedBranch = requestedGroup
-        ? findNode(state.tree, requestedGroup)?.node
-        : requestedSection
-          ? findNode(state.tree, requestedSection)?.node
-          : undefined;
+      const requestedSectionMatch = requestedSection
+        ? findNode(state.tree, requestedSection)
+        : undefined;
+      const requestedGroupMatch = requestedGroup ? findNode(state.tree, requestedGroup) : undefined;
+      const requestedBranch = requestedGroupMatch?.node ?? requestedSectionMatch?.node;
       const firstLeaf = (node: DocsHostTreeNode | undefined): WorkspaceDemoDocument | undefined => {
         if (!node) return undefined;
         if (node.type === 'leaf') return state.documents[node.origName];
@@ -515,8 +515,19 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
         state.documents.salesphere ??
         Object.values(state.documents)[0];
       const position = document ? sectionForLeaf(state, document.id) : { sectionId: 'overview' };
-      const sectionId = position.sectionId;
-      const groupId = position.groupId;
+      const requestedGroupAncestors = (requestedGroupMatch?.ancestors ?? []).filter(
+        (node) => node.type === 'branch',
+      );
+      const sectionId = requestedDocument
+        ? position.sectionId
+        : requestedSectionMatch?.node.type === 'branch'
+          ? requestedSectionMatch.node.origName
+          : (requestedGroupAncestors[0]?.origName ?? position.sectionId);
+      const groupId = requestedDocument
+        ? position.groupId
+        : requestedGroupMatch?.node.type === 'branch' && requestedGroupAncestors.length > 0
+          ? requestedGroupMatch.node.origName
+          : undefined;
       const leafId = document?.id;
       return {
         sectionId,
@@ -659,6 +670,17 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
           data = { _id: groupId, title };
           changed = true;
         }
+      } else if (
+        operation === 'write.doc.editor' &&
+        typeof request.path === 'string' &&
+        findNode(state.tree, request.path)?.node.type === 'branch'
+      ) {
+        const branch = findNode(state.tree, String(request.path))?.node;
+        if (branch) {
+          branch.title = String(request.title ?? branch.title ?? branch.origName);
+          data = { _id: branch.origName, title: branch.title };
+          changed = true;
+        }
       } else if (operation === 'write.doc.editor' || operation === 'write.doc.save') {
         const path = String(request.path ?? 'overview/start-here/untitled.mdx');
         const existing = findDocument(state, path);
@@ -727,6 +749,33 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
       } else if (operation === 'write.doc.reorder') {
         reorderChildren(state, request);
         changed = true;
+      } else if (operation === 'write.doc.retargetSources') {
+        const target = findDocument(state, request.targetId);
+        const sourceIds = Array.isArray(request.sourceIds)
+          ? request.sourceIds.filter((value): value is string => typeof value === 'string')
+          : [];
+        if (!target || sourceIds.length === 0) {
+          return { error: new Error('The merge target or source pages could not be found.') };
+        }
+
+        const attachmentKey = (attachment: DocsHostAttachment): string =>
+          attachment.id || `${attachment.path}\u0000${attachment.name}`;
+        const seenAttachments = new Set(target.attachments.map(attachmentKey));
+        for (const sourceId of sourceIds) {
+          const source = findDocument(state, sourceId);
+          if (!source || source.id === target.id) continue;
+          for (const attachment of source.attachments) {
+            const key = attachmentKey(attachment);
+            if (!seenAttachments.has(key)) {
+              seenAttachments.add(key);
+              target.attachments.push(clone(attachment));
+            }
+            const asset = state.assets[attachment.path];
+            if (asset) asset.docId = target.id;
+          }
+        }
+        data = true;
+        changed = true;
       } else if (operation === 'write.doc.rm') {
         const path = String(request.path ?? '');
         const document = findDocument(state, path);
@@ -737,7 +786,13 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
           }
           removeNodeById(state.tree, document.id);
         } else {
-          const found = findNode(state.tree, path);
+          let found = findNode(state.tree, path);
+          if (!found && path.includes('?')) {
+            const route = new URL(path, 'http://localhost');
+            const routeNodeId =
+              route.searchParams.get('group') ?? route.searchParams.get('section');
+            if (routeNodeId) found = findNode(state.tree, routeNodeId);
+          }
           if (found) {
             removeDocumentsForNode(state, found.node);
             removeNodeById(state.tree, found.node.origName);
@@ -808,7 +863,7 @@ export function createWorkspaceDemoHost(readOnly = false): DocsHostAdapter {
           };
           const owner = state.documents[asset.docId];
           if (owner) owner.attachments.push(attachment);
-          data = { path, name: fileName, compressedSize: bytes.length };
+          data = { id, path, name: fileName, compressedSize: bytes.length };
           changed = true;
         }
       } else if (operation === 'write.attachment.rm') {

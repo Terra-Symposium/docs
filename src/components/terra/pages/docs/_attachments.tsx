@@ -32,6 +32,7 @@ import {
   createElement as __terraQualityCreateElement,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -57,13 +58,13 @@ import {
   TrashCan as TrashIcon,
   Upload as UploadIcon,
 } from '@carbon/icons-react';
-import { Button } from '@terra-symposium/styling/ui/terra-original';
+import { Button } from '@terra-symposium/styling/ui';
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { CodeBlock } from '../../editor/docs/_CodeBlock.js';
 import {
   Dialog,
@@ -72,19 +73,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
 import { ErrorBoundary } from '../../ui.js';
 import { Empty } from '../../ui.js';
-import { Input } from '@terra-symposium/styling/ui/terra-original';
-import { Label } from '@terra-symposium/styling/ui/terra-original';
+import { Input } from '@terra-symposium/styling/ui';
+import { Label } from '@terra-symposium/styling/ui';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@terra-symposium/styling/ui/terra-original';
-import { Textarea } from '@terra-symposium/styling/ui/terra-original';
+} from '@terra-symposium/styling/ui';
+import { Textarea } from '@terra-symposium/styling/ui';
 import { TsDocsSelect } from './_blocks.js';
 
 // DATA
@@ -117,8 +118,18 @@ const latestContent = (content: unknown): string => {
  *
  * @param sis - Attachment records to normalize for the Docs editor.
  */
-const textAsset = (sis: Sister): boolean =>
-  /\.(?:csv|json|log|md|mdx|text|txt|xml|ya?ml)$/i.test(sis.name || sis.path.split('?')[0] || '');
+const textAsset = (sis: Sister): boolean => {
+  const extension = /\.(?:csv|json|log|md|mdx|text|txt|xml|ya?ml)(?:[?#].*)?$/i;
+  return [sis.name, sis.title, sis.path].some(
+    (candidate) => typeof candidate === 'string' && extension.test(candidate.trim()),
+  );
+};
+
+const attachmentUrl = (attachmentPath: string, documentPath: string): string => {
+  if (!/^(?:\.\.?(?:\/|$))/.test(attachmentPath)) return attachmentPath;
+  const basePath = documentPath.startsWith('/') ? documentPath : `/${documentPath}`;
+  return new URL(attachmentPath, new URL(basePath, window.location.origin)).toString();
+};
 
 /*//////////////////////////////////////////////////
 COMPONENTS
@@ -164,6 +175,7 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
   const [ctxAttachment, setCtxAttachment] = useState<{ item: Sister; x: number; y: number } | null>(
     null,
   );
+  const ctxMenuRef = useRef<HTMLDivElement | null>(null);
   const sistersMap = useMemo(() => {
     const map = new Map<string, Sister>();
     sisters.forEach((s) => {
@@ -280,12 +292,12 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
    * @param sis - Attachment records being filtered for the active document.
    */
   const viewAsset = async (sis: Sister): Promise<void> => {
-    if (!textAsset(sis) || !sis.path.startsWith('http')) {
+    if (!textAsset(sis) || !sis.path || sis.path.startsWith('temp-')) {
       setViewDlg(sis);
       return;
     }
     try {
-      const res = await fetch(sis.path);
+      const res = await fetch(attachmentUrl(sis.path, dPath));
       if (!res.ok) throw new Error(`Attachment preview failed (${res.status}).`);
       setViewDlg({ ...sis, content: await res.text() });
     } catch (err) {
@@ -322,6 +334,7 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
           s.id === tempId
             ? {
                 ...s,
+                ...(finalAsset.id ? { id: finalAsset.id } : {}),
                 path: finalAsset.path || finalAsset.src || tempId,
                 name: finalAsset.name || file.name,
                 isMd: isMdFile,
@@ -656,6 +669,19 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, [ctxAttachment]);
+  useLayoutEffect(() => {
+    const menu = ctxMenuRef.current;
+    if (!ctxAttachment || !menu) return;
+    const { width, height } = menu.getBoundingClientRect();
+    const inset = 8;
+    const x = Math.max(inset, Math.min(ctxAttachment.x, window.innerWidth - width - inset));
+    const y = Math.max(inset, Math.min(ctxAttachment.y, window.innerHeight - height - inset));
+    if (x !== ctxAttachment.x || y !== ctxAttachment.y) {
+      setCtxAttachment((current) =>
+        current?.item.path === ctxAttachment.item.path ? { ...current, x, y } : current,
+      );
+    }
+  }, [ctxAttachment]);
   useEffect(() => {
     /**
      * Opens the attachment context menu for the item under the pointer.
@@ -827,9 +853,10 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
       </div>
       {ctxAttachment && (
         <div
+          ref={ctxMenuRef}
           role="menu"
           data-docs-attachment-menu
-          className="fixed z-[120] min-w-32 rounded-md border border-primary-6 bg-white p-1 text-primary-12 shadow-lg dark:bg-black"
+          className="fixed z-[120] max-h-[calc(100dvh-1rem)] min-w-32 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md border border-primary-6 bg-white p-1 text-primary-12 shadow-lg dark:bg-black"
           style={{ left: ctxAttachment.x, top: ctxAttachment.y }}
           onContextMenu={(e) => e.preventDefault()}
         >
@@ -941,6 +968,7 @@ export function Attachments({ dPath, tree }: { dPath: string; tree: TreeType[] }
                                     s.id === tmpId
                                       ? {
                                           ...s,
+                                          ...(finalAsset.id ? { id: finalAsset.id } : {}),
                                           path: fPath,
                                           name: fPath.split('/').pop() || mergedFile.name,
                                         }

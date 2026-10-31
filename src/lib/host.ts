@@ -1,10 +1,13 @@
 import type { ComponentType, ReactNode } from 'react';
+import type { DocsBlockOptions } from '../components/blocks.js';
 
 /** The portable tree-node shape used by the original Terra Docs workspace. */
 export type DocsHostTreeNode = {
   type: 'branch' | 'leaf';
   origName: string;
   title?: string;
+  /** Explicit accent for this node; descendants inherit the nearest defined hue. */
+  hue?: number | null;
   url?: string;
   path?: string;
   permission?: 'read' | 'write';
@@ -99,6 +102,10 @@ export type DocsHostOperationContracts = {
     input: { path: string; parent: string; order: number; type?: 'leaf' | 'branch' };
     output: DocsHostTreeNode[] | null;
   };
+  'write.doc.retargetSources': {
+    input: { sourceIds: string[]; targetId: string };
+    output: boolean;
+  };
   'write.doc.rm': {
     input: { path: string; type: 'doc' | 'folder'; assets?: boolean };
     output: null;
@@ -131,6 +138,8 @@ export type DocsHostAdapter = {
   siteTitle?: string;
   /** Supporting text shown beneath the site title in the shared sidebar. */
   siteDescription?: string;
+  /** Optional shared hue for hosts whose Docs surface needs its own palette. */
+  hue?: number | null;
 };
 
 /** A host-specific rich block renderer. Generic blocks live in @terra-symposium/docs. */
@@ -161,8 +170,14 @@ export type TerraDocsWorkspaceProps = {
   content?: unknown;
   /** Optional static React content slot rendered inside the canonical View surface. */
   renderContent?: ReactNode;
+  /** Optional host-owned React content rendered before the document body in View mode. */
+  beforeContent?: ReactNode;
+  /** Optional host-owned React content appended after the canonical View surface. */
+  afterContent?: ReactNode;
   standalone?: boolean;
   full?: boolean;
   mode?: 'view' | 'edit' | 'attachments';
+  /** Disable selected shared rich blocks while keeping their stored source intact. */
+  blocks?: DocsBlockOptions;
   customBlocks?: DocsCustomBlock[];
 };

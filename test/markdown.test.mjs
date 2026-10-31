@@ -17,3 +17,14 @@ test('sanitizes script markup and dangerous links', () => {
   assert.doesNotMatch(html, /<script|javascript:/i);
   assert.match(html, /Safe/);
 });
+
+test('renders Docs callout directives as shared rich blocks', () => {
+  const html = renderMarkdown(':::warning[Check this]\nReview **the source**.\n:::');
+  assert.match(html, /terra-docs-callout terra-docs-callout-warning/);
+  assert.match(html, /<strong>Check this<\/strong>/);
+  assert.match(html, /Review <strong>the source<\/strong>/);
+  assert.doesNotMatch(
+    renderMarkdown(':::warning[Check this]\nBody.\n:::', { callout: false }),
+    /terra-docs-callout/,
+  );
+});
